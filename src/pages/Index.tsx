@@ -125,23 +125,23 @@ const Index = () => {
                   <FeaturedAppCard 
                     title="Image to Video"
                     subtitle="By OpenArt"
-                    imageSrc="/lovable-uploads/a3dc041f-fb55-4108-807b-ca52164461d8.png"
+                    imageSrc="/lovable-uploads/12cd0679-f352-498e-a6ad-9faaa1ffbec9.png"
                     isNew
                   />
                   <FeaturedAppCard 
                     title="Ultimate Upscale"
                     subtitle="By OpenArt"
-                    imageSrc="/lovable-uploads/a3dc041f-fb55-4108-807b-ca52164461d8.png"
+                    imageSrc="/lovable-uploads/d16f3783-6af1-4327-8936-c5a50eb0cab5.png"
                   />
                   <FeaturedAppCard 
                     title="AI Filters"
                     subtitle="By OpenArt"
-                    imageSrc="/lovable-uploads/a3dc041f-fb55-4108-807b-ca52164461d8.png"
+                    imageSrc="/lovable-uploads/142dea30-a410-4e79-84d0-70189e8fcd07.png"
                   />
                   <FeaturedAppCard 
                     title="Sketch to image"
                     subtitle="By OpenArt"
-                    imageSrc="/lovable-uploads/a3dc041f-fb55-4108-807b-ca52164461d8.png"
+                    imageSrc="/lovable-uploads/b67f802d-430a-4e5a-8755-b61e10470d58.png"
                   />
                 </div>
                 
