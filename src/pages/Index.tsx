@@ -6,6 +6,7 @@ import Header from "../components/Header";
 import { CreationCard } from "../components/CreationCard";
 import { QuickStartItem } from "../components/QuickStartItem";
 import { FeaturedAppCard } from "../components/FeaturedAppCard";
+import { ModelCard } from "../components/ModelCard";
 import { Video, Paintbrush, Grid, FileText, ArrowUpRight, ArrowRight, Search } from "lucide-react";
 
 const Index = () => {
@@ -170,6 +171,54 @@ const Index = () => {
                 <div className="flex justify-center mt-8">
                   <button className="border border-gray-700 hover:bg-gray-800 transition-colors text-white flex items-center gap-2 rounded-md px-6 py-2 text-sm font-medium">
                     View All Flow Apps
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
+              </section>
+              
+              <section className="mb-12">
+                <h2 className="text-2xl font-bold text-white mb-6">
+                  Start from a model
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <ModelCard 
+                    title="Train your own model"
+                    subtitle="Customize your creativity"
+                    imageSrc=""
+                    isTrainYourOwn={true}
+                  />
+                  <ModelCard 
+                    title="OpenArt SDXL"
+                    subtitle="OpenArt"
+                    imageSrc="/lovable-uploads/d8b5e246-d962-466e-ad7d-61985e448fb9.png"
+                    tags={[
+                      { label: 'SDXL', variant: 'blue' },
+                      { label: 'Standard', variant: 'green' }
+                    ]}
+                  />
+                  <ModelCard 
+                    title="Flux (dev)"
+                    subtitle="Flux_dev"
+                    imageSrc="/lovable-uploads/d8b5e246-d962-466e-ad7d-61985e448fb9.png"
+                    tags={[
+                      { label: 'Flux', variant: 'orange' },
+                      { label: 'Standard', variant: 'green' }
+                    ]}
+                  />
+                  <ModelCard 
+                    title="Flux Realism"
+                    subtitle="Flux_Realism"
+                    imageSrc="/lovable-uploads/d8b5e246-d962-466e-ad7d-61985e448fb9.png"
+                    tags={[
+                      { label: 'Flux', variant: 'orange' },
+                      { label: 'Photorealistic', variant: 'yellow' }
+                    ]}
+                  />
+                </div>
+                
+                <div className="flex justify-center mt-8">
+                  <button className="border border-gray-700 hover:bg-gray-800 transition-colors text-white flex items-center gap-2 rounded-md px-6 py-2 text-sm font-medium">
+                    View All Models
                     <ArrowRight size={16} />
                   </button>
                 </div>
