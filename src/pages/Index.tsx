@@ -149,22 +149,22 @@ const Index = () => {
                   <FeaturedAppCard 
                     title="Blend Board"
                     subtitle="By OpenArt"
-                    imageSrc="/lovable-uploads/a3dc041f-fb55-4108-807b-ca52164461d8.png"
+                    imageSrc="/lovable-uploads/4255fa40-8036-4424-a210-e3bcd99754df.png"
                   />
                   <FeaturedAppCard 
                     title="Change Facial Expression"
                     subtitle="By OpenArt"
-                    imageSrc="/lovable-uploads/a3dc041f-fb55-4108-807b-ca52164461d8.png"
+                    imageSrc="/lovable-uploads/0c6db754-b805-46e5-a4b8-319a9d8fef71.png"
                   />
                   <FeaturedAppCard 
                     title="Expand"
                     subtitle="By OpenArt"
-                    imageSrc="/lovable-uploads/a3dc041f-fb55-4108-807b-ca52164461d8.png"
+                    imageSrc="/lovable-uploads/8827d443-a68b-4bd9-998f-3c4c410510e9.png"
                   />
                   <FeaturedAppCard 
                     title="Remove background"
                     subtitle="By OpenArt"
-                    imageSrc="/lovable-uploads/a3dc041f-fb55-4108-807b-ca52164461d8.png"
+                    imageSrc="/lovable-uploads/b89881e6-12b4-4527-9c22-1052b8116ca9.png"
                   />
                 </div>
                 
