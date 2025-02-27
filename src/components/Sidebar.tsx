@@ -44,7 +44,7 @@ export const Sidebar = () => {
     return (
       <div className="w-16 bg-sidebar min-h-screen flex flex-col items-center py-4 border-r border-gray-800">
         <div className="mb-8">
-          <img src="/logo.svg" alt="Logo" className="w-8 h-8" />
+          <img src="/lovable-uploads/407e5ec8-9b67-42ee-acf0-b238e194aa64.png" alt="Logo" className="w-8 h-8" />
         </div>
         <button
           onClick={() => setIsCollapsed(false)}
@@ -60,7 +60,7 @@ export const Sidebar = () => {
     <div className="w-[232px] bg-sidebar min-h-screen flex flex-col border-r border-gray-800">
       <div className="flex items-center justify-between p-4 border-b border-gray-800">
         <div className="flex items-center gap-2">
-          <img src="/logo.svg" alt="Logo" className="w-8 h-8" />
+          <img src="/lovable-uploads/407e5ec8-9b67-42ee-acf0-b238e194aa64.png" alt="Logo" className="w-8 h-8" />
           <span className="text-white font-semibold">OpenArt</span>
         </div>
         <button
