@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { ChevronRight, HomeIcon, Users, Video, Image, Edit, Palette, Grid, Apps, Rss, Code, ChevronDown, BookOpen, HelpCircle, Sparkles, Palette as ThemeIcon, Newspaper } from "lucide-react";
+import { ChevronRight, HomeIcon, Users, Video, Image, Edit, Palette, Grid, LayoutGrid, Rss, Code, ChevronDown, BookOpen, HelpCircle, Sparkles, Palette as ThemeIcon, Newspaper } from "lucide-react";
 
 type SidebarItemProps = {
   icon: React.ReactNode;
@@ -78,7 +78,7 @@ export const Sidebar = () => {
         <SidebarItem icon={<Edit size={20} />} label="Edit Image" />
         <SidebarItem icon={<Palette size={20} />} label="Style Palettes" />
         <SidebarItem icon={<Grid size={20} />} label="Models" />
-        <SidebarItem icon={<Apps size={20} />} label="Apps" />
+        <SidebarItem icon={<LayoutGrid size={20} />} label="Apps" />
         <SidebarItem icon={<Rss size={20} />} label="Community Feed" />
         <SidebarItem icon={<Code size={20} />} label="ComfyUI Workflows" />
       </div>
