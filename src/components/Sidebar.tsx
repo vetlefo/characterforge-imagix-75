@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { ChevronRight, HomeIcon, Users, Video, Image, Edit, Palette, Grid, LayoutGrid, Rss, Code, ChevronDown, BookOpen, HelpCircle, Sparkles, Palette as ThemeIcon, Newspaper } from "lucide-react";
+import { ChevronRight, HomeIcon, Users, Video, Image, Edit, Palette, Grid, LayoutGrid, Rss, Code, ChevronDown, BookOpen, HelpCircle, Sparkles, Palette as ThemeIcon, Newspaper, Clock, Bookmark, Heart, Album, Boxes } from "lucide-react";
 
 type SidebarItemProps = {
   icon: React.ReactNode;
@@ -38,6 +38,7 @@ const DropdownItem = ({ icon, label, isExternal = false }: { icon: React.ReactNo
 export const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
+  const [myStuffOpen, setMyStuffOpen] = useState(false);
 
   if (isCollapsed) {
     return (
@@ -85,10 +86,23 @@ export const Sidebar = () => {
 
       <div className="flex-grow overflow-auto">
         <div className="py-2 px-3">
-          <div className="flex items-center gap-3 p-3 text-gray-300 hover:bg-accent rounded-md transition-colors cursor-pointer">
-            <ChevronRight size={16} />
+          <div 
+            className="flex items-center gap-3 p-3 text-gray-300 hover:bg-accent rounded-md transition-colors cursor-pointer"
+            onClick={() => setMyStuffOpen(!myStuffOpen)}
+          >
+            {myStuffOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
             <span className="text-white text-sm">My stuff</span>
           </div>
+
+          {myStuffOpen && (
+            <div className="mt-1 space-y-1 animate-fade-in">
+              <DropdownItem icon={<Clock size={16} />} label="Creation History" />
+              <DropdownItem icon={<Bookmark size={16} />} label="Bookmarks" />
+              <DropdownItem icon={<Heart size={16} />} label="Liked" />
+              <DropdownItem icon={<Album size={16} />} label="Saved Albums" />
+              <DropdownItem icon={<Boxes size={16} />} label="Trained Models" />
+            </div>
+          )}
         </div>
 
         <div className="py-2 px-3">
