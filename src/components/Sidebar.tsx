@@ -16,7 +16,7 @@ const SidebarItem = ({ icon, label, isActive = false, isNew = false, hasDropdown
     className={`w-full flex items-center gap-3 p-3 rounded-md transition-colors ${isActive ? 'bg-accent' : 'hover:bg-accent'}`}
     onClick={onClick}
   >
-    <div className="text-gray-300">{icon}</div>
+    <div className={isActive ? "text-white" : "text-gray-300"}>{icon}</div>
     <span className="text-white text-sm font-medium flex-1 text-left">{label}</span>
     {isNew && (
       <span className="bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
@@ -27,9 +27,9 @@ const SidebarItem = ({ icon, label, isActive = false, isNew = false, hasDropdown
   </button>
 );
 
-const DropdownItem = ({ icon, label, isExternal = false }: { icon: React.ReactNode; label: string; isExternal?: boolean }) => (
-  <div className="flex items-center gap-3 p-3 pl-12 hover:bg-accent rounded-md transition-colors cursor-pointer">
-    <div className="text-gray-300">{icon}</div>
+const DropdownItem = ({ icon, label, isExternal = false, isActive = false }: { icon: React.ReactNode; label: string; isExternal?: boolean; isActive?: boolean }) => (
+  <div className={`flex items-center gap-3 p-3 pl-12 hover:bg-accent rounded-md transition-colors cursor-pointer ${isActive ? 'bg-accent' : ''}`}>
+    <div className={isActive ? "text-white" : "text-gray-300"}>{icon}</div>
     <span className="text-white text-sm">{label}</span>
     {isExternal && <span className="ml-2 px-1 bg-muted rounded-sm text-[10px]">↗</span>}
   </div>
@@ -39,6 +39,8 @@ export const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const [myStuffOpen, setMyStuffOpen] = useState(false);
+  const [activeItem, setActiveItem] = useState("Home");
+  const [activeDropdownItem, setActiveDropdownItem] = useState("");
 
   if (isCollapsed) {
     return (
@@ -72,16 +74,67 @@ export const Sidebar = () => {
       </div>
 
       <div className="py-2 px-3 flex flex-col gap-1">
-        <SidebarItem icon={<HomeIcon size={20} />} label="Home" />
-        <SidebarItem icon={<Users size={20} />} label="Characters" isNew />
-        <SidebarItem icon={<Video size={20} />} label="Videos" />
-        <SidebarItem icon={<Image size={20} />} label="Create Image" />
-        <SidebarItem icon={<Edit size={20} />} label="Edit Image" />
-        <SidebarItem icon={<Palette size={20} />} label="Style Palettes" />
-        <SidebarItem icon={<Grid size={20} />} label="Models" />
-        <SidebarItem icon={<LayoutGrid size={20} />} label="Apps" />
-        <SidebarItem icon={<Rss size={20} />} label="Community Feed" />
-        <SidebarItem icon={<Code size={20} />} label="ComfyUI Workflows" />
+        <SidebarItem 
+          icon={<HomeIcon size={20} />} 
+          label="Home" 
+          isActive={activeItem === "Home"}
+          onClick={() => setActiveItem("Home")}
+        />
+        <SidebarItem 
+          icon={<Users size={20} />} 
+          label="Characters" 
+          isNew 
+          isActive={activeItem === "Characters"}
+          onClick={() => setActiveItem("Characters")}
+        />
+        <SidebarItem 
+          icon={<Video size={20} />} 
+          label="Videos" 
+          isActive={activeItem === "Videos"}
+          onClick={() => setActiveItem("Videos")}
+        />
+        <SidebarItem 
+          icon={<Image size={20} />} 
+          label="Create Image" 
+          isActive={activeItem === "Create Image"}
+          onClick={() => setActiveItem("Create Image")}
+        />
+        <SidebarItem 
+          icon={<Edit size={20} />} 
+          label="Edit Image" 
+          isActive={activeItem === "Edit Image"}
+          onClick={() => setActiveItem("Edit Image")}
+        />
+        <SidebarItem 
+          icon={<Palette size={20} />} 
+          label="Style Palettes" 
+          isActive={activeItem === "Style Palettes"}
+          onClick={() => setActiveItem("Style Palettes")}
+        />
+        <SidebarItem 
+          icon={<Grid size={20} />} 
+          label="Models" 
+          isActive={activeItem === "Models"}
+          onClick={() => setActiveItem("Models")}
+        />
+        <SidebarItem 
+          icon={<LayoutGrid size={20} />} 
+          label="Apps" 
+          isActive={activeItem === "Apps"}
+          onClick={() => setActiveItem("Apps")}
+        />
+        <SidebarItem 
+          icon={<Rss size={20} />} 
+          label="Community Feed" 
+          isActive={activeItem === "Community Feed"}
+          onClick={() => setActiveItem("Community Feed")}
+        />
+        <SidebarItem 
+          icon={<Code size={20} />} 
+          label="ComfyUI Workflows" 
+          isActive={activeItem === "ComfyUI Workflows"}
+          onClick={() => setActiveItem("ComfyUI Workflows")}
+        />
       </div>
 
       <div className="flex-grow overflow-auto">
@@ -96,11 +149,36 @@ export const Sidebar = () => {
 
           {myStuffOpen && (
             <div className="mt-1 space-y-1 animate-fade-in">
-              <DropdownItem icon={<Clock size={16} />} label="Creation History" />
-              <DropdownItem icon={<Bookmark size={16} />} label="Bookmarks" />
-              <DropdownItem icon={<Heart size={16} />} label="Liked" />
-              <DropdownItem icon={<Album size={16} />} label="Saved Albums" />
-              <DropdownItem icon={<Boxes size={16} />} label="Trained Models" />
+              <DropdownItem 
+                icon={<Clock size={16} />} 
+                label="Creation History" 
+                isActive={activeDropdownItem === "Creation History"}
+                onClick={() => setActiveDropdownItem("Creation History")}
+              />
+              <DropdownItem 
+                icon={<Bookmark size={16} />} 
+                label="Bookmarks" 
+                isActive={activeDropdownItem === "Bookmarks"}
+                onClick={() => setActiveDropdownItem("Bookmarks")}
+              />
+              <DropdownItem 
+                icon={<Heart size={16} />} 
+                label="Liked" 
+                isActive={activeDropdownItem === "Liked"}
+                onClick={() => setActiveDropdownItem("Liked")}
+              />
+              <DropdownItem 
+                icon={<Album size={16} />} 
+                label="Saved Albums" 
+                isActive={activeDropdownItem === "Saved Albums"}
+                onClick={() => setActiveDropdownItem("Saved Albums")}
+              />
+              <DropdownItem 
+                icon={<Boxes size={16} />} 
+                label="Trained Models" 
+                isActive={activeDropdownItem === "Trained Models"}
+                onClick={() => setActiveDropdownItem("Trained Models")}
+              />
             </div>
           )}
         </div>
@@ -110,17 +188,53 @@ export const Sidebar = () => {
             icon={<ChevronDown size={16} />} 
             label="Resources" 
             hasDropdown 
-            onClick={() => setResourcesOpen(!resourcesOpen)} 
+            isActive={activeItem === "Resources"}
+            onClick={() => {
+              setResourcesOpen(!resourcesOpen); 
+              setActiveItem("Resources");
+            }} 
           />
           
           {resourcesOpen && (
             <div className="mt-1 space-y-1 animate-fade-in">
-              <DropdownItem icon={<BookOpen size={16} />} label="Tutorials" />
-              <DropdownItem icon={<HelpCircle size={16} />} label="Wiki" isExternal />
-              <DropdownItem icon={<HelpCircle size={16} />} label="Help Center" />
-              <DropdownItem icon={<Sparkles size={16} />} label="What's New" />
-              <DropdownItem icon={<ThemeIcon size={16} />} label="Theme Gallery" />
-              <DropdownItem icon={<Newspaper size={16} />} label="Blog" isExternal />
+              <DropdownItem 
+                icon={<BookOpen size={16} />} 
+                label="Tutorials" 
+                isActive={activeDropdownItem === "Tutorials"}
+                onClick={() => setActiveDropdownItem("Tutorials")}
+              />
+              <DropdownItem 
+                icon={<HelpCircle size={16} />} 
+                label="Wiki" 
+                isExternal 
+                isActive={activeDropdownItem === "Wiki"}
+                onClick={() => setActiveDropdownItem("Wiki")}
+              />
+              <DropdownItem 
+                icon={<HelpCircle size={16} />} 
+                label="Help Center" 
+                isActive={activeDropdownItem === "Help Center"}
+                onClick={() => setActiveDropdownItem("Help Center")}
+              />
+              <DropdownItem 
+                icon={<Sparkles size={16} />} 
+                label="What's New" 
+                isActive={activeDropdownItem === "What's New"}
+                onClick={() => setActiveDropdownItem("What's New")}
+              />
+              <DropdownItem 
+                icon={<ThemeIcon size={16} />} 
+                label="Theme Gallery" 
+                isActive={activeDropdownItem === "Theme Gallery"}
+                onClick={() => setActiveDropdownItem("Theme Gallery")}
+              />
+              <DropdownItem 
+                icon={<Newspaper size={16} />} 
+                label="Blog" 
+                isExternal 
+                isActive={activeDropdownItem === "Blog"}
+                onClick={() => setActiveDropdownItem("Blog")}
+              />
             </div>
           )}
         </div>
