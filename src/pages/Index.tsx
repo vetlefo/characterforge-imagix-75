@@ -6,7 +6,7 @@ import Header from "../components/Header";
 import { CreationCard } from "../components/CreationCard";
 import { QuickStartItem } from "../components/QuickStartItem";
 import { FeaturedAppCard } from "../components/FeaturedAppCard";
-import { Video, Paintbrush, Grid, FileText, ArrowUpRight } from "lucide-react";
+import { Video, Paintbrush, Grid, FileText, ArrowUpRight, ArrowRight } from "lucide-react";
 
 const Index = () => {
   // Add a handler to add the logo.svg file if it's missing
@@ -83,7 +83,7 @@ const Index = () => {
                 </div>
               </section>
               
-              <section>
+              <section className="mb-12">
                 <h2 className="text-2xl font-bold text-white mb-6">
                   Featured Apps
                 </h2>
@@ -91,24 +91,54 @@ const Index = () => {
                   <FeaturedAppCard 
                     title="Image to Video"
                     subtitle="By OpenArt"
-                    imageSrc="/placeholder.svg"
+                    imageSrc="/lovable-uploads/a3dc041f-fb55-4108-807b-ca52164461d8.png"
                     isNew
                   />
                   <FeaturedAppCard 
                     title="Ultimate Upscale"
                     subtitle="By OpenArt"
-                    imageSrc="/placeholder.svg"
+                    imageSrc="/lovable-uploads/a3dc041f-fb55-4108-807b-ca52164461d8.png"
                   />
                   <FeaturedAppCard 
                     title="AI Filters"
                     subtitle="By OpenArt"
-                    imageSrc="/placeholder.svg"
+                    imageSrc="/lovable-uploads/a3dc041f-fb55-4108-807b-ca52164461d8.png"
                   />
                   <FeaturedAppCard 
                     title="Sketch to image"
                     subtitle="By OpenArt"
-                    imageSrc="/placeholder.svg"
+                    imageSrc="/lovable-uploads/a3dc041f-fb55-4108-807b-ca52164461d8.png"
                   />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+                  <FeaturedAppCard 
+                    title="Blend Board"
+                    subtitle="By OpenArt"
+                    imageSrc="/lovable-uploads/a3dc041f-fb55-4108-807b-ca52164461d8.png"
+                  />
+                  <FeaturedAppCard 
+                    title="Change Facial Expression"
+                    subtitle="By OpenArt"
+                    imageSrc="/lovable-uploads/a3dc041f-fb55-4108-807b-ca52164461d8.png"
+                  />
+                  <FeaturedAppCard 
+                    title="Expand"
+                    subtitle="By OpenArt"
+                    imageSrc="/lovable-uploads/a3dc041f-fb55-4108-807b-ca52164461d8.png"
+                  />
+                  <FeaturedAppCard 
+                    title="Remove background"
+                    subtitle="By OpenArt"
+                    imageSrc="/lovable-uploads/a3dc041f-fb55-4108-807b-ca52164461d8.png"
+                  />
+                </div>
+                
+                <div className="flex justify-center mt-8">
+                  <button className="border border-gray-700 hover:bg-gray-800 transition-colors text-white flex items-center gap-2 rounded-md px-6 py-2 text-sm font-medium">
+                    View All Flow Apps
+                    <ArrowRight size={16} />
+                  </button>
                 </div>
               </section>
             </main>
