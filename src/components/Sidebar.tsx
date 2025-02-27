@@ -11,6 +11,14 @@ type SidebarItemProps = {
   onClick?: () => void;
 };
 
+type DropdownItemProps = {
+  icon: React.ReactNode;
+  label: string;
+  isExternal?: boolean;
+  isActive?: boolean;
+  onClick?: () => void;
+};
+
 const SidebarItem = ({ icon, label, isActive = false, isNew = false, hasDropdown = false, onClick }: SidebarItemProps) => (
   <button 
     className={`w-full flex items-center gap-3 p-3 rounded-md transition-colors ${isActive ? 'bg-accent' : 'hover:bg-accent'}`}
@@ -23,16 +31,21 @@ const SidebarItem = ({ icon, label, isActive = false, isNew = false, hasDropdown
         NEW
       </span>
     )}
-    {hasDropdown && <ChevronDown size={16} className="text-gray-500" />}
+    {hasDropdown && (
+      isActive ? <ChevronDown size={16} className="text-gray-300" /> : <ChevronRight size={16} className="text-gray-300" />
+    )}
   </button>
 );
 
-const DropdownItem = ({ icon, label, isExternal = false, isActive = false }: { icon: React.ReactNode; label: string; isExternal?: boolean; isActive?: boolean }) => (
-  <div className={`flex items-center gap-3 p-3 pl-12 hover:bg-accent rounded-md transition-colors cursor-pointer ${isActive ? 'bg-accent' : ''}`}>
+const DropdownItem = ({ icon, label, isExternal = false, isActive = false, onClick }: DropdownItemProps) => (
+  <button 
+    className={`w-full flex items-center gap-3 p-3 pl-12 hover:bg-accent rounded-md transition-colors ${isActive ? 'bg-accent' : ''}`}
+    onClick={onClick}
+  >
     <div className={isActive ? "text-white" : "text-gray-300"}>{icon}</div>
-    <span className="text-white text-sm">{label}</span>
-    {isExternal && <span className="ml-2 px-1 bg-muted rounded-sm text-[10px]">↗</span>}
-  </div>
+    <span className={`text-sm ${isActive ? "text-white" : "text-gray-300"}`}>{label}</span>
+    {isExternal && <span className="ml-2 px-1 bg-muted rounded-sm text-[10px] text-gray-300">↗</span>}
+  </button>
 );
 
 export const Sidebar = () => {
@@ -139,13 +152,16 @@ export const Sidebar = () => {
 
       <div className="flex-grow overflow-auto">
         <div className="py-2 px-3">
-          <div 
-            className="flex items-center gap-3 p-3 text-gray-300 hover:bg-accent rounded-md transition-colors cursor-pointer"
-            onClick={() => setMyStuffOpen(!myStuffOpen)}
-          >
-            {myStuffOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            <span className="text-white text-sm">My stuff</span>
-          </div>
+          <SidebarItem 
+            icon={myStuffOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            label="My stuff" 
+            isActive={activeItem === "My stuff"}
+            hasDropdown
+            onClick={() => {
+              setMyStuffOpen(!myStuffOpen);
+              setActiveItem("My stuff");
+            }}
+          />
 
           {myStuffOpen && (
             <div className="mt-1 space-y-1 animate-fade-in">
@@ -185,14 +201,14 @@ export const Sidebar = () => {
 
         <div className="py-2 px-3">
           <SidebarItem 
-            icon={<ChevronDown size={16} />} 
+            icon={resourcesOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
             label="Resources" 
-            hasDropdown 
+            hasDropdown
             isActive={activeItem === "Resources"}
             onClick={() => {
-              setResourcesOpen(!resourcesOpen); 
+              setResourcesOpen(!resourcesOpen);
               setActiveItem("Resources");
-            }} 
+            }}
           />
           
           {resourcesOpen && (
