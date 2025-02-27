@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 12%;
+    --background: 0 0% 10%;
     --foreground: 0 0% 100%;
 
     --card: 0 0% 15%;
@@ -35,7 +35,7 @@
 
     --radius: 0.5rem;
     
-    --sidebar-background: 0 0% 10%;
+    --sidebar-background: 0 0% 9%;
     --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 0 0% 100%;
     --sidebar-primary-foreground: 0 0% 0%;
@@ -54,7 +54,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground overflow-x-hidden;
+    @apply bg-app text-foreground overflow-x-hidden;
   }
 }
 
