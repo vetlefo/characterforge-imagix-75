@@ -6,6 +6,7 @@ import { StyleSystem } from './components/creative/StyleSystem/StyleSystem';
 import { StyleSystemProvider } from './components/creative/StyleSystem/StyleSystemContext';
 import AnimationPreviewPage from './pages/AnimationPreviewPage';
 import Index from './pages/Index';
+import WebsitePreviewDemo from './pages/WebsitePreviewDemo';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           </StyleSystemProvider>
         } />
         <Route path="/animation" element={<AnimationPreviewPage />} />
+        <Route path="/website-preview" element={<WebsitePreviewDemo />} />
       </Routes>
     </Router>
   );

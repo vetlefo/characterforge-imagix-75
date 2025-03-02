@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Combine, Orbit, LightbulbIcon } from "lucide-react";
+import { Combine, Orbit, LightbulbIcon, Monitor } from "lucide-react";
 
 interface CreativePossibilityProps { 
   icon: React.ReactNode; 
@@ -30,7 +30,7 @@ const CreativePossibility = ({ icon, title, description, isPro = false }: Creati
 
 const CreativePossibilities = () => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <CreativePossibility 
         icon={<Combine size={22} />} 
         title="Transform" 
@@ -46,6 +46,11 @@ const CreativePossibilities = () => {
         title="Expand" 
         description="Let your ideas grow beyond boundaries"
         isPro={true}
+      />
+      <CreativePossibility 
+        icon={<Monitor size={22} />} 
+        title="Preview" 
+        description="Interactive website code previewer"
       />
     </div>
   );
