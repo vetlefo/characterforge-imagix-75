@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useStyleSystem } from './StyleSystemContext';
-import { SpacingSystem as SpacingSystemType } from './types';
+import { Spacing } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
 export const SpacingSystem: React.FC = () => {
@@ -16,7 +16,7 @@ export const SpacingSystem: React.FC = () => {
   } = useStyleSystem();
 
   const [isCreating, setIsCreating] = useState(false);
-  const [newSpacing, setNewSpacing] = useState<SpacingSystemType>({
+  const [newSpacing, setNewSpacing] = useState<Spacing>({
     id: "",
     name: "New Spacing",
     scale: {
@@ -67,7 +67,7 @@ export const SpacingSystem: React.FC = () => {
     }));
   };
 
-  const renderSpacingPreview = (spacing: SpacingSystemType) => {
+  const renderSpacingPreview = (spacing: Spacing) => {
     return (
       <div className="space-y-2">
         <div className="flex gap-2 items-end">
@@ -134,14 +134,14 @@ export const SpacingSystem: React.FC = () => {
             <div>
               <h4 className="text-sm font-medium mb-2">Spacing Scale</h4>
               <div className="grid grid-cols-3 gap-2">
-                {(Object.keys(newSpacing.scale) as Array<keyof typeof newSpacing.scale>).map((size) => (
-                  <div key={size}>
-                    <Label htmlFor={`scale-${size}`} className="block text-xs mb-1">{size}</Label>
+                {Object.entries(newSpacing.scale).map(([key, value]) => (
+                  <div key={key}>
+                    <Label htmlFor={`scale-${key}`} className="block text-xs mb-1">{key}</Label>
                     <input
-                      id={`scale-${size}`}
+                      id={`scale-${key}`}
                       type="text"
-                      value={newSpacing.scale[size]}
-                      onChange={(e) => handleInputChange('scale', size, e.target.value)}
+                      value={value}
+                      onChange={(e) => handleInputChange('scale', key, e.target.value)}
                       className="w-full h-8 bg-background px-2 py-1 text-xs rounded-md border border-input"
                     />
                   </div>
@@ -152,14 +152,14 @@ export const SpacingSystem: React.FC = () => {
             <div>
               <h4 className="text-sm font-medium mb-2">Container Widths</h4>
               <div className="grid grid-cols-2 gap-2">
-                {(Object.keys(newSpacing.containerWidth) as Array<keyof typeof newSpacing.containerWidth>).map((size) => (
-                  <div key={size}>
-                    <Label htmlFor={`container-${size}`} className="block text-xs mb-1">{size}</Label>
+                {Object.entries(newSpacing.containerWidth).map(([key, value]) => (
+                  <div key={key}>
+                    <Label htmlFor={`container-${key}`} className="block text-xs mb-1">{key}</Label>
                     <input
-                      id={`container-${size}`}
+                      id={`container-${key}`}
                       type="text"
-                      value={newSpacing.containerWidth[size]}
-                      onChange={(e) => handleInputChange('containerWidth', size, e.target.value)}
+                      value={value}
+                      onChange={(e) => handleInputChange('containerWidth', key, e.target.value)}
                       className="w-full h-8 bg-background px-2 py-1 text-xs rounded-md border border-input"
                     />
                   </div>

@@ -1,5 +1,4 @@
-
-import { ColorPalette, Typography, SpacingSystem } from "./types";
+import { ColorPalette, Typography, Spacing } from "./types";
 
 export const defaultPalettes: ColorPalette[] = [
   {
@@ -107,7 +106,7 @@ export const defaultTypography: Typography[] = [
   }
 ];
 
-export const defaultSpacing: SpacingSystem[] = [
+export const defaultSpacing: Spacing[] = [
   {
     id: "compact",
     name: "Compact",
