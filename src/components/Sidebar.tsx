@@ -1,6 +1,14 @@
 
 import { useState } from "react";
-import { PlusCircle, FolderOpen, BookOpen, Compass, Settings, LogOut, Home } from "lucide-react";
+import { 
+  Sparkles, 
+  Lightbulb, 
+  Combine, 
+  Layers, 
+  Orbit, 
+  Settings, 
+  Home 
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const SidebarItem = ({ 
@@ -18,8 +26,8 @@ const SidebarItem = ({
     className={cn(
       "w-full flex flex-col items-center justify-center p-3 rounded-xl transition-all", 
       active 
-        ? "bg-[#2A2A4A] text-blue-400" 
-        : "text-gray-400 hover:text-white hover:bg-[#1A1A2E]"
+        ? "bg-blue-500/10 text-blue-400" 
+        : "text-gray-400 hover:text-white hover:bg-[#1A1A2E]/30"
     )}
     onClick={onClick}
   >
@@ -32,7 +40,7 @@ export const Sidebar = () => {
   const [activeItem, setActiveItem] = useState("Home");
 
   return (
-    <div className="w-20 bg-[#0A0A1B] border-r border-[#1A1A2E] flex flex-col items-center py-6">
+    <div className="w-20 bg-[#0A0A1B]/60 backdrop-blur-md border-r border-[#1A1A2E]/50 flex flex-col items-center py-6">
       {/* Logo */}
       <div className="mb-8">
         <div className="w-10 h-10 flex">
@@ -40,7 +48,7 @@ export const Sidebar = () => {
         </div>
       </div>
       
-      {/* Main Navigation */}
+      {/* Main Navigation - Reimagined with conceptual icons */}
       <div className="space-y-1 w-full px-2">
         <SidebarItem 
           icon={<Home size={22} />} 
@@ -49,25 +57,25 @@ export const Sidebar = () => {
           onClick={() => setActiveItem("Home")}
         />
         <SidebarItem 
-          icon={<PlusCircle size={22} />} 
+          icon={<Sparkles size={22} />} 
           label="Create" 
           active={activeItem === "Create"}
           onClick={() => setActiveItem("Create")}
         />
         <SidebarItem 
-          icon={<FolderOpen size={22} />} 
-          label="Projects" 
-          active={activeItem === "Projects"}
-          onClick={() => setActiveItem("Projects")}
+          icon={<Layers size={22} />} 
+          label="Journey" 
+          active={activeItem === "Journey"}
+          onClick={() => setActiveItem("Journey")}
         />
         <SidebarItem 
-          icon={<BookOpen size={22} />} 
-          label="Library" 
-          active={activeItem === "Library"}
-          onClick={() => setActiveItem("Library")}
+          icon={<Lightbulb size={22} />} 
+          label="Insight" 
+          active={activeItem === "Insight"}
+          onClick={() => setActiveItem("Insight")}
         />
         <SidebarItem 
-          icon={<Compass size={22} />} 
+          icon={<Orbit size={22} />} 
           label="Explore" 
           active={activeItem === "Explore"}
           onClick={() => setActiveItem("Explore")}
@@ -85,7 +93,7 @@ export const Sidebar = () => {
       </div>
       
       {/* User */}
-      <div className="mt-4 pt-4 border-t border-[#1A1A2E] w-full flex justify-center">
+      <div className="mt-4 pt-4 border-t border-[#1A1A2E]/50 w-full flex justify-center">
         <div className="w-9 h-9 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium cursor-pointer">
           U
         </div>

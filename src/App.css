@@ -186,19 +186,40 @@
   border-color: #4F46E5;
 }
 
-/* Wave animation for background elements */
-@keyframes wave {
-  0% {
-    transform: translateX(0) translateY(0);
+/* Ambient background animations */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.2;
   }
   50% {
-    transform: translateX(-25px) translateY(10px);
-  }
-  100% {
-    transform: translateX(0) translateY(0);
+    opacity: 0.3;
   }
 }
 
-.bg-wave {
-  animation: wave 15s ease-in-out infinite;
+.animate-pulse-slow {
+  animation: pulse-slow 8s ease-in-out infinite;
+}
+
+/* Organic shapes and fluid transitions */
+.organic-shape {
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+}
+
+/* Ethereal glow effects */
+.ethereal-glow {
+  box-shadow: 0 0 30px rgba(79, 70, 229, 0.4);
+}
+
+/* New fluid interface elements */
+.fluid-card {
+  background: rgba(26, 26, 46, 0.4);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+}
+
+.fluid-card:hover {
+  border-color: rgba(79, 70, 229, 0.4);
+  box-shadow: 0 0 20px rgba(79, 70, 229, 0.1);
 }
