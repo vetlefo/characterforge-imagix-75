@@ -1,36 +1,28 @@
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import DrawingEditor from './pages/DrawingEditor';
+import StyleSystem from './components/creative/StyleSystem/StyleSystem';
+import { StyleSystemProvider } from './components/creative/StyleSystem/StyleSystemContext';
+import CreativeSandbox from './pages/CreativeSandbox';
+import AnimationPreviewPage from './pages/AnimationPreviewPage';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import DrawingEditor from "./pages/DrawingEditor";
-import WebsitePreviewDemo from "./pages/WebsitePreviewDemo";
-import AssetLibraryPage from "./pages/AssetLibraryPage";
-import StyleSystemPage from "./pages/StyleSystemPage";
-
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/drawing" element={<DrawingEditor />} />
-          <Route path="/website-preview" element={<WebsitePreviewDemo />} />
-          <Route path="/asset-library" element={<AssetLibraryPage />} />
-          <Route path="/style-system" element={<StyleSystemPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<CreativeSandbox />} />
+        <Route path="/drawing" element={<DrawingEditor />} />
+        <Route path="/style-system" element={
+          <StyleSystemProvider>
+            <StyleSystem />
+          </StyleSystemProvider>
+        } />
+        
+        {/* Update the routes to include the AnimationPreviewPage */}
+        <Route path="/animation" element={<AnimationPreviewPage />} />
+      </Routes>
+    </Router>
+  );
+}
 
 export default App;

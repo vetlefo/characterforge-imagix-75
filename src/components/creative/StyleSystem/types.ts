@@ -104,3 +104,64 @@ export interface StyleSystemContextType {
     margin: string;
   }>) => void;
 }
+
+// Animation system types
+export type KeyframeType = {
+  id: string;
+  time: number; // Percentage (0-100)
+  properties: {
+    transform?: string;
+    opacity?: string;
+    backgroundColor?: string;
+    color?: string;
+    [key: string]: string | undefined;
+  };
+};
+
+export type AnimationDefinition = {
+  id: string;
+  name: string;
+  element: string;
+  duration: number;
+  delay: number;
+  timingFunction: string;
+  iterationCount: string;
+  direction: "normal" | "reverse" | "alternate" | "alternate-reverse";
+  fillMode: "none" | "forwards" | "backwards" | "both";
+  keyframes: KeyframeType[];
+};
+
+export type TimelineMarker = {
+  id: string;
+  time: number;
+  label: string;
+  color?: string;
+};
+
+export interface AnimationContextType {
+  animations: AnimationDefinition[];
+  selectedAnimationId: string | null;
+  previewElement: string;
+  isPlaying: boolean;
+  currentTime: number;
+  duration: number;
+  markers: TimelineMarker[];
+  
+  // Actions
+  addAnimation: (animation: Omit<AnimationDefinition, "id">) => string;
+  updateAnimation: (id: string, updates: Partial<Omit<AnimationDefinition, "id">>) => void;
+  deleteAnimation: (id: string) => void;
+  selectAnimation: (id: string | null) => void;
+  setPreviewElement: (elementType: string) => void;
+  addKeyframe: (animationId: string, keyframe: Omit<KeyframeType, "id">) => string;
+  updateKeyframe: (animationId: string, keyframeId: string, updates: Partial<Omit<KeyframeType, "id">>) => void;
+  deleteKeyframe: (animationId: string, keyframeId: string) => void;
+  playAnimation: () => void;
+  pauseAnimation: () => void;
+  seekAnimation: (time: number) => void;
+  addMarker: (marker: Omit<TimelineMarker, "id">) => string;
+  updateMarker: (id: string, updates: Partial<Omit<TimelineMarker, "id">>) => void;
+  deleteMarker: (id: string) => void;
+  exportAnimationCSS: (id: string) => string;
+  exportAnimationReact: (id: string) => string;
+}
