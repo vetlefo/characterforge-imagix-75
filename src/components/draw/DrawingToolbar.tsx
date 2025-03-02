@@ -1,9 +1,25 @@
 
-import { MousePointer, Pencil, Square, Circle, Minus, Trash2 } from "lucide-react";
+import { MousePointer, Pencil, Square, Circle, Minus, Trash2, Undo, Redo, Layers, Plus, Paintbrush, Eraser } from "lucide-react";
 import { Button } from "../ui/button";
 import { DrawingMode } from "./DrawingCanvas";
 import { Slider } from "../ui/slider";
 import { cn } from "@/lib/utils";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "../ui/dropdown-menu";
+
+interface Layer {
+  id: string;
+  name: string;
+  visible: boolean;
+  active: boolean;
+}
 
 interface DrawingToolbarProps {
   activeMode: DrawingMode;
@@ -13,6 +29,12 @@ interface DrawingToolbarProps {
   brushSize: number;
   onBrushSizeChange: (size: number) => void;
   onClear: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  onAddLayer: () => void;
+  layers: Layer[];
+  activeLayerId: string;
+  onSwitchLayer: (layerId: string) => void;
 }
 
 const colorOptions = [
@@ -35,6 +57,12 @@ const DrawingToolbar = ({
   brushSize,
   onBrushSizeChange,
   onClear,
+  onUndo,
+  onRedo,
+  onAddLayer,
+  layers,
+  activeLayerId,
+  onSwitchLayer
 }: DrawingToolbarProps) => {
   return (
     <div className="flex gap-4 p-2 rounded-lg border border-border bg-muted flex-wrap items-center">
@@ -58,6 +86,26 @@ const DrawingToolbar = ({
           title="Pencil"
         >
           <Pencil size={16} />
+        </Button>
+        <Button
+          size="icon"
+          variant={activeMode === "spray" ? "default" : "outline"}
+          onClick={() => onModeChange("spray")}
+          className="h-9 w-9"
+          type="button"
+          title="Spray Brush"
+        >
+          <Paintbrush size={16} />
+        </Button>
+        <Button
+          size="icon"
+          variant={activeMode === "eraser" ? "default" : "outline"}
+          onClick={() => onModeChange("eraser")}
+          className="h-9 w-9"
+          type="button"
+          title="Eraser"
+        >
+          <Eraser size={16} />
         </Button>
         <Button
           size="icon"
@@ -122,6 +170,68 @@ const DrawingToolbar = ({
         />
         <span className="text-xs w-6">{brushSize}px</span>
       </div>
+
+      <div className="h-8 w-px bg-border mx-1" />
+      
+      <div className="flex gap-1">
+        <Button
+          size="icon"
+          variant="outline"
+          onClick={onUndo}
+          className="h-9 w-9"
+          type="button"
+          title="Undo (Ctrl+Z)"
+        >
+          <Undo size={16} />
+        </Button>
+        <Button
+          size="icon"
+          variant="outline"
+          onClick={onRedo}
+          className="h-9 w-9"
+          type="button"
+          title="Redo (Ctrl+Shift+Z)"
+        >
+          <Redo size={16} />
+        </Button>
+      </div>
+
+      <div className="h-8 w-px bg-border mx-1" />
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            className="flex items-center gap-2 h-9"
+            type="button"
+            title="Layers"
+          >
+            <Layers size={16} />
+            <span className="text-xs">Layers</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56">
+          <DropdownMenuLabel>Manage Layers</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuRadioGroup value={activeLayerId} onValueChange={onSwitchLayer}>
+            {layers.map(layer => (
+              <DropdownMenuRadioItem key={layer.id} value={layer.id} className="flex items-center justify-between">
+                {layer.name}
+                {layer.active && <span className="text-xs text-blue-500 font-medium">Active</span>}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+          <DropdownMenuSeparator />
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start gap-2 text-sm h-8" 
+            onClick={onAddLayer}
+          >
+            <Plus size={14} />
+            Add New Layer
+          </Button>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <div className="h-8 w-px bg-border mx-1" />
 

@@ -1,12 +1,12 @@
-
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { fabric } from "fabric";
 import DrawingToolbar from "./DrawingToolbar";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
-import { Upload, Clipboard } from "lucide-react";
+import { Upload, Clipboard, Redo, Undo } from "lucide-react";
 
-export type DrawingMode = "pencil" | "line" | "rectangle" | "circle" | "select";
+export type DrawingMode = "pencil" | "line" | "rectangle" | "circle" | "select" | "spray" | "eraser";
+export type BrushType = "pencil" | "spray" | "eraser";
 
 interface DrawingCanvasProps {
   width?: number;
@@ -14,6 +14,19 @@ interface DrawingCanvasProps {
   onSave?: (dataUrl: string) => void;
   className?: string;
   initialImage?: string | null;
+}
+
+interface HistoryState {
+  canvasState: string;
+  activeLayerId: string;
+}
+
+interface Layer {
+  id: string;
+  name: string;
+  visible: boolean;
+  canvas: fabric.Canvas;
+  active: boolean;
 }
 
 const DrawingCanvas = ({ 
@@ -28,10 +41,23 @@ const DrawingCanvas = ({
   const etherealCanvasRef = useRef<HTMLCanvasElement>(null);
   const [fabricCanvas, setFabricCanvas] = useState<fabric.Canvas | null>(null);
   const [drawingMode, setDrawingMode] = useState<DrawingMode>("pencil");
+  const [brushType, setBrushType] = useState<BrushType>("pencil");
   const [color, setColor] = useState("#ffffff");
   const [brushSize, setBrushSize] = useState(5);
   const [cursorPosition, setCursorPosition] = useState({ x: -100, y: -100 });
   const animationFrameId = useRef<number | null>(null);
+  
+  // Undo/Redo system
+  const [history, setHistory] = useState<HistoryState[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [isUndoRedoAction, setIsUndoRedoAction] = useState(false);
+  
+  // Layer management
+  const [layers, setLayers] = useState<Layer[]>([]);
+  const [activeLayerId, setActiveLayerId] = useState<string>("");
+
+  // Debounce function for saving states
+  const saveDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Setup main drawing canvas
   useEffect(() => {
@@ -48,6 +74,17 @@ const DrawingCanvas = ({
     canvas.freeDrawingBrush.width = brushSize;
 
     setFabricCanvas(canvas);
+
+    // Initialize the first layer
+    const initialLayerId = "layer-1";
+    setLayers([{
+      id: initialLayerId,
+      name: "Layer 1",
+      visible: true,
+      canvas,
+      active: true
+    }]);
+    setActiveLayerId(initialLayerId);
 
     // Set up paste event listener
     const handlePaste = (e: ClipboardEvent) => {
@@ -79,6 +116,30 @@ const DrawingCanvas = ({
     };
 
     canvas.on('mouse:move', handleCanvasMouseMove);
+    
+    // Set up undo/redo keyboard shortcuts
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        if (e.shiftKey) {
+          // Ctrl/Cmd + Shift + Z = Redo
+          handleRedo();
+        } else {
+          // Ctrl/Cmd + Z = Undo
+          handleUndo();
+        }
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+
+    // Object added/modified event for history
+    canvas.on('object:added', saveToHistory);
+    canvas.on('object:modified', saveToHistory);
+    canvas.on('object:removed', saveToHistory);
+    canvas.on('path:created', saveToHistory);
+
+    // Initialize history
+    saveToHistory();
 
     // Load initial image if provided
     if (initialImage) {
@@ -88,11 +149,40 @@ const DrawingCanvas = ({
     return () => {
       canvas.dispose();
       document.removeEventListener('paste', handlePaste);
+      document.removeEventListener('keydown', handleKeyDown);
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current);
       }
+      if (saveDebounceRef.current) {
+        clearTimeout(saveDebounceRef.current);
+      }
     };
   }, [width, height, initialImage]);
+
+  // Save to history function
+  const saveToHistory = useCallback(() => {
+    if (!fabricCanvas || isUndoRedoAction) return;
+    
+    // Debounce to prevent too many state saves during drawing
+    if (saveDebounceRef.current) {
+      clearTimeout(saveDebounceRef.current);
+    }
+    
+    saveDebounceRef.current = setTimeout(() => {
+      const canvasState = JSON.stringify(fabricCanvas.toJSON());
+      const newHistoryState: HistoryState = {
+        canvasState,
+        activeLayerId
+      };
+      
+      // If we're in the middle of the history stack, truncate the future states
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push(newHistoryState);
+      
+      setHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
+    }, 300);
+  }, [fabricCanvas, history, historyIndex, isUndoRedoAction, activeLayerId]);
 
   // Setup ethereal background canvas
   useEffect(() => {
@@ -183,13 +273,31 @@ const DrawingCanvas = ({
   useEffect(() => {
     if (!fabricCanvas) return;
 
-    fabricCanvas.isDrawingMode = drawingMode === "pencil";
-    
-    if (fabricCanvas.isDrawingMode) {
-      fabricCanvas.freeDrawingBrush.color = color;
-      fabricCanvas.freeDrawingBrush.width = brushSize;
+    // Set drawing mode based on tool or brush selection
+    if (drawingMode === "pencil" || drawingMode === "spray" || drawingMode === "eraser") {
+      fabricCanvas.isDrawingMode = true;
+      
+      // Apply the brush type
+      if (drawingMode === "spray") {
+        const sprayBrush = new fabric.SprayBrush(fabricCanvas);
+        sprayBrush.color = color;
+        sprayBrush.width = brushSize * 2;
+        sprayBrush.density = brushSize * 2;
+        fabricCanvas.freeDrawingBrush = sprayBrush;
+      } else if (drawingMode === "eraser") {
+        // Create an eraser brush (essentially a white/background colored brush)
+        fabricCanvas.freeDrawingBrush = new fabric.EraserBrush(fabricCanvas);
+        fabricCanvas.freeDrawingBrush.width = brushSize;
+      } else {
+        // Default pencil brush
+        fabricCanvas.freeDrawingBrush = new fabric.PencilBrush(fabricCanvas);
+        fabricCanvas.freeDrawingBrush.color = color;
+        fabricCanvas.freeDrawingBrush.width = brushSize;
+      }
+    } else {
+      fabricCanvas.isDrawingMode = false;
     }
-  }, [drawingMode, color, brushSize, fabricCanvas]);
+  }, [drawingMode, brushType, color, brushSize, fabricCanvas]);
 
   const loadImageToCanvas = (canvas: fabric.Canvas, url: string) => {
     fabric.Image.fromURL(url, (img) => {
@@ -228,10 +336,10 @@ const DrawingCanvas = ({
 
     if (!fabricCanvas) return;
 
-    if (mode === "select") {
+    if (mode === "spray" || mode === "eraser" || mode === "pencil") {
+      setBrushType(mode);
+    } else if (mode === "select") {
       fabricCanvas.isDrawingMode = false;
-    } else if (mode === "pencil") {
-      fabricCanvas.isDrawingMode = true;
     } else {
       fabricCanvas.isDrawingMode = false;
       const addShape = () => {
@@ -265,10 +373,101 @@ const DrawingCanvas = ({
 
         fabricCanvas.add(shape);
         fabricCanvas.setActiveObject(shape);
+        saveToHistory();
       };
 
       addShape();
     }
+  };
+
+  // Function to handle the Undo action
+  const handleUndo = () => {
+    if (historyIndex > 0 && fabricCanvas) {
+      setIsUndoRedoAction(true);
+      const prevState = history[historyIndex - 1];
+      fabricCanvas.loadFromJSON(JSON.parse(prevState.canvasState), () => {
+        setHistoryIndex(historyIndex - 1);
+        setActiveLayerId(prevState.activeLayerId);
+        fabricCanvas.renderAll();
+        setIsUndoRedoAction(false);
+      });
+    } else {
+      toast.info("Nothing to undo");
+    }
+  };
+
+  // Function to handle the Redo action
+  const handleRedo = () => {
+    if (historyIndex < history.length - 1 && fabricCanvas) {
+      setIsUndoRedoAction(true);
+      const nextState = history[historyIndex + 1];
+      fabricCanvas.loadFromJSON(JSON.parse(nextState.canvasState), () => {
+        setHistoryIndex(historyIndex + 1);
+        setActiveLayerId(nextState.activeLayerId);
+        fabricCanvas.renderAll();
+        setIsUndoRedoAction(false);
+      });
+    } else {
+      toast.info("Nothing to redo");
+    }
+  };
+
+  // Function to add a new layer
+  const handleAddLayer = () => {
+    if (!fabricCanvas) return;
+    
+    const newLayerId = `layer-${layers.length + 1}`;
+    const newLayer = {
+      id: newLayerId,
+      name: `Layer ${layers.length + 1}`,
+      visible: true,
+      canvas: fabricCanvas,
+      active: true
+    };
+    
+    // Update all existing layers to be inactive
+    const updatedLayers = layers.map(layer => ({
+      ...layer,
+      active: false
+    }));
+    
+    // Add the new layer
+    setLayers([...updatedLayers, newLayer]);
+    setActiveLayerId(newLayerId);
+    
+    // Clear canvas for the new layer
+    fabricCanvas.clear();
+    fabricCanvas.backgroundColor = "#000000";
+    fabricCanvas.renderAll();
+    
+    saveToHistory();
+    
+    toast.success(`Added new Layer ${layers.length + 1}`);
+  };
+
+  // Function to switch between layers
+  const handleSwitchLayer = (layerId: string) => {
+    if (!fabricCanvas) return;
+    
+    // Save current state before switching
+    saveToHistory();
+    
+    // Find the layer to switch to
+    const targetLayer = layers.find(layer => layer.id === layerId);
+    if (!targetLayer) return;
+    
+    // Update active state for all layers
+    const updatedLayers = layers.map(layer => ({
+      ...layer,
+      active: layer.id === layerId
+    }));
+    
+    setLayers(updatedLayers);
+    setActiveLayerId(layerId);
+    
+    // Need to implement actual layer switching with appropriate data
+    // For now, just a notification
+    toast.info(`Switched to ${targetLayer.name}`);
   };
 
   const handleImageUpload = () => {
@@ -283,6 +482,7 @@ const DrawingCanvas = ({
       reader.onload = (event) => {
         if (event.target?.result && fabricCanvas) {
           loadImageToCanvas(fabricCanvas, event.target.result as string);
+          saveToHistory();
         }
       };
       
@@ -295,6 +495,7 @@ const DrawingCanvas = ({
     fabricCanvas.clear();
     fabricCanvas.backgroundColor = "#000000";
     fabricCanvas.renderAll();
+    saveToHistory();
   };
 
   const handleSave = () => {
@@ -316,6 +517,12 @@ const DrawingCanvas = ({
         brushSize={brushSize}
         onBrushSizeChange={setBrushSize}
         onClear={handleClear}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        onAddLayer={handleAddLayer}
+        layers={layers}
+        activeLayerId={activeLayerId}
+        onSwitchLayer={handleSwitchLayer}
       />
       
       <div className="flex gap-2">
@@ -336,6 +543,26 @@ const DrawingCanvas = ({
         >
           <Clipboard size={16} />
           Paste Image (Ctrl+V)
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleUndo}
+          className="flex items-center gap-2"
+          title="Undo (Ctrl+Z)"
+        >
+          <Undo size={16} />
+          Undo
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRedo}
+          className="flex items-center gap-2"
+          title="Redo (Ctrl+Shift+Z)"
+        >
+          <Redo size={16} />
+          Redo
         </Button>
         <input 
           type="file" 
