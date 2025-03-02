@@ -36,6 +36,12 @@ const Index = () => {
   const handleDrawingComplete = (dataUrl: string) => {
     setLastImage(dataUrl);
     // In a real app, we would save this to the user's history or projects
+    
+    // Show a relevant suggestion after drawing is complete
+    setTimeout(() => {
+      setShowAssistantSuggestion(true);
+      setAssistantMessage("Your creation has beautiful organic elements. Would you like to explore similar textures or try a different direction?");
+    }, 2000);
   };
 
   return (

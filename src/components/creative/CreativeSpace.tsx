@@ -1,8 +1,9 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DrawingModule from "../draw/DrawingModule";
 import { Button } from "../ui/button";
 import { Layers } from "lucide-react";
+import { useCreative } from "./CreativeContext";
 
 interface CreativeSpaceProps {
   lastImage: string | null;
@@ -10,6 +11,32 @@ interface CreativeSpaceProps {
 }
 
 const CreativeSpace = ({ lastImage, onDrawingComplete }: CreativeSpaceProps) => {
+  const { 
+    activeDrawing, 
+    setActiveDrawing, 
+    currentIntent,
+    suggestionsVisible,
+    setSuggestionsVisible 
+  } = useCreative();
+
+  // Handle drawing completion with context awareness
+  const handleDrawingComplete = (dataUrl: string) => {
+    onDrawingComplete(dataUrl);
+    setActiveDrawing(false);
+    
+    // Trigger suggestion when drawing is complete
+    if (currentIntent) {
+      setTimeout(() => {
+        setSuggestionsVisible(true);
+      }, 1000);
+    }
+  };
+
+  // Start drawing mode
+  const handleStartDrawing = () => {
+    setActiveDrawing(true);
+  };
+
   return (
     <div className="col-span-3 md:col-span-2 relative">
       {lastImage ? (
@@ -18,7 +45,7 @@ const CreativeSpace = ({ lastImage, onDrawingComplete }: CreativeSpaceProps) => 
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <div className="flex gap-2">
               <DrawingModule 
-                onDrawingComplete={onDrawingComplete} 
+                onDrawingComplete={handleDrawingComplete} 
                 triggerLabel="Continue Creating"
                 initialImage={lastImage}
               />
@@ -58,7 +85,7 @@ const CreativeSpace = ({ lastImage, onDrawingComplete }: CreativeSpaceProps) => 
             <p className="text-gray-400 mb-6 max-w-md">The canvas awaits your intention</p>
             <div className="flex gap-3 justify-center">
               <DrawingModule 
-                onDrawingComplete={onDrawingComplete} 
+                onDrawingComplete={handleDrawingComplete} 
                 triggerLabel="Start Creating"
               />
               <Button variant="outline" className="gap-2 bg-[#1A1A2E]/40 border-[#2A2A4A]/50 backdrop-blur-sm">
