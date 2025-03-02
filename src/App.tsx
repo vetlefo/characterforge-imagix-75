@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import DrawingEditor from "./pages/DrawingEditor";
 import WebsitePreviewDemo from "./pages/WebsitePreviewDemo";
+import AssetLibraryPage from "./pages/AssetLibraryPage";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/drawing" element={<DrawingEditor />} />
           <Route path="/website-preview" element={<WebsitePreviewDemo />} />
+          <Route path="/asset-library" element={<AssetLibraryPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

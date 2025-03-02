@@ -2,10 +2,11 @@
 import { useEffect, useState } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { Button } from "../components/ui/button";
-import { Sparkles, HelpCircleIcon } from "lucide-react";
+import { Sparkles, HelpCircleIcon, BookOpen } from "lucide-react";
 import CreativeWorkspace from "../components/creative/CreativeWorkspace";
 import CreativePossibilities from "../components/creative/CreativePossibilities";
 import InspirationalEchoes from "../components/creative/InspirationalEchoes";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   const [lastImage, setLastImage] = useState<string | null>(null);
@@ -55,6 +56,12 @@ const Index = () => {
               <div className="mb-8 flex justify-between items-center">
                 <h1 className="text-3xl font-bold text-white">Untitled Project</h1>
                 <div className="flex gap-3">
+                  <Link to="/asset-library">
+                    <Button variant="outline" className="gap-2 bg-[#1A1A2E]/30 border-[#2A2A4A]/50 backdrop-blur-sm">
+                      <BookOpen size={18} />
+                      Asset Library
+                    </Button>
+                  </Link>
                   <Button variant="outline" className="gap-2 bg-[#1A1A2E]/30 border-[#2A2A4A]/50 backdrop-blur-sm">
                     <HelpCircleIcon size={18} />
                     Help
