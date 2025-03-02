@@ -12,6 +12,7 @@ interface DrawingModuleProps {
   width?: number;
   height?: number;
   initialImage?: string | null;
+  // Remove 'open' and 'onOpenChange' from props and handle internally
 }
 
 const DrawingModule = ({

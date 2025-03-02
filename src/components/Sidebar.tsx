@@ -1,258 +1,93 @@
 
 import { useState } from "react";
-import { ChevronRight, HomeIcon, Users, Video, Image, Edit, Palette, Grid, LayoutGrid, Rss, Code, ChevronDown, BookOpen, HelpCircle, Sparkles, Palette as ThemeIcon, Newspaper, Clock, Bookmark, Heart, Album, Boxes } from "lucide-react";
+import { PlusCircle, FolderOpen, BookOpen, Compass, Settings, LogOut, Home } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-type SidebarItemProps = {
-  icon: React.ReactNode;
-  label: string;
-  isActive?: boolean;
-  isNew?: boolean;
-  hasDropdown?: boolean;
+const SidebarItem = ({ 
+  icon, 
+  label, 
+  active = false,
+  onClick
+}: { 
+  icon: React.ReactNode; 
+  label: string; 
+  active?: boolean;
   onClick?: () => void;
-};
-
-type DropdownItemProps = {
-  icon: React.ReactNode;
-  label: string;
-  isExternal?: boolean;
-  isActive?: boolean;
-  onClick?: () => void;
-};
-
-const SidebarItem = ({ icon, label, isActive = false, isNew = false, hasDropdown = false, onClick }: SidebarItemProps) => (
-  <button 
-    className={`w-full flex items-center gap-3 p-3 rounded-md transition-colors ${isActive ? 'bg-accent' : 'hover:bg-accent'}`}
+}) => (
+  <button
+    className={cn(
+      "w-full flex flex-col items-center justify-center p-3 rounded-xl transition-all", 
+      active 
+        ? "bg-[#2A2A4A] text-blue-400" 
+        : "text-gray-400 hover:text-white hover:bg-[#1A1A2E]"
+    )}
     onClick={onClick}
   >
-    <div className={isActive ? "text-white" : "text-gray-300"}>{icon}</div>
-    <span className="text-white text-sm font-medium flex-1 text-left">{label}</span>
-    {isNew && (
-      <span className="bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
-        NEW
-      </span>
-    )}
-    {hasDropdown && (
-      isActive ? <ChevronDown size={16} className="text-gray-300" /> : <ChevronRight size={16} className="text-gray-300" />
-    )}
-  </button>
-);
-
-const DropdownItem = ({ icon, label, isExternal = false, isActive = false, onClick }: DropdownItemProps) => (
-  <button 
-    className={`w-full flex items-center gap-3 p-3 pl-12 hover:bg-accent rounded-md transition-colors ${isActive ? 'bg-accent' : ''}`}
-    onClick={onClick}
-  >
-    <div className={isActive ? "text-white" : "text-gray-300"}>{icon}</div>
-    <span className={`text-sm ${isActive ? "text-white" : "text-gray-300"}`}>{label}</span>
-    {isExternal && <span className="ml-2 px-1 bg-muted rounded-sm text-[10px] text-gray-300">↗</span>}
+    <div className="mb-1">{icon}</div>
+    <span className="text-xs font-medium">{label}</span>
   </button>
 );
 
 export const Sidebar = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [resourcesOpen, setResourcesOpen] = useState(false);
-  const [myStuffOpen, setMyStuffOpen] = useState(false);
   const [activeItem, setActiveItem] = useState("Home");
-  const [activeDropdownItem, setActiveDropdownItem] = useState("");
-
-  if (isCollapsed) {
-    return (
-      <div className="w-16 bg-sidebar min-h-screen flex flex-col items-center py-4 border-r border-gray-800">
-        <div className="mb-8">
-          <img src="/lovable-uploads/407e5ec8-9b67-42ee-acf0-b238e194aa64.png" alt="Logo" className="w-8 h-8" />
-        </div>
-        <button
-          onClick={() => setIsCollapsed(false)}
-          className="absolute left-16 top-1/2 -translate-y-1/2 bg-gray-800 rounded-full p-1 text-white hover:bg-gray-700 transition-colors"
-        >
-          <ChevronRight size={16} />
-        </button>
-      </div>
-    );
-  }
 
   return (
-    <div className="w-[232px] bg-sidebar min-h-screen flex flex-col border-r border-gray-800">
-      <div className="flex items-center justify-between p-4 border-b border-gray-800">
-        <div className="flex items-center gap-2">
-          <img src="/lovable-uploads/407e5ec8-9b67-42ee-acf0-b238e194aa64.png" alt="Logo" className="w-8 h-8" />
-          <span className="text-white font-semibold">OpenArt</span>
+    <div className="w-20 bg-[#0A0A1B] border-r border-[#1A1A2E] flex flex-col items-center py-6">
+      {/* Logo */}
+      <div className="mb-8">
+        <div className="w-10 h-10 flex">
+          <img src="/lovable-uploads/407e5ec8-9b67-42ee-acf0-b238e194aa64.png" alt="Logo" className="w-full" />
         </div>
-        <button
-          onClick={() => setIsCollapsed(true)}
-          className="text-gray-400 hover:text-white transition-colors p-1 rounded-md hover:bg-gray-800"
-        >
-          <ChevronRight size={16} />
-        </button>
       </div>
-
-      <div className="py-2 px-3 flex flex-col gap-1">
+      
+      {/* Main Navigation */}
+      <div className="space-y-1 w-full px-2">
         <SidebarItem 
-          icon={<HomeIcon size={20} />} 
+          icon={<Home size={22} />} 
           label="Home" 
-          isActive={activeItem === "Home"}
+          active={activeItem === "Home"}
           onClick={() => setActiveItem("Home")}
         />
         <SidebarItem 
-          icon={<Users size={20} />} 
-          label="Characters" 
-          isNew 
-          isActive={activeItem === "Characters"}
-          onClick={() => setActiveItem("Characters")}
+          icon={<PlusCircle size={22} />} 
+          label="Create" 
+          active={activeItem === "Create"}
+          onClick={() => setActiveItem("Create")}
         />
         <SidebarItem 
-          icon={<Video size={20} />} 
-          label="Videos" 
-          isActive={activeItem === "Videos"}
-          onClick={() => setActiveItem("Videos")}
+          icon={<FolderOpen size={22} />} 
+          label="Projects" 
+          active={activeItem === "Projects"}
+          onClick={() => setActiveItem("Projects")}
         />
         <SidebarItem 
-          icon={<Image size={20} />} 
-          label="Create Image" 
-          isActive={activeItem === "Create Image"}
-          onClick={() => setActiveItem("Create Image")}
+          icon={<BookOpen size={22} />} 
+          label="Library" 
+          active={activeItem === "Library"}
+          onClick={() => setActiveItem("Library")}
         />
         <SidebarItem 
-          icon={<Edit size={20} />} 
-          label="Edit Image" 
-          isActive={activeItem === "Edit Image"}
-          onClick={() => setActiveItem("Edit Image")}
-        />
-        <SidebarItem 
-          icon={<Palette size={20} />} 
-          label="Style Palettes" 
-          isActive={activeItem === "Style Palettes"}
-          onClick={() => setActiveItem("Style Palettes")}
-        />
-        <SidebarItem 
-          icon={<Grid size={20} />} 
-          label="Models" 
-          isActive={activeItem === "Models"}
-          onClick={() => setActiveItem("Models")}
-        />
-        <SidebarItem 
-          icon={<LayoutGrid size={20} />} 
-          label="Apps" 
-          isActive={activeItem === "Apps"}
-          onClick={() => setActiveItem("Apps")}
-        />
-        <SidebarItem 
-          icon={<Rss size={20} />} 
-          label="Community Feed" 
-          isActive={activeItem === "Community Feed"}
-          onClick={() => setActiveItem("Community Feed")}
-        />
-        <SidebarItem 
-          icon={<Code size={20} />} 
-          label="ComfyUI Workflows" 
-          isActive={activeItem === "ComfyUI Workflows"}
-          onClick={() => setActiveItem("ComfyUI Workflows")}
+          icon={<Compass size={22} />} 
+          label="Explore" 
+          active={activeItem === "Explore"}
+          onClick={() => setActiveItem("Explore")}
         />
       </div>
-
-      <div className="flex-grow overflow-auto">
-        <div className="py-2 px-3">
-          <SidebarItem 
-            icon={myStuffOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            label="My stuff" 
-            isActive={activeItem === "My stuff"}
-            hasDropdown
-            onClick={() => {
-              setMyStuffOpen(!myStuffOpen);
-              setActiveItem("My stuff");
-            }}
-          />
-
-          {myStuffOpen && (
-            <div className="mt-1 space-y-1 animate-fade-in">
-              <DropdownItem 
-                icon={<Clock size={16} />} 
-                label="Creation History" 
-                isActive={activeDropdownItem === "Creation History"}
-                onClick={() => setActiveDropdownItem("Creation History")}
-              />
-              <DropdownItem 
-                icon={<Bookmark size={16} />} 
-                label="Bookmarks" 
-                isActive={activeDropdownItem === "Bookmarks"}
-                onClick={() => setActiveDropdownItem("Bookmarks")}
-              />
-              <DropdownItem 
-                icon={<Heart size={16} />} 
-                label="Liked" 
-                isActive={activeDropdownItem === "Liked"}
-                onClick={() => setActiveDropdownItem("Liked")}
-              />
-              <DropdownItem 
-                icon={<Album size={16} />} 
-                label="Saved Albums" 
-                isActive={activeDropdownItem === "Saved Albums"}
-                onClick={() => setActiveDropdownItem("Saved Albums")}
-              />
-              <DropdownItem 
-                icon={<Boxes size={16} />} 
-                label="Trained Models" 
-                isActive={activeDropdownItem === "Trained Models"}
-                onClick={() => setActiveDropdownItem("Trained Models")}
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="py-2 px-3">
-          <SidebarItem 
-            icon={resourcesOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            label="Resources" 
-            hasDropdown
-            isActive={activeItem === "Resources"}
-            onClick={() => {
-              setResourcesOpen(!resourcesOpen);
-              setActiveItem("Resources");
-            }}
-          />
-          
-          {resourcesOpen && (
-            <div className="mt-1 space-y-1 animate-fade-in">
-              <DropdownItem 
-                icon={<BookOpen size={16} />} 
-                label="Tutorials" 
-                isActive={activeDropdownItem === "Tutorials"}
-                onClick={() => setActiveDropdownItem("Tutorials")}
-              />
-              <DropdownItem 
-                icon={<HelpCircle size={16} />} 
-                label="Wiki" 
-                isExternal 
-                isActive={activeDropdownItem === "Wiki"}
-                onClick={() => setActiveDropdownItem("Wiki")}
-              />
-              <DropdownItem 
-                icon={<HelpCircle size={16} />} 
-                label="Help Center" 
-                isActive={activeDropdownItem === "Help Center"}
-                onClick={() => setActiveDropdownItem("Help Center")}
-              />
-              <DropdownItem 
-                icon={<Sparkles size={16} />} 
-                label="What's New" 
-                isActive={activeDropdownItem === "What's New"}
-                onClick={() => setActiveDropdownItem("What's New")}
-              />
-              <DropdownItem 
-                icon={<ThemeIcon size={16} />} 
-                label="Theme Gallery" 
-                isActive={activeDropdownItem === "Theme Gallery"}
-                onClick={() => setActiveDropdownItem("Theme Gallery")}
-              />
-              <DropdownItem 
-                icon={<Newspaper size={16} />} 
-                label="Blog" 
-                isExternal 
-                isActive={activeDropdownItem === "Blog"}
-                onClick={() => setActiveDropdownItem("Blog")}
-              />
-            </div>
-          )}
+      
+      {/* Bottom Navigation */}
+      <div className="mt-auto space-y-1 w-full px-2">
+        <SidebarItem 
+          icon={<Settings size={22} />} 
+          label="Settings" 
+          active={activeItem === "Settings"}
+          onClick={() => setActiveItem("Settings")}
+        />
+      </div>
+      
+      {/* User */}
+      <div className="mt-4 pt-4 border-t border-[#1A1A2E] w-full flex justify-center">
+        <div className="w-9 h-9 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium cursor-pointer">
+          U
         </div>
       </div>
     </div>

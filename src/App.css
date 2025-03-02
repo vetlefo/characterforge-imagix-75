@@ -2,53 +2,7 @@
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em rgba(100, 108, 255, 0.8));
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em rgba(97, 218, 251, 0.8));
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-  border-radius: 0.75rem;
-  background-color: hsl(220 10% 15%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-}
-
-.read-the-docs {
-  color: #888;
 }
 
 /* Modern UI Elements */
@@ -98,37 +52,37 @@
 }
 
 .button-primary {
-  background-color: hsl(221 83% 53%);
+  background-color: #4F46E5;
   color: white;
 }
 
 .button-primary:hover {
-  background-color: hsl(221 83% 48%);
+  background-color: #4338CA;
 }
 
 .button-secondary {
-  background-color: hsl(220 10% 20%);
+  background-color: #1E1E3A;
   color: white;
 }
 
 .button-secondary:hover {
-  background-color: hsl(220 10% 25%);
+  background-color: #2A2A4A;
 }
 
 .button-outline {
   background-color: transparent;
-  border: 1px solid hsl(220 10% 40%);
+  border: 1px solid #2A2A4A;
   color: white;
 }
 
 .button-outline:hover {
-  background-color: hsl(220 10% 20%);
+  background-color: #1A1A2E;
 }
 
 .input {
   padding: 0.625rem 0.75rem;
-  background-color: hsl(220 10% 15%);
-  border: 1px solid hsl(220 10% 25%);
+  background-color: #1A1A2E;
+  border: 1px solid #2A2A4A;
   border-radius: 0.5rem;
   color: white;
   font-size: 0.875rem;
@@ -138,8 +92,8 @@
 
 .input:focus {
   outline: none;
-  border-color: hsl(221 83% 53%);
-  box-shadow: 0 0 0 3px hsla(221, 83%, 53%, 0.1);
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 .label {
@@ -167,18 +121,84 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
 }
 
 .modal-content {
   position: relative;
-  background-color: hsl(220 10% 15%);
-  border-radius: 0.75rem;
-  border: 1px solid hsl(220 10% 25%);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  background-color: #1A1A2E;
+  border-radius: 1rem;
+  border: 1px solid #2A2A4A;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
   width: 100%;
   max-width: 32rem;
   z-index: 10;
+}
+
+/* Creative workspace-specific styling */
+.canvas-container {
+  position: relative;
+  border-radius: 1rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.canvas-container:hover {
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3);
+}
+
+.tool-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: #1E1E3A;
+  color: #a0a0c0;
+  transition: all 0.2s ease;
+}
+
+.tool-button:hover {
+  background-color: #2A2A4A;
+  color: white;
+}
+
+.tool-button.active {
+  background-color: #4F46E5;
+  color: white;
+}
+
+/* Enhanced card styling */
+.creation-card {
+  background-color: #1A1A2E;
+  border-radius: 1rem;
+  border: 1px solid #2A2A4A;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.creation-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 20px -10px rgba(0, 0, 0, 0.3);
+  border-color: #4F46E5;
+}
+
+/* Wave animation for background elements */
+@keyframes wave {
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+  50% {
+    transform: translateX(-25px) translateY(10px);
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+}
+
+.bg-wave {
+  animation: wave 15s ease-in-out infinite;
 }

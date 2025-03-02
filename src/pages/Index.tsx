@@ -1,230 +1,228 @@
 
-import { useEffect } from "react";
-import { PromoBar } from "../components/PromoBar";
+import { useEffect, useState } from "react";
 import { Sidebar } from "../components/Sidebar";
-import Header from "../components/Header";
-import { CreationCard } from "../components/CreationCard";
-import { QuickStartItem } from "../components/QuickStartItem";
-import { FeaturedAppCard } from "../components/FeaturedAppCard";
-import { ModelCard } from "../components/ModelCard";
-import { Video, Paintbrush, Grid, FileText, ArrowUpRight, ArrowRight, Search } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { PlusIcon, ImageIcon, VideoIcon, Wand2Icon, HelpCircleIcon, SparklesIcon, Palette } from "lucide-react";
+import DrawingModule from "../components/draw/DrawingModule";
+import { Link } from "react-router-dom";
 
 const Index = () => {
-  // Add a handler to add the logo.svg file if it's missing
+  const [lastImage, setLastImage] = useState<string | null>(null);
+  const [assistantMessage, setAssistantMessage] = useState<string>("What would you like to create today?");
+  const [showAssistantSuggestion, setShowAssistantSuggestion] = useState<boolean>(false);
+
   useEffect(() => {
-    // Check if the logo exists, if not create a simple one
-    const checkLogo = async () => {
+    // Initialize any necessary startup checks
+    const checkForPreviousWork = async () => {
       try {
-        const response = await fetch('/logo.svg');
-        if (response.status === 404) {
-          console.log('Logo not found, would create one in a real app');
+        // This would normally check local storage or API for recent user work
+        const hasRecentWork = Math.random() > 0.5; // Simulating a check
+        
+        if (hasRecentWork) {
+          setTimeout(() => {
+            setShowAssistantSuggestion(true);
+            setAssistantMessage("I notice you were working on a landscape image. Would you like to continue where you left off?");
+          }, 3000);
         }
       } catch (error) {
-        console.log('Error checking logo:', error);
+        console.log('Error checking for previous work:', error);
       }
     };
     
-    checkLogo();
+    checkForPreviousWork();
   }, []);
 
+  const handleDrawingComplete = (dataUrl: string) => {
+    setLastImage(dataUrl);
+    // In a real app, we would save this to the user's history or projects
+  };
+
+  const CreationAction = ({ icon, title, description, isPro = false }: { 
+    icon: React.ReactNode, 
+    title: string, 
+    description: string,
+    isPro?: boolean
+  }) => (
+    <div className="bg-[#1A1A2E] rounded-xl p-5 flex items-center hover:bg-[#252547] transition-colors cursor-pointer group">
+      <div className="mr-4 p-3.5 rounded-full bg-[#2A2A4A] text-blue-400 group-hover:text-blue-300 transition-colors">
+        {icon}
+      </div>
+      <div className="flex-grow">
+        <div className="flex items-center gap-2">
+          <h3 className="font-medium text-white">{title}</h3>
+          {isPro && (
+            <span className="bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
+              PRO
+            </span>
+          )}
+        </div>
+        <p className="text-sm text-gray-400 mt-1">{description}</p>
+      </div>
+    </div>
+  );
+
+  const InspirationItem = ({ src }: { src: string }) => (
+    <div className="rounded-lg overflow-hidden bg-[#1A1A2E] aspect-square relative group">
+      <img src={src} alt="Inspiration" className="w-full h-full object-cover" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-3">
+        <span className="text-white text-sm font-medium">AI Generated</span>
+        <Button variant="outline" size="sm" className="bg-black/50 border-white/30 text-white">
+          Use
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <PromoBar />
+    <div className="min-h-screen flex flex-col bg-[#0F0F23]">
       <div className="flex flex-1">
         <Sidebar />
         <div className="flex-1 flex flex-col">
-          <Header />
-          <div className="flex-1 overflow-auto">
-            <main className="py-8 px-12">
-              <h1 className="text-3xl font-bold text-white mb-8">
-                What would you like to create?
-              </h1>
-              
-              <div className="grid grid-cols-2 gap-6 mb-12">
-                <CreationCard type="image" />
-                <CreationCard type="storytelling" />
+          <main className="flex-1 overflow-auto">
+            <div className="max-w-6xl mx-auto px-6 py-8">
+              {/* Project Header */}
+              <div className="mb-8 flex justify-between items-center">
+                <h1 className="text-3xl font-bold text-white">Untitled Project</h1>
+                <div className="flex gap-3">
+                  <Button variant="outline" className="gap-2">
+                    <HelpCircleIcon size={18} />
+                    Help
+                  </Button>
+                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 gap-2">
+                    <SparklesIcon size={18} />
+                    Upgrade to Pro
+                  </Button>
+                </div>
               </div>
-              
-              <section className="mb-12">
-                <h2 className="text-2xl font-bold text-white mb-6">
-                  Quick starts
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="bg-[#1A1A1A] rounded-lg p-4 flex items-start">
-                    <div className="p-3 rounded-lg bg-[#3A3600] mr-4 flex items-center justify-center">
-                      <Video size={24} className="text-[#FFD426]" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium text-white">Image to Video</h3>
-                        <span className="bg-green-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
-                          New
-                        </span>
+
+              {/* Main Creation Area with Canvas Background */}
+              <div className="mb-10 relative">
+                <div className="bg-[#121230] rounded-2xl p-6 border border-[#2A2A4A] overflow-hidden">
+                  {/* Background wave pattern */}
+                  <div className="absolute inset-0 overflow-hidden opacity-20">
+                    <svg width="100%" height="100%" viewBox="0 0 1000 200" preserveAspectRatio="none">
+                      <path d="M0,100 C150,200 350,0 500,100 C650,200 850,0 1000,100 L1000,0 L0,0 Z" fill="url(#blue-gradient)" opacity="0.3"></path>
+                      <defs>
+                        <linearGradient id="blue-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#4F46E5"></stop>
+                          <stop offset="100%" stopColor="#0EA5E9"></stop>
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </div>
+
+                  {/* Content */}
+                  <div className="relative z-10">
+                    <h2 className="text-2xl font-medium text-white mb-4">What would you like to create today?</h2>
+                    
+                    {/* Canvas area or project workspace */}
+                    <div className="grid grid-cols-3 gap-4 mb-6">
+                      {lastImage ? (
+                        <div className="col-span-3 md:col-span-2 aspect-video bg-[#1A1A2E] rounded-xl overflow-hidden flex items-center justify-center relative group">
+                          <img src={lastImage} alt="Your creation" className="max-w-full max-h-full" />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <div className="flex gap-2">
+                              <DrawingModule 
+                                onDrawingComplete={handleDrawingComplete} 
+                                triggerLabel="Edit"
+                                initialImage={lastImage}
+                              />
+                              <Button variant="outline" className="border-white/20 text-white bg-black/30">
+                                Export
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="col-span-3 md:col-span-2 aspect-video bg-[#1A1A2E] rounded-xl flex items-center justify-center border-2 border-dashed border-[#2A2A4A] group hover:border-blue-500 transition-colors">
+                          <div className="text-center p-6">
+                            <div className="w-16 h-16 rounded-full bg-[#2A2A4A] flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-600 transition-colors">
+                              <PlusIcon size={30} className="text-gray-400 group-hover:text-white transition-colors" />
+                            </div>
+                            <h3 className="text-xl font-medium text-white mb-2">Create something amazing</h3>
+                            <p className="text-gray-400 mb-6 max-w-md">Start with a blank canvas or choose from our templates</p>
+                            <div className="flex gap-3 justify-center">
+                              <DrawingModule 
+                                onDrawingComplete={handleDrawingComplete} 
+                                triggerLabel="Start Drawing"
+                              />
+                              <Button variant="outline" className="gap-2">
+                                <ImageIcon size={16} />
+                                Upload Image
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Creative Assistant Panel */}
+                      <div className="col-span-3 md:col-span-1 bg-[#1A1A2E] rounded-xl p-5 border border-[#2A2A4A] flex flex-col">
+                        <h3 className="font-medium text-white flex items-center gap-2 mb-4">
+                          <SparklesIcon size={18} className="text-blue-400" />
+                          Creative Assistant
+                        </h3>
+                        
+                        <div className="flex-grow mb-4">
+                          {showAssistantSuggestion ? (
+                            <div className="p-3 rounded-lg bg-[#2A2A4A] text-sm text-gray-300">
+                              {assistantMessage}
+                              <div className="mt-3 flex gap-2">
+                                <Button size="sm" variant="default" className="bg-blue-600 hover:bg-blue-700 text-xs">Yes, continue</Button>
+                                <Button size="sm" variant="outline" className="text-xs">No thanks</Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-gray-400 text-sm">Ask anything about your creative process...</p>
+                          )}
+                        </div>
+                        
+                        <div className="relative">
+                          <input 
+                            type="text" 
+                            placeholder="Ask something..."
+                            className="w-full bg-[#252547] border border-[#3A3A5A] rounded-lg py-2 pl-3 pr-10 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <Button size="sm" className="absolute right-1 top-1 h-7 w-7 p-0 bg-blue-600">
+                            <SparklesIcon size={14} />
+                          </Button>
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-400 mt-1">Bring your image to life</p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-[#1A1A1A] rounded-lg p-4 flex items-start">
-                    <div className="p-3 rounded-lg bg-[#00361F] mr-4 flex items-center justify-center">
-                      <Paintbrush size={24} className="text-[#00A67E]" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-white">Choose a Style</h3>
-                      <p className="text-sm text-gray-400 mt-1">Start with a style you like</p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-[#1A1A1A] rounded-lg p-4 flex items-start">
-                    <div className="p-3 rounded-lg bg-[#360036] mr-4 flex items-center justify-center">
-                      <Grid size={24} className="text-[#FF3EA5]" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-white">Explore Models</h3>
-                      <p className="text-sm text-gray-400 mt-1">See 100+ Fine-tuned models</p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-[#1A1A1A] rounded-lg p-4 flex items-start">
-                    <div className="p-3 rounded-lg bg-[#36003B] mr-4 flex items-center justify-center">
-                      <FileText size={24} className="text-[#FF3EA5]" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-white">Train Model</h3>
-                      <p className="text-sm text-gray-400 mt-1">Customize your creativity</p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-[#1A1A1A] rounded-lg p-4 flex items-start">
-                    <div className="p-3 rounded-lg bg-[#3A3600] mr-4 flex items-center justify-center">
-                      <Search size={24} className="text-[#FFD426]" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-white">Ultimate Upscale</h3>
-                      <p className="text-sm text-gray-400 mt-1">Upscale your images</p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-[#1A1A1A] rounded-lg p-4 flex items-start">
-                    <div className="p-3 rounded-lg bg-[#003619] mr-4 flex items-center justify-center">
-                      <FileText size={24} className="text-[#00A67E]" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-white">Image to Prompt</h3>
-                      <p className="text-sm text-gray-400 mt-1">Convert image to text prompt</p>
                     </div>
                   </div>
                 </div>
-              </section>
-              
-              <section className="mb-12">
-                <h2 className="text-2xl font-bold text-white mb-6">
-                  Featured Apps
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <FeaturedAppCard 
-                    title="Image to Video"
-                    subtitle="By OpenArt"
-                    imageSrc="/lovable-uploads/12cd0679-f352-498e-a6ad-9faaa1ffbec9.png"
-                    isNew
-                  />
-                  <FeaturedAppCard 
-                    title="Ultimate Upscale"
-                    subtitle="By OpenArt"
-                    imageSrc="/lovable-uploads/d16f3783-6af1-4327-8936-c5a50eb0cab5.png"
-                  />
-                  <FeaturedAppCard 
-                    title="AI Filters"
-                    subtitle="By OpenArt"
-                    imageSrc="/lovable-uploads/142dea30-a410-4e79-84d0-70189e8fcd07.png"
-                  />
-                  <FeaturedAppCard 
-                    title="Sketch to image"
-                    subtitle="By OpenArt"
-                    imageSrc="/lovable-uploads/b67f802d-430a-4e5a-8755-b61e10470d58.png"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-                  <FeaturedAppCard 
-                    title="Blend Board"
-                    subtitle="By OpenArt"
-                    imageSrc="/lovable-uploads/4255fa40-8036-4424-a210-e3bcd99754df.png"
-                  />
-                  <FeaturedAppCard 
-                    title="Change Facial Expression"
-                    subtitle="By OpenArt"
-                    imageSrc="/lovable-uploads/0c6db754-b805-46e5-a4b8-319a9d8fef71.png"
-                  />
-                  <FeaturedAppCard 
-                    title="Expand"
-                    subtitle="By OpenArt"
-                    imageSrc="/lovable-uploads/8827d443-a68b-4bd9-998f-3c4c410510e9.png"
-                  />
-                  <FeaturedAppCard 
-                    title="Remove background"
-                    subtitle="By OpenArt"
-                    imageSrc="/lovable-uploads/b89881e6-12b4-4527-9c22-1052b8116ca9.png"
-                  />
-                </div>
-                
-                <div className="flex justify-center mt-8">
-                  <button className="border border-gray-700 hover:bg-gray-800 transition-colors text-white flex items-center gap-2 rounded-md px-6 py-2 text-sm font-medium">
-                    View All Flow Apps
-                    <ArrowRight size={16} />
-                  </button>
-                </div>
-              </section>
-              
-              <section className="mb-12">
-                <h2 className="text-2xl font-bold text-white mb-6">
-                  Start from a model
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <ModelCard 
-                    title="Train your own model"
-                    subtitle="Customize your creativity"
-                    imageSrc=""
-                    isTrainYourOwn={true}
-                  />
-                  <ModelCard 
-                    title="OpenArt SDXL"
-                    subtitle="OpenArt"
-                    imageSrc="/lovable-uploads/22f4141e-f83e-4b85-8c93-672e181d999b.png"
-                    tags={[
-                      { label: 'SDXL', variant: 'blue' },
-                      { label: 'Standard', variant: 'green' }
-                    ]}
-                  />
-                  <ModelCard 
-                    title="Flux (dev)"
-                    subtitle="Flux_dev"
-                    imageSrc="/lovable-uploads/e9db2be9-f0a3-4506-b387-ce20bea67ba9.png"
-                    tags={[
-                      { label: 'Flux', variant: 'orange' },
-                      { label: 'Standard', variant: 'green' }
-                    ]}
-                  />
-                  <ModelCard 
-                    title="Flux Realism"
-                    subtitle="Flux_Realism"
-                    imageSrc="/lovable-uploads/e565a3ea-dc96-4344-a533-62026d4245e1.png"
-                    tags={[
-                      { label: 'Flux', variant: 'orange' },
-                      { label: 'Photorealistic', variant: 'yellow' }
-                    ]}
-                  />
-                </div>
-                
-                <div className="flex justify-center mt-8">
-                  <button className="border border-gray-700 hover:bg-gray-800 transition-colors text-white flex items-center gap-2 rounded-md px-6 py-2 text-sm font-medium">
-                    View All Models
-                    <ArrowRight size={16} />
-                  </button>
-                </div>
-              </section>
-            </main>
-          </div>
+              </div>
+
+              {/* Quick Actions */}
+              <h2 className="text-2xl font-medium text-white mb-4">Quick Actions</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+                <CreationAction 
+                  icon={<ImageIcon size={22} />} 
+                  title="Image to Video" 
+                  description="Bring your creation to life"
+                />
+                <CreationAction 
+                  icon={<Palette size={22} />} 
+                  title="Style Transfer" 
+                  description="Transform the aesthetic feel"
+                />
+                <CreationAction 
+                  icon={<Wand2Icon size={22} />} 
+                  title="Expand Canvas" 
+                  description="Let AI extend your imagination"
+                  isPro={true}
+                />
+              </div>
+
+              {/* Recent Inspiration */}
+              <h2 className="text-2xl font-medium text-white mb-4">Recent Inspiration</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <InspirationItem src="/lovable-uploads/22f4141e-f83e-4b85-8c93-672e181d999b.png" />
+                <InspirationItem src="/lovable-uploads/e565a3ea-dc96-4344-a533-62026d4245e1.png" />
+                <InspirationItem src="/lovable-uploads/e9db2be9-f0a3-4506-b387-ce20bea67ba9.png" />
+                <InspirationItem src="/lovable-uploads/fa140a1b-cb9d-457c-a7ca-e630a9052d31.png" />
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     </div>
