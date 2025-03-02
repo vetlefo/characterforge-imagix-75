@@ -15,17 +15,23 @@ export type MessageContent =
   | { type: "button"; label: string; onClick: () => void; variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" };
 
 export interface ConversationMessageProps {
+  id?: string;
   sender: "user" | "assistant";
   content: MessageContent | MessageContent[];
   timestamp?: Date;
   className?: string;
+  isHighlighted?: boolean;
+  referencesMessageId?: string;
 }
 
 export const ConversationMessage: React.FC<ConversationMessageProps> = ({
+  id,
   sender,
   content,
   timestamp = new Date(),
   className,
+  isHighlighted,
+  referencesMessageId
 }) => {
   // Format the timestamp
   const formattedTime = timestamp.toLocaleTimeString([], { 
@@ -41,8 +47,10 @@ export const ConversationMessage: React.FC<ConversationMessageProps> = ({
       className={cn(
         "mb-4 max-w-3xl animate-fade-in",
         sender === "assistant" ? "mr-auto" : "ml-auto",
+        isHighlighted && "bg-purple-500/10 p-2 rounded-3xl",
         className
       )}
+      id={id}
     >
       <div className={cn(
         "rounded-2xl p-4 backdrop-blur-sm",
@@ -60,6 +68,15 @@ export const ConversationMessage: React.FC<ConversationMessageProps> = ({
           </span>
           <span className="text-xs text-gray-400 ml-auto">{formattedTime}</span>
         </div>
+        
+        {/* Show referenced message indicator if present */}
+        {referencesMessageId && (
+          <div className="bg-[#0F0F23]/80 text-xs text-gray-400 p-2 rounded mb-2 border-l-2 border-purple-500">
+            <a href={`#${referencesMessageId}`} className="hover:text-gray-300">
+              Referencing previous message
+            </a>
+          </div>
+        )}
         
         <div className="space-y-3">
           {contentArray.map((item, index) => (

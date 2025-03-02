@@ -4,6 +4,7 @@ import CreativeSpace from "./CreativeSpace";
 import CreativePartner from "./CreativePartner";
 import { CreativeProvider } from "./CreativeContext";
 import ConversationDemo from "./ConversationDemo";
+import ConversationHistoryDemo from "./ConversationHistoryDemo";
 
 interface CreativeWorkspaceProps {
   lastImage: string | null;
@@ -35,8 +36,14 @@ const CreativeWorkspace = ({
           <div className="relative z-10">
             <h2 className="text-2xl font-medium text-white mb-4">What would you like to create today?</h2>
             
-            {/* Conversation demo section */}
-            <ConversationDemo />
+            {/* Conversation history section */}
+            <ConversationHistoryDemo />
+            
+            {/* Original conversation demo */}
+            <div className="mt-8 mb-4">
+              <h3 className="text-xl font-medium text-white mb-4">Live Conversation</h3>
+              <ConversationDemo />
+            </div>
             
             {/* Fluid workspace area */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
