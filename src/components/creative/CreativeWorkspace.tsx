@@ -6,6 +6,7 @@ import { CreativeProvider } from "./CreativeContext";
 import ConversationDemo from "./ConversationDemo";
 import ConversationHistoryDemo from "./ConversationHistoryDemo";
 import { useCreative } from "./CreativeContext";
+import CommandParserIntegration from "./CommandParserIntegration";
 
 interface CreativeWorkspaceProps {
   lastImage: string | null;
@@ -50,6 +51,11 @@ const CreativeWorkspaceContent = ({
           <div className="mt-8 mb-4">
             <h3 className="text-xl font-medium text-white mb-4">Live Conversation</h3>
             <ConversationDemo />
+          </div>
+          
+          {/* New Command Parser Integration */}
+          <div className="mt-8 mb-6">
+            <CommandParserIntegration />
           </div>
           
           {/* Fluid workspace area */}
