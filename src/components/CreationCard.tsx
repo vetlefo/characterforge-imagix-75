@@ -1,5 +1,8 @@
 
-import { Plus, Edit, UserPlus, Video } from "lucide-react";
+import { Plus, Edit, UserPlus, Video, PencilRuler } from "lucide-react";
+import { useState } from "react";
+import DrawingModule from "./draw/DrawingModule";
+import { toast } from "sonner";
 
 type CardType = "image" | "storytelling";
 
@@ -9,6 +12,13 @@ interface CreationCardProps {
 
 export const CreationCard = ({ type }: CreationCardProps) => {
   const isImage = type === "image";
+  const [showDrawing, setShowDrawing] = useState(false);
+  const [drawingPreview, setDrawingPreview] = useState<string | null>(null);
+  
+  const handleDrawingComplete = (dataUrl: string) => {
+    setDrawingPreview(dataUrl);
+    toast.success(`Drawing ready for ${isImage ? "image" : "storytelling"} generation`);
+  };
   
   return (
     <div 
@@ -21,7 +31,11 @@ export const CreationCard = ({ type }: CreationCardProps) => {
       </h2>
       
       <div className="flex-grow relative min-h-[160px]">
-        {isImage ? (
+        {drawingPreview ? (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 border-4 border-white shadow-lg">
+            <img src={drawingPreview} alt="Your drawing" className="w-full h-full object-cover" />
+          </div>
+        ) : isImage ? (
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-gradient-to-b from-orange-300 to-purple-400 rounded-lg border-4 border-white shadow-lg rotate-3">
             <div className="absolute top-2 right-2 w-3 h-3 bg-orange-500 rounded-full" />
           </div>
@@ -45,7 +59,15 @@ export const CreationCard = ({ type }: CreationCardProps) => {
         )}
       </div>
       
-      <div className="grid grid-cols-2 gap-2 mt-4">
+      <div className="grid grid-cols-1 gap-2 mt-4">
+        <DrawingModule 
+          onDrawingComplete={handleDrawingComplete}
+          triggerLabel={`Draw for ${isImage ? "Image" : "Storytelling"}`}
+          modalTitle={`Create Drawing for ${isImage ? "Image" : "Storytelling"} Generation`}
+        />
+      </div>
+      
+      <div className="grid grid-cols-2 gap-2 mt-2">
         {isImage ? (
           <>
             <button className="bg-black text-white py-3 rounded-md flex items-center justify-center gap-1.5 hover:bg-opacity-90 transition">
