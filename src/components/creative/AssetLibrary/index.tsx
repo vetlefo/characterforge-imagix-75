@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { Asset } from "../types";
 import { useCreative } from "../CreativeContext";
@@ -34,7 +33,8 @@ const AssetLibrary = ({ className }: AssetLibraryProps) => {
     deleteAsset, 
     updateAsset,
     selectedAssetId,
-    setSelectedAssetId
+    setSelectedAssetId,
+    tags
   } = useCreative();
   
   // State for asset creation
@@ -54,16 +54,10 @@ const AssetLibrary = ({ className }: AssetLibraryProps) => {
   });
   const [view, setView] = useState<"grid" | "list">("grid");
   
-  // Get all unique tags from assets
+  // Use the tags from the context
   const availableTags = useMemo(() => {
-    const tagSet = new Set<string>();
-    assets.forEach(asset => {
-      asset.tags.forEach(tag => {
-        tagSet.add(tag);
-      });
-    });
-    return Array.from(tagSet).sort();
-  }, [assets]);
+    return tags;
+  }, [tags]);
   
   // Filter and sort assets
   const filteredAssets = useMemo(() => {
@@ -355,7 +349,7 @@ const AssetLibrary = ({ className }: AssetLibraryProps) => {
           <AssetFilters 
             availableTags={availableTags}
             filters={filters}
-            onFilterChange={setFilters}
+            onFiltersChange={setFilters}
           />
         </div>
       </div>

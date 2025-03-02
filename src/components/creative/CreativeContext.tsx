@@ -26,6 +26,9 @@ interface CreativeContextType extends CreativeContextState {
   
   // Selection management
   setSelectedAssetId: (id: string | null) => void;
+  
+  // Helper to get all unique tags
+  tags: string[];
 }
 
 const CreativeContext = createContext<CreativeContextType | undefined>(undefined);
@@ -241,6 +244,17 @@ export const CreativeProvider = ({ children }: { children: ReactNode }) => {
     return state.assets.filter(asset => relatedAssetIds.includes(asset.id));
   }, [state.assets]);
 
+  // Compute all unique tags across assets
+  const getAllUniqueTags = useCallback(() => {
+    const tagSet = new Set<string>();
+    state.assets.forEach(asset => {
+      asset.tags.forEach(tag => {
+        tagSet.add(tag);
+      });
+    });
+    return Array.from(tagSet);
+  }, [state.assets]);
+
   return (
     <CreativeContext.Provider
       value={{
@@ -260,7 +274,8 @@ export const CreativeProvider = ({ children }: { children: ReactNode }) => {
         updateRelationship,
         deleteRelationship,
         getRelatedAssets,
-        setSelectedAssetId
+        setSelectedAssetId,
+        tags: getAllUniqueTags()
       }}
     >
       {children}

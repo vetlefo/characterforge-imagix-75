@@ -7,28 +7,51 @@ import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useCreative } from '../CreativeContext';
 
+// Define the AssetFilterOptions type and export it
+export interface AssetFilterOptions {
+  types: string[];
+  tags: string[];
+  sortBy: 'newest' | 'oldest' | 'a-z' | 'z-a';
+}
+
 type FilterProps = {
-  onClose: () => void;
-  onFiltersChange: (filters: any) => void;
+  onClose?: () => void;
+  onFiltersChange: (filters: AssetFilterOptions) => void;
+  availableTags: string[];
+  filters: AssetFilterOptions;
 };
 
-const AssetFilters: React.FC<FilterProps> = ({ onClose, onFiltersChange }) => {
-  const { tags } = useCreative();
-  const [activeFilters, setActiveFilters] = useState({
-    type: 'all',
-    tags: [] as string[],
-    dateRange: [0, 100] as [number, number],
+const AssetFilters: React.FC<FilterProps> = ({ 
+  onClose, 
+  onFiltersChange, 
+  availableTags,
+  filters: initialFilters 
+}) => {
+  const [activeFilters, setActiveFilters] = useState<AssetFilterOptions>(initialFilters || {
+    types: [],
+    tags: [],
+    sortBy: 'newest'
   });
-
-  // Get unique tags from all assets
-  const uniqueTags = Array.from(new Set(tags));
-
+  
   const handleTypeChange = (value: string) => {
-    setActiveFilters(prev => {
-      const newFilters = { ...prev, type: value };
-      onFiltersChange(newFilters);
-      return newFilters;
-    });
+    const newTypes = activeFilters.types.includes(value)
+      ? activeFilters.types.filter(t => t !== value)
+      : [...activeFilters.types, value];
+      
+    if (value === 'all') {
+      // If "all" is selected, clear other selections
+      setActiveFilters(prev => {
+        const newFilters = { ...prev, types: [] };
+        onFiltersChange(newFilters);
+        return newFilters;
+      });
+    } else {
+      setActiveFilters(prev => {
+        const newFilters = { ...prev, types: newTypes };
+        onFiltersChange(newFilters);
+        return newFilters;
+      });
+    }
   };
 
   const toggleTag = (tag: string) => {
@@ -51,14 +74,29 @@ const AssetFilters: React.FC<FilterProps> = ({ onClose, onFiltersChange }) => {
     });
   };
 
+  const handleSortChange = (value: AssetFilterOptions['sortBy']) => {
+    setActiveFilters(prev => {
+      const newFilters = { ...prev, sortBy: value };
+      onFiltersChange(newFilters);
+      return newFilters;
+    });
+  };
+
   const clearFilters = () => {
     const defaultFilters = {
-      type: 'all',
-      tags: [] as string[],
-      dateRange: [0, 100] as [number, number],
+      types: [],
+      tags: [],
+      sortBy: 'newest'
     };
     setActiveFilters(defaultFilters);
     onFiltersChange(defaultFilters);
+  };
+
+  const isTypeSelected = (type: string) => {
+    if (type === 'all') {
+      return activeFilters.types.length === 0;
+    }
+    return activeFilters.types.includes(type);
   };
 
   return (
@@ -68,55 +106,64 @@ const AssetFilters: React.FC<FilterProps> = ({ onClose, onFiltersChange }) => {
           <Filter size={18} className="mr-2" />
           Filters
         </h3>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X size={18} />
-        </Button>
+        {onClose && (
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X size={18} />
+          </Button>
+        )}
       </div>
 
       <Tabs defaultValue="type" className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="type">Type</TabsTrigger>
           <TabsTrigger value="tags">Tags</TabsTrigger>
-          <TabsTrigger value="date">Date</TabsTrigger>
+          <TabsTrigger value="sort">Sort</TabsTrigger>
         </TabsList>
 
         <TabsContent value="type" className="space-y-4">
           <div className="grid grid-cols-2 gap-2">
             <Button
-              variant={activeFilters.type === 'all' ? 'default' : 'outline'}
+              variant={isTypeSelected('all') ? 'default' : 'outline'}
               onClick={() => handleTypeChange('all')}
               className="w-full"
             >
               All
             </Button>
             <Button
-              variant={activeFilters.type === 'image' ? 'default' : 'outline'}
+              variant={isTypeSelected('image') ? 'default' : 'outline'}
               onClick={() => handleTypeChange('image')}
               className="w-full"
             >
               Images
             </Button>
             <Button
-              variant={activeFilters.type === 'text' ? 'default' : 'outline'}
+              variant={isTypeSelected('text') ? 'default' : 'outline'}
               onClick={() => handleTypeChange('text')}
               className="w-full"
             >
               Text
             </Button>
             <Button
-              variant={activeFilters.type === 'component' ? 'default' : 'outline'}
-              onClick={() => handleTypeChange('component')}
+              variant={isTypeSelected('website') ? 'default' : 'outline'}
+              onClick={() => handleTypeChange('website')}
               className="w-full"
             >
-              Components
+              Websites
+            </Button>
+            <Button
+              variant={isTypeSelected('other') ? 'default' : 'outline'}
+              onClick={() => handleTypeChange('other')}
+              className="w-full"
+            >
+              Other
             </Button>
           </div>
         </TabsContent>
 
         <TabsContent value="tags" className="space-y-4">
-          {uniqueTags.length > 0 ? (
+          {availableTags.length > 0 ? (
             <div className="flex flex-wrap gap-2">
-              {uniqueTags.map(tag => (
+              {availableTags.map((tag) => (
                 <Button
                   key={tag}
                   variant={activeFilters.tags.includes(tag) ? 'default' : 'outline'}
@@ -132,21 +179,36 @@ const AssetFilters: React.FC<FilterProps> = ({ onClose, onFiltersChange }) => {
           )}
         </TabsContent>
 
-        <TabsContent value="date" className="space-y-4">
-          <div>
-            <Label className="mb-2 block">Date Created</Label>
-            <Slider
-              defaultValue={[0, 100]}
-              max={100}
-              step={1}
-              value={activeFilters.dateRange}
-              onValueChange={handleDateRangeChange as (value: number[]) => void}
-              className="my-4"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Oldest</span>
-              <span>Newest</span>
-            </div>
+        <TabsContent value="sort" className="space-y-4">
+          <div className="space-y-2">
+            <Button
+              variant={activeFilters.sortBy === 'newest' ? 'default' : 'outline'}
+              onClick={() => handleSortChange('newest')}
+              className="w-full justify-start"
+            >
+              Newest First
+            </Button>
+            <Button
+              variant={activeFilters.sortBy === 'oldest' ? 'default' : 'outline'}
+              onClick={() => handleSortChange('oldest')}
+              className="w-full justify-start"
+            >
+              Oldest First
+            </Button>
+            <Button
+              variant={activeFilters.sortBy === 'a-z' ? 'default' : 'outline'}
+              onClick={() => handleSortChange('a-z')}
+              className="w-full justify-start"
+            >
+              A to Z
+            </Button>
+            <Button
+              variant={activeFilters.sortBy === 'z-a' ? 'default' : 'outline'}
+              onClick={() => handleSortChange('z-a')}
+              className="w-full justify-start"
+            >
+              Z to A
+            </Button>
           </div>
         </TabsContent>
       </Tabs>

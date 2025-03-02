@@ -1,141 +1,140 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  ColorPalette, 
-  Typography, 
-  SpacingSystem, 
-  StyleSystemContextType 
-} from './types';
-import { 
-  defaultPalettes, 
-  defaultTypography, 
-  defaultSpacing 
-} from './defaultStyles';
+import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
+import { defaultColorPalette, defaultTypography, defaultSpacing } from './defaultStyles';
+import { ColorPalette, Typography, Spacing, Theme } from './types';
 import { useCreative } from '../CreativeContext';
+import { Asset } from '../types';
+
+interface StyleSystemContextType {
+  colorPalette: ColorPalette;
+  typography: Typography;
+  spacing: Spacing;
+  updateColorPalette: (palette: Partial<ColorPalette>) => void;
+  updateTypography: (typography: Partial<Typography>) => void;
+  updateSpacing: (spacing: Partial<Spacing>) => void;
+  saveTheme: (name: string) => void;
+  loadTheme: (themeId: string) => void;
+  availableThemes: Theme[];
+}
 
 const StyleSystemContext = createContext<StyleSystemContextType | undefined>(undefined);
 
-export const useStyleSystem = () => {
-  const context = useContext(StyleSystemContext);
-  if (context === undefined) {
-    throw new Error('useStyleSystem must be used within a StyleSystemProvider');
-  }
-  return context;
-};
-
-export const StyleSystemProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { updateAsset } = useCreative();
+export const StyleSystemProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { assets, addAsset, updateAsset, getAssetsByType } = useCreative();
   
-  const [activePalette, setActivePalette] = useState<ColorPalette>(defaultPalettes[0]);
-  const [palettes, setPalettes] = useState<ColorPalette[]>(defaultPalettes);
+  // Initialize state with defaults
+  const [colorPalette, setColorPalette] = useState<ColorPalette>(defaultColorPalette);
+  const [typography, setTypography] = useState<Typography>(defaultTypography);
+  const [spacing, setSpacing] = useState<Spacing>(defaultSpacing);
   
-  const [activeTypography, setActiveTypography] = useState<Typography>(defaultTypography[0]);
-  const [typographyOptions, setTypographyOptions] = useState<Typography[]>(defaultTypography);
+  // Load themes from assets
+  const [availableThemes, setAvailableThemes] = useState<Theme[]>([]);
   
-  const [activeSpacing, setActiveSpacing] = useState<SpacingSystem>(defaultSpacing[0]);
-  const [spacingOptions, setSpacingOptions] = useState<SpacingSystem[]>(defaultSpacing);
-
-  // Load saved styles from localStorage on mount
+  // Load saved themes on mount
   useEffect(() => {
-    const savedStyles = localStorage.getItem('styleSystem');
-    if (savedStyles) {
-      try {
-        const { 
-          activePalette: savedPalette,
-          palettes: savedPalettes,
-          activeTypography: savedTypography,
-          typographyOptions: savedTypographyOptions,
-          activeSpacing: savedSpacing,
-          spacingOptions: savedSpacingOptions
-        } = JSON.parse(savedStyles);
-
-        if (savedPalette) setActivePalette(savedPalette);
-        if (savedPalettes) setPalettes(savedPalettes);
-        if (savedTypography) setActiveTypography(savedTypography);
-        if (savedTypographyOptions) setTypographyOptions(savedTypographyOptions);
-        if (savedSpacing) setActiveSpacing(savedSpacing);
-        if (savedSpacingOptions) setSpacingOptions(savedSpacingOptions);
-      } catch (error) {
-        console.error('Failed to parse saved styles:', error);
-      }
-    }
-  }, []);
-
-  // Save styles to localStorage when they change
-  useEffect(() => {
-    localStorage.setItem('styleSystem', JSON.stringify({
-      activePalette,
-      palettes,
-      activeTypography,
-      typographyOptions,
-      activeSpacing,
-      spacingOptions
+    const themeAssets = getAssetsByType('other').filter(asset => 
+      asset.metadata.assetSubtype === 'theme'
+    );
+    
+    const themes: Theme[] = themeAssets.map(asset => ({
+      id: asset.id,
+      name: asset.metadata.title || 'Untitled Theme',
+      colorPalette: asset.metadata.colorPalette || defaultColorPalette,
+      typography: asset.metadata.typography || defaultTypography,
+      spacing: asset.metadata.spacing || defaultSpacing,
+      createdAt: asset.createdAt,
+      updatedAt: asset.updatedAt
     }));
-  }, [
-    activePalette, 
-    palettes, 
-    activeTypography, 
-    typographyOptions, 
-    activeSpacing, 
-    spacingOptions
-  ]);
-
-  const addCustomPalette = (palette: ColorPalette) => {
-    setPalettes(prev => [...prev, palette]);
-    setActivePalette(palette);
-  };
-
-  const addCustomTypography = (typography: Typography) => {
-    setTypographyOptions(prev => [...prev, typography]);
-    setActiveTypography(typography);
-  };
-
-  const addCustomSpacing = (spacing: SpacingSystem) => {
-    setSpacingOptions(prev => [...prev, spacing]);
-    setActiveSpacing(spacing);
-  };
-
-  const applyStylesToElement = (elementId: string, styles: Partial<{
-    color: string;
-    backgroundColor: string;
-    fontFamily: string;
-    fontSize: string;
-    fontWeight: string;
-    padding: string;
-    margin: string;
-  }>) => {
-    updateAsset(elementId, prevAsset => {
-      if (!prevAsset) return prevAsset;
-      
-      return {
-        ...prevAsset,
-        styles: {
-          ...prevAsset.styles,
-          ...styles
+    
+    setAvailableThemes(themes);
+  }, [assets, getAssetsByType]);
+  
+  // Update handlers with memoization
+  const updateColorPalette = useCallback((update: Partial<ColorPalette>) => {
+    setColorPalette(current => ({ ...current, ...update }));
+  }, []);
+  
+  const updateTypography = useCallback((update: Partial<Typography>) => {
+    setTypography(current => ({ ...current, ...update }));
+  }, []);
+  
+  const updateSpacing = useCallback((update: Partial<Spacing>) => {
+    setSpacing(current => ({ ...current, ...update }));
+  }, []);
+  
+  // Save current theme
+  const saveTheme = useCallback((name: string) => {
+    const themeData = {
+      colorPalette,
+      typography,
+      spacing
+    };
+    
+    // Check if we're updating an existing theme with this name
+    const existingTheme = availableThemes.find(theme => theme.name === name);
+    
+    if (existingTheme) {
+      // Update existing theme
+      updateAsset(existingTheme.id, {
+        metadata: {
+          title: name,
+          assetSubtype: 'theme',
+          colorPalette,
+          typography,
+          spacing
         }
-      };
-    });
-  };
-
+      });
+    } else {
+      // Create new theme
+      addAsset(
+        'other',
+        JSON.stringify(themeData),
+        ['theme', 'style'],
+        {
+          title: name,
+          assetSubtype: 'theme',
+          colorPalette,
+          typography,
+          spacing
+        }
+      );
+    }
+  }, [colorPalette, typography, spacing, availableThemes, updateAsset, addAsset]);
+  
+  // Load a theme
+  const loadTheme = useCallback((themeId: string) => {
+    const theme = availableThemes.find(t => t.id === themeId);
+    
+    if (theme) {
+      setColorPalette(theme.colorPalette);
+      setTypography(theme.typography);
+      setSpacing(theme.spacing);
+    }
+  }, [availableThemes]);
+  
   const value = {
-    activePalette,
-    palettes,
-    activeTypography,
-    typographyOptions,
-    activeSpacing,
-    spacingOptions,
-    setActivePalette,
-    setActiveTypography,
-    setActiveSpacing,
-    addCustomPalette,
-    addCustomTypography,
-    addCustomSpacing,
-    applyStylesToElement
+    colorPalette,
+    typography,
+    spacing,
+    updateColorPalette,
+    updateTypography,
+    updateSpacing,
+    saveTheme,
+    loadTheme,
+    availableThemes
   };
-
+  
   return (
     <StyleSystemContext.Provider value={value}>
       {children}
     </StyleSystemContext.Provider>
   );
+};
+
+export const useStyleSystem = () => {
+  const context = useContext(StyleSystemContext);
+  if (!context) {
+    throw new Error('useStyleSystem must be used within a StyleSystemProvider');
+  }
+  return context;
 };
