@@ -38,7 +38,7 @@ export type Typography = {
   };
 };
 
-export type SpacingSystem = {
+export type Spacing = {
   id: string;
   name: string;
   scale: {
@@ -57,19 +57,43 @@ export type SpacingSystem = {
   };
 };
 
-export type StyleSystemContextType = {
+export type Theme = {
+  id: string;
+  name: string;
+  colorPalette: ColorPalette;
+  typography: Typography;
+  spacing: Spacing;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export interface StyleSystemContextType {
+  colorPalette: ColorPalette;
+  typography: Typography;
+  spacing: Spacing;
+  updateColorPalette: (palette: Partial<ColorPalette>) => void;
+  updateTypography: (typography: Partial<Typography>) => void;
+  updateSpacing: (spacing: Partial<Spacing>) => void;
+  saveTheme: (name: string) => void;
+  loadTheme: (themeId: string) => void;
+  availableThemes: Theme[];
+  
+  // Properties used by components
   activePalette: ColorPalette;
   palettes: ColorPalette[];
+  setActivePalette: (palette: ColorPalette) => void;
+  addCustomPalette: (palette: ColorPalette) => void;
+  
   activeTypography: Typography;
   typographyOptions: Typography[];
-  activeSpacing: SpacingSystem;
-  spacingOptions: SpacingSystem[];
-  setActivePalette: (palette: ColorPalette) => void;
   setActiveTypography: (typography: Typography) => void;
-  setActiveSpacing: (spacing: SpacingSystem) => void;
-  addCustomPalette: (palette: ColorPalette) => void;
   addCustomTypography: (typography: Typography) => void;
-  addCustomSpacing: (spacing: SpacingSystem) => void;
+  
+  activeSpacing: Spacing;
+  spacingOptions: Spacing[];
+  setActiveSpacing: (spacing: Spacing) => void;
+  addCustomSpacing: (spacing: Spacing) => void;
+  
   applyStylesToElement: (elementId: string, styles: Partial<{
     color: string;
     backgroundColor: string;
@@ -79,4 +103,4 @@ export type StyleSystemContextType = {
     padding: string;
     margin: string;
   }>) => void;
-};
+}

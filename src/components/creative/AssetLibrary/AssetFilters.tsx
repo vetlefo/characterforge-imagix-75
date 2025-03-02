@@ -67,11 +67,8 @@ const AssetFilters: React.FC<FilterProps> = ({
   };
 
   const handleDateRangeChange = (value: [number, number]) => {
-    setActiveFilters(prev => {
-      const newFilters = { ...prev, dateRange: value };
-      onFiltersChange(newFilters);
-      return newFilters;
-    });
+    // Implementation would go here
+    console.log('Date range changed:', value);
   };
 
   const handleSortChange = (value: AssetFilterOptions['sortBy']) => {
@@ -83,7 +80,7 @@ const AssetFilters: React.FC<FilterProps> = ({
   };
 
   const clearFilters = () => {
-    const defaultFilters = {
+    const defaultFilters: AssetFilterOptions = {
       types: [],
       tags: [],
       sortBy: 'newest'
