@@ -65,6 +65,12 @@ export default {
         },
         promo: 'hsl(var(--promo))',
         'promo-foreground': 'hsl(var(--promo-foreground))',
+        success: 'hsl(var(--success))',
+        'success-foreground': 'hsl(var(--success-foreground))',
+        warning: 'hsl(var(--warning))',
+        'warning-foreground': 'hsl(var(--warning-foreground))',
+        info: 'hsl(var(--info))',
+        'info-foreground': 'hsl(var(--info-foreground))',
         'blue-card': '#1D8FFF',
         'yellow-card': '#FFD426',
         'icon-blue': '#0080FF',
@@ -77,6 +83,11 @@ export default {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)'
+      },
+      boxShadow: {
+        'card-hover': '0 4px 12px rgba(0, 0, 0, 0.1)',
+        'dropdown': '0 10px 25px -5px rgba(0, 0, 0, 0.2)',
+        'elevated': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
       },
       keyframes: {
         'accordion-down': {
@@ -102,6 +113,10 @@ export default {
         'slide-out': {
           from: { transform: 'translateX(0)' },
           to: { transform: 'translateX(-100%)' }
+        },
+        'pulse-slow': {
+          '0%, 100%': { opacity: 1 },
+          '50%': { opacity: 0.8 }
         }
       },
       animation: {
@@ -110,7 +125,11 @@ export default {
         'fade-in': 'fade-in 0.2s ease-out',
         'fade-out': 'fade-out 0.2s ease-out',
         'slide-in': 'slide-in 0.3s ease-out',
-        'slide-out': 'slide-out 0.3s ease-out'
+        'slide-out': 'slide-out 0.3s ease-out',
+        'pulse-slow': 'pulse-slow 3s ease-in-out infinite'
+      },
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
       }
     }
   },
