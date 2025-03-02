@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
-import { Sparkles, SendIcon } from "lucide-react";
+import { Sparkles, SendIcon, BookmarkIcon } from "lucide-react";
 import { useCreative } from "./CreativeContext";
 
 interface CreativePartnerProps {
@@ -18,8 +18,13 @@ const CreativePartner = ({ assistantMessage, showSuggestion }: CreativePartnerPr
     suggestionsVisible, 
     setSuggestionsVisible,
     lastPrompt,
-    setLastPrompt
+    setLastPrompt,
+    addAsset,
+    getAssetsByType
   } = useCreative();
+
+  // Get text assets for potential reference
+  const textAssets = getAssetsByType("text");
 
   // Synchronize with external props
   useEffect(() => {
@@ -32,6 +37,10 @@ const CreativePartner = ({ assistantMessage, showSuggestion }: CreativePartnerPr
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim()) {
+      // Save the input as a text asset
+      addAsset("text", inputValue, [], { source: "user-input" });
+      
+      // Update the current intent and last prompt
       setCurrentIntent(inputValue);
       setLastPrompt(inputValue);
       setInputValue("");
@@ -52,14 +61,24 @@ const CreativePartner = ({ assistantMessage, showSuggestion }: CreativePartnerPr
 
   // Handle suggestion acceptance
   const handleAcceptSuggestion = () => {
+    // Save the suggestion as a text asset
+    addAsset("text", assistantMessage, ["suggestion", "accepted"], {
+      source: "assistant",
+      in_response_to: lastPrompt
+    });
+    
     setSuggestionsVisible(false);
-    // Additional logic when a suggestion is accepted
   };
 
   // Handle suggestion rejection
   const handleRejectSuggestion = () => {
+    // Save the rejected suggestion for future reference
+    addAsset("text", assistantMessage, ["suggestion", "rejected"], {
+      source: "assistant",
+      in_response_to: lastPrompt
+    });
+    
     setSuggestionsVisible(false);
-    // Additional logic when a suggestion is rejected
   };
 
   return (
@@ -82,7 +101,7 @@ const CreativePartner = ({ assistantMessage, showSuggestion }: CreativePartnerPr
         
         {!isMinimized && (
           <>
-            <div className="flex-grow mb-4">
+            <div className="flex-grow mb-4 overflow-y-auto max-h-60">
               {suggestionsVisible ? (
                 <div className="p-3 rounded-lg bg-[#2A2A4A]/50 backdrop-blur-sm text-sm text-gray-300 border border-blue-900/30">
                   {assistantMessage}
@@ -111,7 +130,29 @@ const CreativePartner = ({ assistantMessage, showSuggestion }: CreativePartnerPr
                   <p className="text-gray-300">{lastPrompt}</p>
                 </div>
               ) : (
-                <p className="text-gray-400 text-sm">Share your creative intention...</p>
+                <>
+                  <p className="text-gray-400 text-sm mb-3">Share your creative intention...</p>
+                  
+                  {textAssets.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-xs text-gray-500 mb-2">Previous inspirations:</p>
+                      <div className="space-y-2">
+                        {textAssets.slice(0, 3).map((asset) => (
+                          <div 
+                            key={asset.id}
+                            className="p-2 rounded bg-[#2A2A4A]/20 text-xs text-gray-400 border border-[#3A3A5A]/20 cursor-pointer hover:bg-[#2A2A4A]/30 transition-colors"
+                            onClick={() => setInputValue(asset.content)}
+                          >
+                            <div className="flex justify-between items-start">
+                              <p className="truncate">{asset.content}</p>
+                              <BookmarkIcon size={12} className="text-blue-400 ml-1 flex-shrink-0" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
             

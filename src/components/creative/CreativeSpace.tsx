@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DrawingModule from "../draw/DrawingModule";
 import { Button } from "../ui/button";
@@ -16,11 +15,19 @@ const CreativeSpace = ({ lastImage, onDrawingComplete }: CreativeSpaceProps) => 
     setActiveDrawing, 
     currentIntent,
     suggestionsVisible,
-    setSuggestionsVisible 
+    setSuggestionsVisible,
+    addAsset
   } = useCreative();
 
   // Handle drawing completion with context awareness
   const handleDrawingComplete = (dataUrl: string) => {
+    // Add the drawing as an asset in our context
+    const newAsset = addAsset("image", dataUrl, 
+      currentIntent ? [currentIntent] : [], 
+      { createdVia: "drawing" }
+    );
+    
+    // Call the parent handler
     onDrawingComplete(dataUrl);
     setActiveDrawing(false);
     
