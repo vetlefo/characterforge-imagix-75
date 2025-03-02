@@ -25,11 +25,15 @@ const DrawingCanvas = ({
 }: DrawingCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const etherealCanvasRef = useRef<HTMLCanvasElement>(null);
   const [fabricCanvas, setFabricCanvas] = useState<fabric.Canvas | null>(null);
   const [drawingMode, setDrawingMode] = useState<DrawingMode>("pencil");
   const [color, setColor] = useState("#ffffff");
   const [brushSize, setBrushSize] = useState(5);
+  const [cursorPosition, setCursorPosition] = useState({ x: -100, y: -100 });
+  const animationFrameId = useRef<number | null>(null);
 
+  // Setup main drawing canvas
   useEffect(() => {
     if (!canvasRef.current) return;
 
@@ -68,6 +72,14 @@ const DrawingCanvas = ({
 
     document.addEventListener('paste', handlePaste);
 
+    // Track cursor position for ethereal effects
+    const handleCanvasMouseMove = (e: fabric.IEvent) => {
+      const pointer = canvas.getPointer(e.e);
+      setCursorPosition({ x: pointer.x, y: pointer.y });
+    };
+
+    canvas.on('mouse:move', handleCanvasMouseMove);
+
     // Load initial image if provided
     if (initialImage) {
       loadImageToCanvas(canvas, initialImage);
@@ -76,8 +88,97 @@ const DrawingCanvas = ({
     return () => {
       canvas.dispose();
       document.removeEventListener('paste', handlePaste);
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
     };
   }, [width, height, initialImage]);
+
+  // Setup ethereal background canvas
+  useEffect(() => {
+    if (!etherealCanvasRef.current) return;
+    
+    const canvas = etherealCanvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    canvas.width = width;
+    canvas.height = height;
+    
+    const particles: {x: number, y: number, size: number, speed: number, hue: number}[] = [];
+    for (let i = 0; i < 30; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        size: Math.random() * 3 + 0.5,
+        speed: Math.random() * 0.2 + 0.1,
+        hue: Math.random() * 60 + 200, // Blues and purples
+      });
+    }
+    
+    const animate = () => {
+      ctx.clearRect(0, 0, width, height);
+      
+      // Draw particles
+      particles.forEach(particle => {
+        ctx.beginPath();
+        const gradient = ctx.createRadialGradient(
+          particle.x, particle.y, 0,
+          particle.x, particle.y, particle.size * 2
+        );
+        gradient.addColorStop(0, `hsla(${particle.hue}, 100%, 70%, 0.3)`);
+        gradient.addColorStop(1, `hsla(${particle.hue}, 100%, 70%, 0)`);
+        
+        ctx.fillStyle = gradient;
+        ctx.arc(particle.x, particle.y, particle.size * 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Move particles slowly
+        particle.y -= particle.speed;
+        
+        // Reset particles at bottom
+        if (particle.y < 0) {
+          particle.y = height;
+          particle.x = Math.random() * width;
+        }
+        
+        // Attract particles to cursor
+        const distX = cursorPosition.x - particle.x;
+        const distY = cursorPosition.y - particle.y;
+        const dist = Math.sqrt(distX * distX + distY * distY);
+        
+        if (dist < 100) {
+          particle.x += distX * 0.02;
+          particle.y += distY * 0.02;
+        }
+      });
+      
+      // Draw cursor glow
+      if (cursorPosition.x > 0 && cursorPosition.y > 0) {
+        const gradient = ctx.createRadialGradient(
+          cursorPosition.x, cursorPosition.y, 0,
+          cursorPosition.x, cursorPosition.y, 80
+        );
+        gradient.addColorStop(0, `rgba(62, 116, 245, 0.2)`);
+        gradient.addColorStop(1, `rgba(62, 116, 245, 0)`);
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(cursorPosition.x, cursorPosition.y, 80, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      animationFrameId.current = requestAnimationFrame(animate);
+    };
+    
+    animate();
+    
+    return () => {
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
+    };
+  }, [width, height, cursorPosition]);
 
   useEffect(() => {
     if (!fabricCanvas) return;
@@ -245,8 +346,17 @@ const DrawingCanvas = ({
         />
       </div>
       
-      <div className="rounded-lg border border-border overflow-hidden bg-black">
-        <canvas ref={canvasRef} />
+      <div className="rounded-lg border border-border overflow-hidden bg-black relative">
+        {/* Ethereal animated background */}
+        <canvas 
+          ref={etherealCanvasRef} 
+          className="absolute inset-0 pointer-events-none z-0 opacity-60"
+        />
+        
+        {/* Main fabric.js canvas */}
+        <div className="relative z-10">
+          <canvas ref={canvasRef} />
+        </div>
       </div>
       
       {onSave && (

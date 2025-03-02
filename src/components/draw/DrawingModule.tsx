@@ -12,7 +12,8 @@ interface DrawingModuleProps {
   width?: number;
   height?: number;
   initialImage?: string | null;
-  // Internal state management only - not exposed in props
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const DrawingModule = ({
@@ -21,9 +22,21 @@ const DrawingModule = ({
   modalTitle = "Create Your Drawing",
   width = 512,
   height = 512,
-  initialImage = null
+  initialImage = null,
+  open: controlledOpen,
+  onOpenChange
 }: DrawingModuleProps) => {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  // Use either controlled or uncontrolled state
+  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = (value: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(value);
+    } else {
+      setInternalOpen(value);
+    }
+  };
 
   const handleSave = (dataUrl: string) => {
     onDrawingComplete(dataUrl);
@@ -31,7 +44,7 @@ const DrawingModule = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={isOpen} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2 bg-opacity-20 border-blue-500/30 hover:border-blue-400/50 backdrop-blur-sm">
           <Sparkles size={16} className="text-blue-400" />
