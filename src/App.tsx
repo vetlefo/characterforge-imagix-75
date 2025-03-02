@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import DrawingEditor from './pages/DrawingEditor';
 import { StyleSystem } from './components/creative/StyleSystem/StyleSystem';
 import { StyleSystemProvider } from './components/creative/StyleSystem/StyleSystemContext';

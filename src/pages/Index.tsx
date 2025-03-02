@@ -1,65 +1,110 @@
 
+import React from "react";
 import { Link } from "react-router-dom";
+import { Home, PenLine, Layers, Play, LightbulbIcon, Orbit, Combine } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import CreativePossibilities from "@/components/creative/CreativePossibilities";
+import InspirationalEchoes from "@/components/creative/InspirationalEchoes";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <section className="relative py-24">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
-          <div className="absolute top-0 left-0 w-full h-full animate-pulse-slow">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
-            <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[240px] h-[240px] bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
-            <div className="absolute bottom-1/4 right-1/4 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
-          </div>
-        </div>
-      
-        <div className="container mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            
-            {/* Drawing Editor Card */}
-            <Link to="/drawing" className="group">
-              <div className="feature-card modern-card bg-gradient-to-br from-[#1A1F2C] to-[#202042] p-6 h-full">
-                <div className="mb-4 bg-blue-500/10 w-12 h-12 rounded-lg flex items-center justify-center text-blue-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pencil-line"><path d="M9.17 11.83 5.5 15.5V18h2.5l3.67-3.67L15.91 6.6a2.828 2.828 0 1 0-3.997-3.997L9.17 11.83Z"/><path d="M22 21H6"/><path d="m15 15 4 4"/></svg>
-                </div>
-                <h3 className="text-xl font-semibold mb-2 text-white group-hover:text-blue-300 transition-colors">Drawing Editor</h3>
-                <p className="text-gray-400">
-                  Create stunning digital drawings with a wide array of tools and brushes.
-                </p>
-              </div>
-            </Link>
-            
-            {/* Style System Card */}
-            <Link to="/style-system" className="group">
-              <div className="feature-card modern-card bg-gradient-to-br from-[#1A1F2C] to-[#2A1F43] p-6 h-full">
-                <div className="mb-4 bg-purple-500/10 w-12 h-12 rounded-lg flex items-center justify-center text-purple-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-palette"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
-                </div>
-                <h3 className="text-xl font-semibold mb-2 text-white group-hover:text-purple-300 transition-colors">Style System</h3>
-                <p className="text-gray-400">
-                  Manage color palettes, typography settings and spacing systems for consistent design.
-                </p>
-              </div>
-            </Link>
-            
-            {/* Animation Preview Card */}
-            <Link to="/animation" className="group">
-              <div className="feature-card modern-card bg-gradient-to-br from-[#1A1F2C] to-[#1F2240] p-6 h-full">
-                <div className="mb-4 bg-green-500/10 w-12 h-12 rounded-lg flex items-center justify-center text-green-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-play"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                </div>
-                <h3 className="text-xl font-semibold mb-2 text-white group-hover:text-green-300 transition-colors">Animation Preview</h3>
-                <p className="text-gray-400">
-                  Create and preview animations with a powerful timeline editor and export to code.
-                </p>
-              </div>
-            </Link>
-            
+    <div className="min-h-screen bg-[#0F0F23] text-white">
+      {/* Left Sidebar Navigation */}
+      <div className="fixed left-0 top-0 h-full w-[60px] bg-[#0A0A1B] flex flex-col items-center py-6 z-10">
+        <div className="mb-10">
+          <div className="w-8 h-8 bg-white rounded flex items-center justify-center">
+            <span className="text-black text-lg">∞</span>
           </div>
         </div>
         
-        <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-[#0F0F23] to-transparent"></div>
-      </section>
+        <div className="flex flex-col items-center gap-8 mt-4">
+          <Link to="/" className="flex flex-col items-center text-blue-400">
+            <Home size={20} />
+            <span className="text-xs mt-1">Home</span>
+          </Link>
+          <Link to="/drawing" className="flex flex-col items-center text-gray-500 hover:text-gray-300 transition-colors">
+            <PenLine size={20} />
+            <span className="text-xs mt-1">Create</span>
+          </Link>
+          <Link to="/style-system" className="flex flex-col items-center text-gray-500 hover:text-gray-300 transition-colors">
+            <Layers size={20} />
+            <span className="text-xs mt-1">Journey</span>
+          </Link>
+          <div className="flex flex-col items-center text-gray-500 hover:text-gray-300 transition-colors">
+            <LightbulbIcon size={20} />
+            <span className="text-xs mt-1">Insight</span>
+          </div>
+          <Link to="/animation" className="flex flex-col items-center text-gray-500 hover:text-gray-300 transition-colors">
+            <Play size={20} />
+            <span className="text-xs mt-1">Explore</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="ml-[60px] p-8">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-3xl font-bold mb-16 text-center">What would you like to create today?</h1>
+
+          {/* Creative Partner Section */}
+          <div className="mb-12 bg-[#0D0D1F] rounded-xl p-6 border border-[#1A1F2C]/30 float-right w-[350px]">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="bg-blue-500/20 p-1 rounded">
+                <LightbulbIcon size={16} className="text-blue-400" />
+              </div>
+              <h2 className="text-lg font-medium">Creative Partner</h2>
+              <div className="ml-auto text-lg">—</div>
+            </div>
+            <p className="text-gray-400 text-sm mb-4">Share your creative intention...</p>
+          </div>
+
+          {/* Hero Section */}
+          <div className="flex flex-col items-center justify-center text-center mb-24 py-16 max-w-lg mx-auto">
+            <div className="w-20 h-20 bg-[#1A1F2C] rounded-full flex items-center justify-center mb-6">
+              <LightbulbIcon size={32} className="text-blue-400" />
+            </div>
+            <h2 className="text-2xl font-semibold mb-2">Begin your creative journey</h2>
+            <p className="text-gray-400 mb-8">The canvas awaits your intention</p>
+            
+            <div className="flex gap-4">
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <LightbulbIcon size={16} className="mr-2" />
+                Start Creating
+              </Button>
+              <Button variant="outline" className="border-gray-700">
+                <Play size={16} className="mr-2" />
+                Import Inspiration
+              </Button>
+            </div>
+          </div>
+
+          {/* Input Field */}
+          <div className="mb-24 max-w-lg mx-auto">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="What are you imagining?"
+                className="w-full bg-[#0D0D1F] border border-[#1A1F2C] rounded-full py-3 px-6 text-white"
+              />
+              <button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white p-2 rounded-full">
+                <LightbulbIcon size={16} />
+              </button>
+            </div>
+          </div>
+
+          {/* Creative Possibilities Section */}
+          <div className="mb-16">
+            <h2 className="text-2xl font-semibold mb-6">Creative Possibilities</h2>
+            <CreativePossibilities />
+          </div>
+
+          {/* Inspirational Echoes Section */}
+          <div className="mb-16">
+            <h2 className="text-2xl font-semibold mb-6">Inspirational Echoes</h2>
+            <InspirationalEchoes />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
