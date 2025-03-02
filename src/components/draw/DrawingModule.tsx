@@ -11,6 +11,7 @@ interface DrawingModuleProps {
   modalTitle?: string;
   width?: number;
   height?: number;
+  initialImage?: string | null;
 }
 
 const DrawingModule = ({
@@ -18,7 +19,8 @@ const DrawingModule = ({
   triggerLabel = "Open Drawing Canvas",
   modalTitle = "Create Your Drawing",
   width = 512,
-  height = 512
+  height = 512,
+  initialImage = null
 }: DrawingModuleProps) => {
   const [open, setOpen] = useState(false);
 
@@ -42,7 +44,8 @@ const DrawingModule = ({
         <DrawingCanvas 
           width={width} 
           height={height} 
-          onSave={handleSave} 
+          onSave={handleSave}
+          initialImage={initialImage}
         />
       </DialogContent>
     </Dialog>

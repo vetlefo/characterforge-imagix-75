@@ -19,6 +19,11 @@ export const CreationCard = ({ type }: CreationCardProps) => {
     setDrawingPreview(dataUrl);
     toast.success(`Drawing ready for ${isImage ? "image" : "storytelling"} generation`);
   };
+
+  const handleEditDrawing = () => {
+    // This will open the drawing module with the current drawing as the background
+    setShowDrawing(true);
+  };
   
   return (
     <div 
@@ -64,6 +69,7 @@ export const CreationCard = ({ type }: CreationCardProps) => {
           onDrawingComplete={handleDrawingComplete}
           triggerLabel={`Draw for ${isImage ? "Image" : "Storytelling"}`}
           modalTitle={`Create Drawing for ${isImage ? "Image" : "Storytelling"} Generation`}
+          initialImage={null}
         />
       </div>
       
@@ -74,7 +80,11 @@ export const CreationCard = ({ type }: CreationCardProps) => {
               <Plus size={18} />
               <span>Create Image</span>
             </button>
-            <button className="bg-black text-white py-3 rounded-md flex items-center justify-center gap-1.5 hover:bg-opacity-90 transition">
+            <button 
+              className="bg-black text-white py-3 rounded-md flex items-center justify-center gap-1.5 hover:bg-opacity-90 transition"
+              onClick={drawingPreview ? handleEditDrawing : undefined}
+              disabled={!drawingPreview}
+            >
               <Edit size={18} />
               <span>Edit Image</span>
             </button>
@@ -92,6 +102,18 @@ export const CreationCard = ({ type }: CreationCardProps) => {
           </>
         )}
       </div>
+
+      {/* Conditionally render the DrawingModule for editing existing drawings */}
+      {drawingPreview && (
+        <DrawingModule 
+          onDrawingComplete={handleDrawingComplete}
+          triggerLabel="Edit Drawing"
+          modalTitle="Edit Your Drawing"
+          initialImage={drawingPreview}
+          open={showDrawing}
+          onOpenChange={setShowDrawing}
+        />
+      )}
     </div>
   );
 };
