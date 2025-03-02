@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import DrawingEditor from "./pages/DrawingEditor";
 import WebsitePreviewDemo from "./pages/WebsitePreviewDemo";
 import AssetLibraryPage from "./pages/AssetLibraryPage";
+import StyleSystemPage from "./pages/StyleSystemPage";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/drawing" element={<DrawingEditor />} />
           <Route path="/website-preview" element={<WebsitePreviewDemo />} />
           <Route path="/asset-library" element={<AssetLibraryPage />} />
+          <Route path="/style-system" element={<StyleSystemPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
