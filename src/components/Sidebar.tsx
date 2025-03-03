@@ -1,4 +1,5 @@
 
+// Update the export to include a default export
 import {
   LayoutDashboard,
   Settings,
@@ -77,3 +78,6 @@ export function Sidebar() {
     </nav>
   );
 }
+
+// Add a default export to satisfy imports in Layout.tsx
+export default Sidebar;

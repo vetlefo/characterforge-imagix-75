@@ -1,78 +1,37 @@
 
-import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+import '@testing-library/jest-dom';
 
-// Mock fetch API
-global.fetch = vi.fn().mockImplementation(() => 
-  Promise.resolve({
-    ok: true,
-    json: () => Promise.resolve({}),
-    text: () => Promise.resolve(""),
-    blob: () => Promise.resolve(new Blob()),
-    arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
-    formData: () => Promise.resolve(new FormData()),
-    headers: new Headers(),
-    redirected: false,
-    status: 200,
-    statusText: "OK",
-    type: "basic" as ResponseType,
-    url: "",
-    clone: function() { return this; },
-    body: null,
-    bodyUsed: false
-  })
-);
+// Mock fetch
+global.fetch = vi.fn();
 
-global.Request = vi.fn();
-global.Response = vi.fn().mockImplementation(() => ({
-  ok: true,
-  json: () => Promise.resolve({}),
-  text: () => Promise.resolve(""),
-  blob: () => Promise.resolve(new Blob()),
-  arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
-  formData: () => Promise.resolve(new FormData()),
-  headers: new Headers(),
-  redirected: false,
-  status: 200,
-  statusText: "OK",
-  type: "basic" as ResponseType,
-  url: "",
-  clone: function() { return this; },
-  body: null,
-  bodyUsed: false
-}));
-
-// Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
+// Define mock Response constructor with all required methods
+const mockResponseClass = vi.fn().mockImplementation((body, init) => {
+  return {
+    body,
+    status: init?.status || 200,
+    headers: new Headers(init?.headers),
+    ok: init?.status ? init.status >= 200 && init.status < 300 : true,
+    json: async () => JSON.parse(body),
+    text: async () => body,
+  };
 });
 
-// Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
+// Add static methods to the mock Response
+mockResponseClass.error = vi.fn().mockImplementation(() => {
+  return new mockResponseClass(null, { status: 500 });
+});
 
-// Suppress console errors during tests
-const originalConsoleError = console.error;
-console.error = (...args) => {
-  if (
-    typeof args[0] === 'string' && 
-    (args[0].includes('Warning: ReactDOM.render is no longer supported') ||
-     args[0].includes('React does not recognize the'))
-  ) {
-    return;
-  }
-  originalConsoleError(...args);
-};
+mockResponseClass.json = vi.fn().mockImplementation((data, init) => {
+  return new mockResponseClass(JSON.stringify(data), init);
+});
+
+mockResponseClass.redirect = vi.fn().mockImplementation((url, status) => {
+  return new mockResponseClass(null, { 
+    status: status || 302,
+    headers: { Location: url.toString() }
+  });
+});
+
+// Assign the mock to global Response
+global.Response = mockResponseClass as any;

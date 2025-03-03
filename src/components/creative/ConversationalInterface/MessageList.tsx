@@ -28,7 +28,16 @@ export const MessageList: React.FC<MessageListProps> = ({
           key={message.id}
           id={message.id}
           sender={message.sender as "user" | "assistant"}
-          content={message.content}
+          content={Array.isArray(message.content) 
+            ? message.content.map(c => ({
+                type: c.type,
+                content: c.content,
+              }))
+            : {
+                type: message.content.type,
+                content: message.content.content,
+              }
+          }
           timestamp={message.timestamp}
           onActionClick={onActionClick}
           visualIndicator={

@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useCreative } from "./CreativeContext";
 import { CommandParser } from "./CommandParser";
-import { ConversationMessage as ConversationMessageComponent } from "./ConversationMessage";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { Send, Sparkles } from "lucide-react";
 import { MessageContent, ConversationMessage, Action } from "./types";
 import { CommandParseResult } from "./CommandParser/types";
 import { cn } from "@/lib/utils";
+import { ConversationMessage as ConversationMessageComponent } from "./ConversationMessage";
 
 interface ConversationalInterfaceProps {
   className?: string;
@@ -246,11 +246,31 @@ export const ConversationalInterface: React.FC<ConversationalInterfaceProps> = (
   return (
     <div className={cn("flex flex-col h-full", className)}>
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {conversationHistory.map((message) => (
+        {conversationHistory?.map((message) => (
           <ConversationMessageComponent
             key={message.id}
-            message={message}
-            onActionClick={handleActionClick}
+            id={message.id}
+            sender={message.sender as "user" | "assistant"}
+            content={Array.isArray(message.content) 
+              ? message.content.map(c => ({
+                  type: c.type,
+                  content: c.content,
+                }))
+              : {
+                  type: message.content.type,
+                  content: message.content.content,
+                }
+            }
+            timestamp={message.timestamp}
+            visualIndicator={
+              message.sender === "system" 
+                ? message.metadata?.command 
+                  ? "info" 
+                  : message.metadata?.action 
+                    ? "success" 
+                    : undefined
+                : undefined
+            }
           />
         ))}
         <div ref={messagesEndRef} />

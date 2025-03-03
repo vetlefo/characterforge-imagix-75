@@ -1,4 +1,3 @@
-
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import intentTranslator, { 
   PatternMatchingStrategy, 
@@ -20,21 +19,21 @@ vi.mock('./graphDB', () => ({
 vi.mock('../components/creative/CommandParser/intentClassifier', () => ({
   classifyIntent: vi.fn().mockImplementation((input) => {
     if (input.includes('draw')) {
-      return {
+      return Promise.resolve({
         domain: 'drawing',
         type: 'draw.shape',
         parameters: { shape: 'circle' },
         confidence: 0.8,
         rawInput: input
-      };
+      });
     }
-    return {
+    return Promise.resolve({
       domain: 'general',
       type: 'conversation',
       parameters: {},
       confidence: 0.5,
       rawInput: input
-    };
+    });
   }),
 }));
 
