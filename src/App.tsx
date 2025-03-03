@@ -1,28 +1,28 @@
-
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
+import Index from './pages';
 import DrawingEditor from './pages/DrawingEditor';
-import { StyleSystem } from './components/creative/StyleSystem/StyleSystem';
-import { StyleSystemProvider } from './components/creative/StyleSystem/StyleSystemContext';
-import AnimationPreviewPage from './pages/AnimationPreviewPage';
-import Index from './pages/Index';
 import WebsitePreviewDemo from './pages/WebsitePreviewDemo';
+import AssetLibraryPage from './pages/AssetLibraryPage';
+import AnimationPreviewPage from './pages/AnimationPreviewPage';
+import NotFound from './pages/NotFound';
+import StyleSystemPage from './pages/StyleSystemPage';
+import StyleSystemIntegrationPage from './pages/StyleSystemIntegrationPage';
 
 function App() {
   return (
-    <Router>
+    <div className="app">
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/drawing" element={<DrawingEditor />} />
-        <Route path="/style-system" element={
-          <StyleSystemProvider>
-            <StyleSystem />
-          </StyleSystemProvider>
-        } />
-        <Route path="/animation" element={<AnimationPreviewPage />} />
         <Route path="/website-preview" element={<WebsitePreviewDemo />} />
+        <Route path="/assets" element={<AssetLibraryPage />} />
+        <Route path="/animation" element={<AnimationPreviewPage />} />
+        <Route path="/style-system" element={<StyleSystemPage />} />
+        <Route path="/style-system-integration" element={<StyleSystemIntegrationPage />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
-    </Router>
+    </div>
   );
 }
 

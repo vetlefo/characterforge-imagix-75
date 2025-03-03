@@ -1,4 +1,3 @@
-
 export type ColorPalette = {
   id: string;
   name: string;
@@ -103,6 +102,67 @@ export interface StyleSystemContextType {
     padding: string;
     margin: string;
   }>) => void;
+}
+
+// Add new types for the StyleAdapter integration
+export interface StyleAdapterOptions {
+  mediaType: 'drawing' | 'animation' | 'website' | 'text';
+  elementId?: string;
+  styles?: Record<string, any>;
+}
+
+export interface StyleCommandResult {
+  success: boolean;
+  message: string;
+  appliedStyles?: Record<string, any>;
+}
+
+// Extend the context type with new adapter methods
+export interface StyleSystemContextType {
+  colorPalette: ColorPalette;
+  typography: Typography;
+  spacing: Spacing;
+  updateColorPalette: (palette: Partial<ColorPalette>) => void;
+  updateTypography: (typography: Partial<Typography>) => void;
+  updateSpacing: (spacing: Partial<Spacing>) => void;
+  saveTheme: (name: string) => void;
+  loadTheme: (themeId: string) => void;
+  availableThemes: Theme[];
+  
+  // Properties used by components
+  activePalette: ColorPalette;
+  palettes: ColorPalette[];
+  setActivePalette: (palette: ColorPalette) => void;
+  addCustomPalette: (palette: ColorPalette) => void;
+  
+  activeTypography: Typography;
+  typographyOptions: Typography[];
+  setActiveTypography: (typography: Typography) => void;
+  addCustomTypography: (typography: Typography) => void;
+  
+  activeSpacing: Spacing;
+  spacingOptions: Spacing[];
+  setActiveSpacing: (spacing: Spacing) => void;
+  addCustomSpacing: (spacing: Spacing) => void;
+  
+  applyStylesToElement: (elementId: string, styles: Partial<{
+    color: string;
+    backgroundColor: string;
+    fontFamily: string;
+    fontSize: string;
+    fontWeight: string;
+    padding: string;
+    margin: string;
+  }>) => void;
+  
+  // Add methods for natural language interface
+  parseStyleCommand?: (command: string) => StyleCommandResult;
+  
+  // Add methods for adapter integration
+  getMediaTypeStyles?: (options: StyleAdapterOptions) => Record<string, any>;
+  
+  // Add methods for visualization components
+  generatePreviewStyles?: (mediaType: StyleAdapterOptions['mediaType']) => Record<string, any>;
 }
 
 // Animation system types
