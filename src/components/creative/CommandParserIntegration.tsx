@@ -1,97 +1,148 @@
 
-import { useState } from "react";
-import CommandParser from "./CommandParser/CommandParser";
-import { Button } from "../ui/button";
-import { HelpCircle } from "lucide-react";
-import { CommandParseResult } from "./CommandParser/types";
+import React, { useState } from 'react';
+import { CommandParser } from './CommandParser';
+import { Command, CommandParseResult, CommandParserIntegrationProps, DomainHandler } from './CommandParser/types';
+import { useToast } from '../../hooks/use-toast';
 
-interface CommandParserIntegrationProps {
-  onExecuteCommand?: (command: any) => void;
-  showExamples?: boolean;
-  className?: string;
-}
-
-const CommandParserIntegration = ({
+const CommandParserIntegration: React.FC<CommandParserIntegrationProps> = ({
   onExecuteCommand,
-  showExamples = true,
-  className
-}: CommandParserIntegrationProps) => {
-  const [clarificationQuestion, setClarificationQuestion] = useState<string | null>(null);
-  const [originalCommand, setOriginalCommand] = useState<string>("");
+  allowedDomains,
+  instruction = "What would you like to create?"
+}) => {
+  const { toast } = useToast();
+  const [lastCommand, setLastCommand] = useState<Command | null>(null);
   
-  const handleCommandParsed = (result: CommandParseResult) => {
-    if (result.success && result.command) {
-      console.log("Command successfully parsed:", result.command);
-      if (onExecuteCommand) {
-        onExecuteCommand(result.command);
-      }
-    } else {
-      console.log("Command parsing failed:", result.error);
+  // Domain handlers for different creative domains
+  const domainHandlers: Record<string, DomainHandler> = {
+    drawing: {
+      execute: (command) => {
+        toast({
+          title: "Drawing Command",
+          description: `Action: ${command.action}, Parameters: ${JSON.stringify(command.parameters)}`,
+        });
+        
+        if (onExecuteCommand) {
+          onExecuteCommand(command);
+        }
+      },
+      canHandle: (command) => command.domain === 'drawing'
+    },
+    
+    styling: {
+      execute: (command) => {
+        toast({
+          title: "Styling Command",
+          description: `Action: ${command.action}, Parameters: ${JSON.stringify(command.parameters)}`,
+        });
+        
+        if (onExecuteCommand) {
+          onExecuteCommand(command);
+        }
+      },
+      canHandle: (command) => command.domain === 'styling'
+    },
+    
+    animation: {
+      execute: (command) => {
+        toast({
+          title: "Animation Command",
+          description: `Action: ${command.action}, Parameters: ${JSON.stringify(command.parameters)}`,
+        });
+        
+        if (onExecuteCommand) {
+          onExecuteCommand(command);
+        }
+      },
+      canHandle: (command) => command.domain === 'animation'
+    },
+    
+    website: {
+      execute: (command) => {
+        toast({
+          title: "Website Command",
+          description: `Action: ${command.action}, Parameters: ${JSON.stringify(command.parameters)}`,
+        });
+        
+        if (onExecuteCommand) {
+          onExecuteCommand(command);
+        }
+      },
+      canHandle: (command) => command.domain === 'website'
+    },
+    
+    media: {
+      execute: (command) => {
+        toast({
+          title: "Media Command",
+          description: `Action: ${command.action}, Parameters: ${JSON.stringify(command.parameters)}`,
+        });
+        
+        if (onExecuteCommand) {
+          onExecuteCommand(command);
+        }
+      },
+      canHandle: (command) => command.domain === 'media'
+    },
+    
+    general: {
+      execute: (command) => {
+        toast({
+          title: "General Command",
+          description: `Action: ${command.action}, Parameters: ${JSON.stringify(command.parameters)}`,
+        });
+        
+        if (onExecuteCommand) {
+          onExecuteCommand(command);
+        }
+      },
+      canHandle: (command) => command.domain === 'general'
     }
   };
   
-  const handleClarificationNeeded = (question: string, command: string) => {
-    setClarificationQuestion(question);
-    setOriginalCommand(command);
+  const handleParsedCommand = (result: CommandParseResult) => {
+    const { command } = result;
+    setLastCommand(command);
+    
+    // Find the appropriate handler for the command's domain
+    const handler = Object.values(domainHandlers).find(h => h.canHandle(command));
+    
+    if (handler) {
+      handler.execute(command);
+    } else {
+      toast({
+        title: "Unknown Command Domain",
+        description: `I'm not sure how to handle ${command.domain} commands yet.`,
+        variant: "destructive"
+      });
+    }
   };
   
-  const examples = [
-    "Create a red circle",
-    "Apply blue gradient to background",
-    "Generate animation for logo",
-    "Extract color palette from image",
-    "Save current project as portfolio"
-  ];
+  const handleClarificationNeeded = (question: string, originalCommand: string) => {
+    toast({
+      title: "I need clarification",
+      description: question,
+    });
+  };
   
   return (
-    <div className={className}>
+    <div className="command-parser-integration">
       <CommandParser
-        instruction="What would you like to create?"
-        onParsed={handleCommandParsed}
+        instruction={instruction}
+        onParsed={handleParsedCommand}
         onClarificationNeeded={handleClarificationNeeded}
+        allowedDomains={allowedDomains}
       />
       
-      {clarificationQuestion && (
-        <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-md">
-          <p className="flex items-center gap-2 text-sm">
-            <HelpCircle size={16} className="text-blue-400" />
-            <span>{clarificationQuestion}</span>
-          </p>
-          <p className="text-xs text-gray-400 mt-1">Original: "{originalCommand}"</p>
-        </div>
-      )}
-      
-      {showExamples && (
-        <div className="mt-4">
-          <p className="text-sm text-gray-400 mb-2">Try these examples:</p>
-          <div className="flex flex-wrap gap-2">
-            {examples.map((example) => (
-              <Button
-                key={example}
-                variant="outline"
-                size="sm"
-                className="text-xs bg-[#1A1A2E]/40"
-                onClick={() => {
-                  const inputElement = document.querySelector('input');
-                  if (inputElement) {
-                    // Create a new input event
-                    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                      window.HTMLInputElement.prototype,
-                      "value"
-                    )?.set;
-                    
-                    if (nativeInputValueSetter) {
-                      nativeInputValueSetter.call(inputElement, example);
-                      const event = new Event('input', { bubbles: true });
-                      inputElement.dispatchEvent(event);
-                    }
-                  }
-                }}
-              >
-                {example}
-              </Button>
-            ))}
-          </div>
+      {lastCommand && (
+        <div className="mt-4 p-4 border rounded">
+          <h3 className="text-lg font-medium">Last Executed Command</h3>
+          <p><strong>Domain:</strong> {lastCommand.domain}</p>
+          <p><strong>Action:</strong> {lastCommand.action}</p>
+          <p><strong>Parameters:</strong></p>
+          <pre className="bg-gray-100 p-2 rounded">
+            {JSON.stringify(lastCommand.parameters, null, 2)}
+          </pre>
+          <p><strong>Confidence:</strong> {(lastCommand.intent?.confidence || 0) * 100}%</p>
         </div>
       )}
     </div>

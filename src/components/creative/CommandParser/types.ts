@@ -1,67 +1,36 @@
 
-// Define the possible domains for commands
-export type CommandDomain = 
-  | "drawing" 
-  | "animation" 
-  | "style" 
-  | "website" 
-  | "transform"
-  | "creative"
-  | "general"
-  | "unknown";
+import { Intent } from './intentClassifier';
 
-// Define the common actions available across domains
-export const commonActions = [
-  "create",
-  "update",
-  "delete",
-  "get",
-  "list",
-  "apply",
-  "generate",
-  "transform",
-  "extract",
-  "analyze",
-  "save",
-  "load",
-  "export"
-] as const;
-
-export type CommonAction = typeof commonActions[number];
-
-// Base command interface
-export interface ParsedCommand {
-  domain: CommandDomain | string;
-  action: string;
-  subject: string;
-  parameters: Record<string, any>;
-  requiresConfirmation?: boolean;
-  confidence?: number;
-  instruction?: string;
-  originalCommand?: string;
-  confirmed?: boolean;
-}
-
-// Command with required originalCommand
-export interface Command extends Omit<ParsedCommand, "originalCommand"> {
-  originalCommand: string;
-}
-
-// Result of parsing a command
-export interface CommandParseResult {
-  success: boolean;
-  command?: Command;
-  error?: string;
-  needsClarification?: boolean;
-  clarificationQuestion?: string;
-}
-
-// Props for the CommandParser component
 export interface CommandParserProps {
   instruction: string;
   onParsed: (result: CommandParseResult) => void;
-  allowedDomains?: CommandDomain[];
+  onClarificationNeeded: (question: string, originalCommand: string) => void;
   requireConfirmation?: boolean;
+  allowedDomains?: string[];
   className?: string;
-  onClarificationNeeded?: (question: string, originalCommand: string) => void;
+}
+
+export interface Command {
+  originalText: string;
+  domain: string;
+  action: string;
+  parameters: Record<string, any>;
+  intent?: Intent;
+}
+
+export interface CommandParseResult {
+  command: Command;
+  confidence: number;
+  rawInput: string;
+}
+
+export interface CommandParserIntegrationProps {
+  onExecuteCommand?: (command: Command) => void;
+  allowedDomains?: string[];
+  instruction?: string;
+}
+
+export interface DomainHandler {
+  execute: (command: Command) => void;
+  canHandle: (command: Command) => boolean;
 }

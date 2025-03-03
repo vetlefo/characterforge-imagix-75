@@ -1,7 +1,6 @@
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { render, screen, fireEvent, waitFor } from '../test-utils';
 import IntentTranslatorDemo from '../../pages/IntentTranslatorDemo';
 import intentTranslator from '../../services/intentTranslator';
 
@@ -14,7 +13,8 @@ vi.mock('../../services/intentTranslator', () => ({
         domain: input.includes('draw') ? 'drawing' : 'general',
         type: input.includes('draw') ? 'draw.shape' : 'conversation',
         parameters: input.includes('circle') ? { shape: 'circle' } : {},
-        confidence: 0.85
+        confidence: 0.85,
+        rawInput: input
       },
       confidence: 0.85,
       alternativeIntents: [],
@@ -26,7 +26,8 @@ vi.mock('../../services/intentTranslator', () => ({
         domain: input.includes('draw') ? 'drawing' : 'general',
         type: input.includes('draw') ? 'draw.shape' : 'conversation',
         parameters: input.includes('circle') ? { shape: 'circle' } : {},
-        confidence: 0.9
+        confidence: 0.9,
+        rawInput: input
       },
       confidence: 0.9,
       alternativeIntents: [
@@ -35,7 +36,8 @@ vi.mock('../../services/intentTranslator', () => ({
             domain: 'general',
             type: 'conversation',
             parameters: {},
-            confidence: 0.4
+            confidence: 0.4,
+            rawInput: input
           },
           confidence: 0.4
         }
@@ -51,11 +53,7 @@ vi.mock('../../services/intentTranslator', () => ({
 
 describe('Intent Translation Pipeline Integration', () => {
   it('should process user input and display translation results', async () => {
-    render(
-      <BrowserRouter>
-        <IntentTranslatorDemo />
-      </BrowserRouter>
-    );
+    render(<IntentTranslatorDemo />);
     
     // Find the input field and submit button
     const inputField = screen.getByPlaceholderText(/Type a command/i) || 
@@ -78,11 +76,7 @@ describe('Intent Translation Pipeline Integration', () => {
   });
   
   it('should allow switching between translation strategies', async () => {
-    render(
-      <BrowserRouter>
-        <IntentTranslatorDemo />
-      </BrowserRouter>
-    );
+    render(<IntentTranslatorDemo />);
     
     // Find strategy selection controls if they exist
     const strategySelector = screen.getByText(/translation strategy/i)?.closest('div')?.querySelector('select') ||

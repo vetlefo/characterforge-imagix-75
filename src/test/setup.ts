@@ -1,12 +1,11 @@
 
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
-import { fetch, Request, Response } from '@vitest/web-worker';
 
-// Make fetch available globally
-global.fetch = fetch;
-global.Request = Request;
-global.Response = Response;
+// Mock fetch API
+global.fetch = vi.fn();
+global.Request = vi.fn();
+global.Response = vi.fn();
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {

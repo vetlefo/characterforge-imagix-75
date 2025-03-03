@@ -2,7 +2,7 @@
 import React, { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import { CreativeContextProvider } from '../components/creative/CreativeContext';
+import { CreativeProvider } from '../components/creative/CreativeContext';
 
 // Custom render function that includes providers
 interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
@@ -21,9 +21,9 @@ function customRender(
   return render(ui, {
     wrapper: ({ children }) => (
       <BrowserRouter>
-        <CreativeContextProvider>
+        <CreativeProvider>
           {children}
-        </CreativeContextProvider>
+        </CreativeProvider>
       </BrowserRouter>
     ),
     ...renderOptions,

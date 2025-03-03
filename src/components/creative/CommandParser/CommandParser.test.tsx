@@ -1,19 +1,18 @@
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent } from '../../../test/test-utils';
 import CommandParser from './CommandParser';
-import { classifyCommand } from './domains';
+import { classifyIntent } from './intentClassifier';
 
-// Mock domain classification
-vi.mock('./domains', () => ({
-  classifyCommand: vi.fn().mockReturnValue('drawing'),
-  domainKeywords: {
-    drawing: ['draw', 'sketch', 'paint'],
-    styling: ['style', 'color', 'theme'],
-    animation: ['animate', 'motion', 'move'],
-    website: ['web', 'site', 'page'],
-    general: ['help', 'show', 'create']
-  }
+// Mock intent classification
+vi.mock('./intentClassifier', () => ({
+  classifyIntent: vi.fn().mockResolvedValue({
+    domain: 'drawing',
+    type: 'draw.shape',
+    parameters: { shape: 'circle' },
+    confidence: 0.9,
+    rawInput: 'draw a circle'
+  })
 }));
 
 describe('CommandParser Component', () => {
@@ -29,7 +28,7 @@ describe('CommandParser Component', () => {
     expect(screen.getByPlaceholderText(/type your command/i)).toBeInTheDocument();
   });
   
-  it('should handle command submission', () => {
+  it('should handle command submission', async () => {
     const mockOnParsed = vi.fn();
     
     render(
@@ -41,16 +40,29 @@ describe('CommandParser Component', () => {
     );
     
     const input = screen.getByPlaceholderText(/type your command/i);
-    const submitButton = screen.getByRole('button');
+    const submitButton = screen.getByRole('button', { name: /submit/i });
     
     fireEvent.change(input, { target: { value: 'draw a circle' } });
     fireEvent.click(submitButton);
     
-    expect(mockOnParsed).toHaveBeenCalled();
-    expect(classifyCommand).toHaveBeenCalledWith('draw a circle');
+    // Wait for the async operation to complete
+    await vi.waitFor(() => {
+      expect(classifyIntent).toHaveBeenCalledWith('draw a circle');
+      expect(mockOnParsed).toHaveBeenCalled();
+    });
+    
+    // Verify that the onParsed callback was called with the expected result
+    expect(mockOnParsed).toHaveBeenCalledWith(expect.objectContaining({
+      command: expect.objectContaining({
+        domain: 'drawing',
+        action: 'shape',
+      }),
+      confidence: 0.9,
+      rawInput: 'draw a circle'
+    }));
   });
   
-  it('should handle confirmation when required', () => {
+  it('should handle confirmation when required', async () => {
     const mockOnParsed = vi.fn();
     
     render(
@@ -63,18 +75,55 @@ describe('CommandParser Component', () => {
     );
     
     const input = screen.getByPlaceholderText(/type your command/i);
-    const submitButton = screen.getByRole('button');
+    const submitButton = screen.getByRole('button', { name: /submit/i });
     
     fireEvent.change(input, { target: { value: 'draw a circle' } });
     fireEvent.click(submitButton);
     
-    // Check if confirmation dialog appears
-    expect(screen.getByText(/confirm/i)).toBeInTheDocument();
+    // Wait for the confirmation dialog to appear
+    await vi.waitFor(() => {
+      expect(screen.getByText(/confirm action/i)).toBeInTheDocument();
+    });
     
     // Confirm the command
     const confirmButton = screen.getByRole('button', { name: /confirm/i });
     fireEvent.click(confirmButton);
     
     expect(mockOnParsed).toHaveBeenCalled();
+  });
+  
+  it('should handle domain restrictions', async () => {
+    const mockOnParsed = vi.fn();
+    const mockOnClarificationNeeded = vi.fn();
+    
+    // Mock intent classification to return a domain that's not allowed
+    (classifyIntent as any).mockResolvedValueOnce({
+      domain: 'drawing',
+      type: 'draw.shape',
+      parameters: { shape: 'circle' },
+      confidence: 0.9,
+      rawInput: 'draw a circle'
+    });
+    
+    render(
+      <CommandParser 
+        instruction="Enter a command:"
+        onParsed={mockOnParsed}
+        onClarificationNeeded={mockOnClarificationNeeded}
+        allowedDomains={['styling', 'animation']}
+      />
+    );
+    
+    const input = screen.getByPlaceholderText(/type your command/i);
+    const submitButton = screen.getByRole('button', { name: /submit/i });
+    
+    fireEvent.change(input, { target: { value: 'draw a circle' } });
+    fireEvent.click(submitButton);
+    
+    // Wait for the async operation to complete
+    await vi.waitFor(() => {
+      expect(mockOnClarificationNeeded).toHaveBeenCalled();
+      expect(mockOnParsed).not.toHaveBeenCalled();
+    });
   });
 });
