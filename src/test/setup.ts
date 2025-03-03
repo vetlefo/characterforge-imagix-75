@@ -5,6 +5,16 @@ import '@testing-library/jest-dom';
 // Mock fetch
 global.fetch = vi.fn();
 
+// Create a proper Response mock
+const mockResponse = {
+  body: null,
+  status: 200,
+  headers: new Headers(),
+  ok: true,
+  json: vi.fn().mockResolvedValue({}),
+  text: vi.fn().mockResolvedValue(""),
+};
+
 // Define mock Response constructor with all required methods
 const mockResponseClass = vi.fn().mockImplementation((body, init) => {
   return {
@@ -17,7 +27,7 @@ const mockResponseClass = vi.fn().mockImplementation((body, init) => {
   };
 });
 
-// Add static methods to the mock Response
+// Add static methods directly to the constructor function
 mockResponseClass.error = vi.fn().mockImplementation(() => {
   return new mockResponseClass(null, { status: 500 });
 });

@@ -1,5 +1,5 @@
-import graphDB from './graphDB';
-import { Intent, classifyIntent, IntentType } from '../components/creative/CommandParser/intentClassifier';
+
+import { classifyIntent, IntentType } from '../components/creative/CommandParser/intentClassifier';
 
 // Add the missing TranslationContext type
 export interface TranslationContext {
@@ -24,8 +24,8 @@ export interface TranslationResult {
   confidence: number;
   alternativeIntents: AlternativeIntent[];
   parameters: Record<string, any>;
-  relatedNodes?: any[]; // Add the missing fields
-  explanation?: string; // Add the missing fields
+  relatedNodes?: any[]; // Add missing fields
+  explanation?: string; // Add missing fields
 }
 
 // Export the strategy classes for testing
@@ -97,10 +97,12 @@ export class ContextAwareStrategy implements TranslationStrategy {
         }
         
         try {
-          // Get related nodes from the graph database
-          const relatedNodes = await graphDB.executeQuery(
-            `MATCH (n)-[r]-(m) WHERE n.id = "${context.selectedAssetId}" RETURN m LIMIT 5`
-          );
+          // Get related nodes from the graph database - fixed to use proper GraphDB API
+          const relatedNodes = await import('./graphDB').then(module => {
+            return module.default.getAllNodes().filter(node => 
+              node.connections?.some(conn => conn.targetId === context.selectedAssetId)
+            );
+          });
           
           return {
             original: input,
@@ -158,7 +160,7 @@ export class ContextAwareStrategy implements TranslationStrategy {
       intent: {
         ...primaryIntent,
         domain: 'general',
-        type: 'conversation',
+        type: 'general.conversation' as IntentType, // Fix for 'conversation' type
         confidence: primaryIntent.confidence * 0.6
       },
       confidence: primaryIntent.confidence * 0.6
@@ -177,9 +179,12 @@ export class GraphEnhancedStrategy implements TranslationStrategy {
     const intent = await classifyIntent(input);
     
     try {
-      // Get related concepts from the graph database
-      const relatedConcepts = await graphDB.executeQuery(
-        `MATCH (n:Concept) WHERE n.text CONTAINS "${input.substring(0, 20)}" RETURN n LIMIT 5`
+      // Get related concepts from the graph database - fixed to use proper GraphDB API
+      const graphDB = (await import('./graphDB')).default;
+      const relatedConcepts = graphDB.getAllNodes().filter(node => 
+        node.properties && 
+        typeof node.properties.text === 'string' && 
+        node.properties.text.includes(input.substring(0, 20))
       );
       
       // Use related concepts to enhance understanding
@@ -191,7 +196,7 @@ export class GraphEnhancedStrategy implements TranslationStrategy {
         
         if (domainHints.length > 0) {
           // Bias towards the suggested domain if confidence isn't already high
-          const suggestedDomain = domainHints[0].label.toLowerCase();
+          const suggestedDomain = domainHints[0].type.toLowerCase();
           if (intent.domain !== suggestedDomain && intent.confidence < 0.8) {
             intent.domain = suggestedDomain;
             intent.type = `${suggestedDomain}.general` as IntentType;

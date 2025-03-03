@@ -34,8 +34,19 @@ export interface CreativeContextState {
 export type AssetUpdateData = Partial<Omit<Asset, "id" | "createdAt">>;
 
 export interface MessageContent {
-  type: string;
+  type: "text" | "image" | "code" | "slider" | "button";
   content: string;
+  language?: string;
+  src?: string;
+  alt?: string;
+  caption?: string;
+  min?: number;
+  max?: number;
+  defaultValue?: number[];
+  onValueChange?: (value: number[]) => void;
+  label?: string;
+  onClick?: () => void;
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
 }
 
 export interface ConversationMessage {

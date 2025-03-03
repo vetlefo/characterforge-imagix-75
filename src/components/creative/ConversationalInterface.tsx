@@ -1,22 +1,16 @@
-import React, { useState, useRef, useEffect } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useCreative } from "./CreativeContext";
 import { CommandParser } from "./CommandParser";
 import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Send, Sparkles } from "lucide-react";
-import { MessageContent, ConversationMessage, Action } from "./types";
-import { CommandParseResult } from "./CommandParser/types";
 import { cn } from "@/lib/utils";
-import { ConversationMessage as ConversationMessageComponent } from "./ConversationMessage";
-
-interface ConversationalInterfaceProps {
-  className?: string;
-  initialMessage?: string;
-  placeholder?: string;
-  showCommandParser?: boolean;
-  allowedDomains?: string[];
-}
+import { ConversationalInterfaceProps } from "./ConversationalInterface/types";
+import { generateSimpleResponse, generatePotentialActions } from "./ConversationalInterface/utils";
+import { CommandParseResult } from "./CommandParser/types";
+import { ConversationMessage, Action, MessageContent } from "./types";
+import MessageList from "./ConversationalInterface/MessageList";
+import MessageInput from "./ConversationalInterface/MessageInput";
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * Enhanced Conversational Interface component that integrates with CreativeContext
@@ -30,24 +24,40 @@ export const ConversationalInterface: React.FC<ConversationalInterfaceProps> = (
   allowedDomains = ["drawing", "animation", "styling", "website", "transform", "creative", "general"]
 }) => {
   const { 
-    conversationHistory, 
-    addConversationMessage, 
-    executeCreativeAction, 
-    suggestRelevantAssets,
-    analyzeCreativeIntent,
-    creativeIntent
+    addAsset, 
+    setCurrentIntent,
+    executeCreativeAction = (action: string, payload: any) => console.log(`Executing action: ${action}`, payload),
+    assets,
+    suggestionsVisible = false,
+    setSuggestionsVisible = () => {},
+    analyzeCreativeIntent = (input: string) => setCurrentIntent(input),
   } = useCreative();
   
-  const [inputValue, setInputValue] = useState("");
+  // Create local state to manage conversation since CreativeContext doesn't fully support it yet
+  const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Scroll to bottom of messages when conversation history changes
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+  // Add local implementation of addConversationMessage for now
+  const addConversationMessage = (message: ConversationMessage) => {
+    const messageWithId = {
+      ...message,
+      id: message.id || uuidv4(),
+      timestamp: message.timestamp || new Date()
+    };
+    setConversationHistory(prev => [...prev, messageWithId]);
+    
+    // Also store as an asset if it's from user or assistant (not system)
+    if (message.sender === 'user' || message.sender === 'assistant') {
+      const contentText = Array.isArray(message.content) 
+        ? message.content.map(c => c.content).join(' ') 
+        : message.content.content;
+      
+      addAsset('text', contentText, [message.sender], {
+        messageType: 'conversation',
+        timestamp: messageWithId.timestamp
+      });
     }
-  }, [conversationHistory]);
+  };
   
   // Add initial system message if conversation is empty
   useEffect(() => {
@@ -60,9 +70,9 @@ export const ConversationalInterface: React.FC<ConversationalInterfaceProps> = (
         }
       });
     }
-  }, [conversationHistory.length, initialMessage, addConversationMessage]);
+  }, [conversationHistory.length, initialMessage]);
   
-  const handleSendMessage = async () => {
+  const handleSendMessage = async (inputValue: string) => {
     if (!inputValue.trim() || isProcessing) return;
     
     // Add user message to conversation
@@ -74,8 +84,7 @@ export const ConversationalInterface: React.FC<ConversationalInterfaceProps> = (
       }
     });
     
-    // Clear input and set processing state
-    setInputValue("");
+    // Set processing state
     setIsProcessing(true);
     
     try {
@@ -127,7 +136,7 @@ export const ConversationalInterface: React.FC<ConversationalInterfaceProps> = (
         sender: "system",
         content: {
           type: "text",
-          content: `Command parsed: ${result.command.action} ${result.command.subject}`
+          content: `Command parsed: ${result.command.action} ${result.command.subject || ''}`
         },
         metadata: {
           command: result.command
@@ -165,13 +174,6 @@ export const ConversationalInterface: React.FC<ConversationalInterfaceProps> = (
     });
   };
   
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-  
   const handleActionClick = (action: Action) => {
     console.log("Action clicked:", action);
     executeCreativeAction(action.type, action.payload);
@@ -189,92 +191,17 @@ export const ConversationalInterface: React.FC<ConversationalInterfaceProps> = (
     });
   };
   
-  // Simple placeholder response generator
-  const generateSimpleResponse = (input: string): string => {
-    if (input.toLowerCase().includes("draw")) {
-      return "I can help you with drawing. What would you like to create?";
-    } else if (input.toLowerCase().includes("animate") || input.toLowerCase().includes("animation")) {
-      return "Animation is a great way to bring your content to life. What kind of animation are you thinking about?";
-    } else if (input.toLowerCase().includes("style") || input.toLowerCase().includes("color")) {
-      return "Let's talk about styling. Would you like to change colors, typography, or spacing?";
-    } else if (input.toLowerCase().includes("website")) {
-      return "I can help you with website design and preview. What kind of website are you creating?";
-    } else {
-      return "I'm here to help with your creative project. You can ask me about drawing, animation, styling, or website creation.";
-    }
-  };
-  
-  // Generate some potential actions based on user input
-  const generatePotentialActions = (input: string): Action[] => {
-    const actions: Action[] = [];
-    
-    if (input.toLowerCase().includes("draw")) {
-      actions.push({
-        type: "drawing.open",
-        label: "Open Drawing Canvas",
-        payload: {}
-      });
-    }
-    
-    if (input.toLowerCase().includes("animate") || input.toLowerCase().includes("animation")) {
-      actions.push({
-        type: "animation.open",
-        label: "Open Animation Editor",
-        payload: {}
-      });
-    }
-    
-    if (input.toLowerCase().includes("style") || input.toLowerCase().includes("color")) {
-      actions.push({
-        type: "style.open",
-        label: "Open Style System",
-        payload: {}
-      });
-    }
-    
-    if (input.toLowerCase().includes("website")) {
-      actions.push({
-        type: "website.open",
-        label: "Open Website Preview",
-        payload: {}
-      });
-    }
-    
-    return actions;
+  const handleSuggestionRequest = () => {
+    console.log("Suggestion triggered");
+    setSuggestionsVisible(true);
   };
   
   return (
     <div className={cn("flex flex-col h-full", className)}>
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {conversationHistory?.map((message) => (
-          <ConversationMessageComponent
-            key={message.id}
-            id={message.id}
-            sender={message.sender as "user" | "assistant"}
-            content={Array.isArray(message.content) 
-              ? message.content.map(c => ({
-                  type: c.type,
-                  content: c.content,
-                }))
-              : {
-                  type: message.content.type,
-                  content: message.content.content,
-                }
-            }
-            timestamp={message.timestamp}
-            visualIndicator={
-              message.sender === "system" 
-                ? message.metadata?.command 
-                  ? "info" 
-                  : message.metadata?.action 
-                    ? "success" 
-                    : undefined
-                : undefined
-            }
-          />
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
+      <MessageList 
+        messages={conversationHistory} 
+        onActionClick={handleActionClick} 
+      />
       
       <Card className="border-t rounded-t-none p-4">
         {showCommandParser ? (
@@ -288,37 +215,13 @@ export const ConversationalInterface: React.FC<ConversationalInterfaceProps> = (
           />
         ) : null}
         
-        <div className="flex gap-2">
-          <Textarea
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            className="min-h-[60px] flex-1 resize-none"
-          />
-          <div className="flex flex-col gap-2">
-            <Button
-              onClick={handleSendMessage}
-              disabled={isProcessing || !inputValue.trim()}
-              variant="default"
-              size="icon"
-              className="h-[30px] w-[30px]"
-            >
-              <Send size={16} />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-[30px] w-[30px]"
-              onClick={() => {
-                // Trigger suggestions
-                console.log("Suggestion triggered");
-              }}
-            >
-              <Sparkles size={16} />
-            </Button>
-          </div>
-        </div>
+        <MessageInput 
+          onSubmit={handleSendMessage}
+          onSuggestionRequest={handleSuggestionRequest}
+          placeholder={placeholder}
+          isProcessing={isProcessing}
+        />
+        
         {isProcessing && <div className="text-xs text-muted-foreground mt-2">Processing...</div>}
       </Card>
     </div>
