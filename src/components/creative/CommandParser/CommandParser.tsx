@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Send, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { parseCommand } from "./commandParserUtils";
-import { Command, CommandDomain, CommandParseResult, CommandParserProps } from "./types";
+import { Command, CommandParserProps, CommandParseResult } from "./types";
 
 export const CommandParser = ({
   instruction,
@@ -35,10 +35,12 @@ export const CommandParser = ({
     
     if (needsConfirmation && parsedCommand) {
       // User is confirming a command
-      onParsed({ 
+      const result: CommandParseResult = { 
         success: true, 
         command: { ...parsedCommand, confirmed: true } 
-      });
+      };
+      
+      onParsed(result);
       
       // Reset state
       setInputValue("");
@@ -48,27 +50,35 @@ export const CommandParser = ({
     }
     
     // Parse the command
-    const result = parseCommand(inputValue, allowedDomains as CommandDomain[]);
+    const result = parseCommand(inputValue);
     
-    if (result.needsClarification && onClarificationNeeded) {
-      onClarificationNeeded(result.clarificationQuestion || "Could you clarify?", inputValue);
+    if (result && onClarificationNeeded) {
+      onClarificationNeeded("Could you clarify?", inputValue);
       setInputValue("");
       return;
     }
     
-    if (result.success && result.command) {
-      if (requireConfirmation && result.command.requiresConfirmation) {
+    if (result) {
+      if (requireConfirmation) {
         // Store command and request confirmation
-        setParsedCommand(result.command);
+        setParsedCommand(result);
         setNeedsConfirmation(true);
       } else {
         // No confirmation needed, pass directly
-        onParsed(result);
+        const parseResult: CommandParseResult = {
+          success: true,
+          command: result
+        };
+        onParsed(parseResult);
         setInputValue("");
       }
     } else {
       // Pass error to parent
-      onParsed(result);
+      const errorResult: CommandParseResult = {
+        success: false,
+        error: "Could not parse command"
+      };
+      onParsed(errorResult);
     }
   };
 
