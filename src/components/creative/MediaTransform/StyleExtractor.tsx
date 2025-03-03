@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Wand2, Copy, Check, ColorPicker } from 'lucide-react';
+import { Wand2, Copy, Check, Palette } from 'lucide-react';
 import { useMediaTransform } from './MediaTransformContext';
 
 const StyleExtractor = () => {

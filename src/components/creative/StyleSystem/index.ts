@@ -1,12 +1,16 @@
 
-export { default as StyleSystem } from './StyleSystem';
-export { default as StyleSystemContext, useStyleSystem } from './StyleSystemContext';
-export { default as StylePreview } from './StylePreview';
-export { default as ColorPaletteManager } from './ColorPaletteManager';
-export { default as SpacingSystem } from './SpacingSystem';
-export { default as TypographyControls } from './TypographyControls';
-export { default as StyleAdapter } from './StyleAdapter';
-export { default as StyleCommandParser } from './StyleCommandParser';
-export { default as StyleSystemIntegration } from './StyleSystemIntegration';
+export { StyleSystem } from './StyleSystem';
+export { 
+  StyleSystemContext, 
+  StyleSystemProvider, 
+  useStyleSystem 
+} from './StyleSystemContext';
+export { StylePreview } from './StylePreview';
+export { ColorPaletteManager } from './ColorPaletteManager';
+export { SpacingSystem } from './SpacingSystem';
+export { TypographyControls } from './TypographyControls';
+export { StyleAdapter } from './StyleAdapter';
+export { StyleCommandParser } from './StyleCommandParser';
+export { StyleSystemIntegration } from './StyleSystemIntegration';
 export * from './types';
-export { default as defaultStyles } from './defaultStyles';
+export { defaultStyles } from './defaultStyles';

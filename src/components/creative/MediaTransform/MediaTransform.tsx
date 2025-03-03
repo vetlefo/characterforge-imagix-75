@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
-import { StyleExtractor } from './StyleExtractor';
-import { CodeGenerator } from './CodeGenerator';
+import StyleExtractor from './StyleExtractor';
+import CodeGenerator from './CodeGenerator';
 import { AnimationGenerator } from './AnimationGenerator';
 import { MediaTransformProvider } from './MediaTransformContext';
 import { Card } from '../../ui/card';

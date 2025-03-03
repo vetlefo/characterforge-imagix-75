@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -377,8 +376,6 @@ const CodeGenerator = () => {
                   html={code.html}
                   css={code.css}
                   js={code.js}
-                  width="100%"
-                  height="100%"
                 />
               </div>
             </Card>
