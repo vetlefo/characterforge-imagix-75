@@ -1,5 +1,5 @@
 
-import StyleSystem from './StyleSystem';
+import { StyleSystem } from './StyleSystem';
 import { StyleSystemProvider, useStyleSystem } from './StyleSystemContext';
 import { StyleCommandParser } from './StyleCommandParser';
 import { ColorPaletteManager } from './ColorPaletteManager';

@@ -60,7 +60,7 @@ export const MediaTransform: React.FC<MediaTransformProps> = ({
           </TabsContent>
           
           <TabsContent value="animation">
-            <AnimationGenerator />
+            <AnimationGenerator imageUrl={imageUrl} />
           </TabsContent>
         </Tabs>
       </Card>
