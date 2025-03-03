@@ -23,6 +23,7 @@ The sidebar on the left provides access to different tools:
 - **Journey**: Explore the style system
 - **Insight**: Get creative insights (coming soon)
 - **Explore**: Try the animation system
+- **Transform**: Access media transformation tools
 
 ## Drawing Tools
 
@@ -92,17 +93,70 @@ Use the viewport buttons to test different screen sizes:
 4. Configure spacing rules
 5. Save presets for reuse
 
+## Media Transform
+
+### Extracting Styles from Images
+
+1. Navigate to the **Transform** section
+2. Upload or select an image from your asset library
+3. Click "Extract Styles"
+4. View the extracted color palette, typography, and spacing information
+5. Save the extracted style or apply it directly to your project
+
+### Generating Code from Designs
+
+1. In the **Transform** section, select the "Code Generation" tab
+2. Choose an image or design to transform
+3. Select the type of component you want to generate (card, header, etc.)
+4. Click "Generate Code"
+5. Review and edit the generated HTML, CSS, and JavaScript
+6. Preview the result in real-time
+7. Copy the code or save it as a component
+
+### Creating Animations from Static Images
+
+1. In the **Transform** section, select the "Animation" tab
+2. Upload or select an image
+3. Choose animation settings (duration, type, etc.)
+4. Click "Generate Animation"
+5. Customize the keyframes and properties
+6. Preview the animation
+7. Export as CSS or integrate with your project
+
+## Style System Integration
+
+### Applying Extracted Styles
+
+1. Extract styles from an image using Media Transform
+2. Navigate to the Style System
+3. Import the extracted style
+4. Apply the style to your current project
+5. Make adjustments as needed
+
+### Using Natural Language Style Commands
+
+1. Type style commands in the input field
+2. Examples:
+   - "Set primary color to #3b82f6"
+   - "Change heading font to Montserrat"
+   - "Increase spacing between elements"
+3. See immediate visual feedback
+4. Confirm or adjust the changes
+
 ## Tips and Tricks
 
 - **Command Input**: Try typing natural language commands
 - **Creative Partner**: Ask for suggestions when stuck
 - **Combining Tools**: Use assets from one tool in another
 - **Keyboard Shortcuts**: Use Ctrl+Z/Ctrl+Shift+Z for undo/redo
+- **Style Extraction**: For best results, use images with clear design elements
+- **Code Generation**: Simple designs yield more accurate code
+- **Animation Creation**: Start with basic animations before creating complex ones
 
 ## Troubleshooting
 
 - If the canvas doesn't respond, try refreshing the page
 - For performance issues, try closing other applications
 - If an animation doesn't play, check for JavaScript errors
+- If style extraction produces unexpected results, try a different image
 - Contact support for persistent issues
-

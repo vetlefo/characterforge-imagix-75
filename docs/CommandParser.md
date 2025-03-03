@@ -63,6 +63,11 @@ The Command Parser classifies instructions into domains:
 4. **Website Domain**: Instructions for web page structure and content
    - "Add a navigation menu"
    - "Create a contact form"
+   
+5. **Media Domain**: Instructions for media transformation
+   - "Extract colors from this image"
+   - "Generate code from this design"
+   - "Create an animation from this picture"
 
 ## Parameter Extraction
 
@@ -88,6 +93,62 @@ The parser identifies and extracts key parameters from instructions:
    - "Animate for 2 seconds"
    - "Delay the transition by 500ms"
 
+## Example Commands
+
+### Drawing Commands
+- "Create a new drawing with a red background"
+- "Draw a blue circle with a 2px black border"
+- "Add a gradient from purple to pink"
+
+### Style Commands
+- "Change the primary color to #3b82f6"
+- "Set the heading font to Montserrat"
+- "Increase the spacing between elements"
+
+### Animation Commands
+- "Make the logo fade in over 2 seconds"
+- "Create a bouncing animation for the button"
+- "Add a slide-from-left entrance animation"
+
+### Website Commands
+- "Create a responsive navigation bar"
+- "Add a contact form with email validation"
+- "Change the layout to a two-column grid"
+
+### Media Commands
+- "Extract a color palette from this image"
+- "Generate HTML/CSS from this design"
+- "Create a hover animation from this logo"
+
+## Integration Examples
+
+### With Drawing System
+```typescript
+const handleParsedCommand = (command) => {
+  if (command.domain === 'drawing') {
+    drawingSystem.executeCommand(command);
+  }
+};
+```
+
+### With Style System
+```typescript
+const handleStyleCommand = (command) => {
+  if (command.domain === 'styling') {
+    styleSystem.applyChanges(command.parameters);
+  }
+};
+```
+
+### With Media Transform
+```typescript
+const handleMediaCommand = (command) => {
+  if (command.domain === 'media' && command.action === 'extract') {
+    mediaTransform.extractStyles(command.parameters.source);
+  }
+};
+```
+
 ## Technical Implementation
 
 The Command Parser uses a combination of pattern matching and intent recognition to interpret commands. It maintains a dictionary of supported commands and their variations, along with the corresponding actions to execute.
@@ -99,10 +160,3 @@ The Command Parser uses a combination of pattern matching and intent recognition
 3. Extract parameters from the remaining text
 4. Match against known command patterns
 5. Execute the corresponding action or request clarification
-
-## Example Commands
-
-- "Create a new drawing with a red background"
-- "Change the font size to 18px"
-- "Save the current animation as 'bounce'"
-- "Show me all assets with the tag 'logo'"
