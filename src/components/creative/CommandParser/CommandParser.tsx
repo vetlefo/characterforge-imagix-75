@@ -1,152 +1,160 @@
 
-import React, { useState, useRef, useEffect } from "react";
-import { parseCommand, executeCommandActions } from "./commandParserUtils";
-import { CommandParserProps, CommandParseResult } from "./types";
-import { Textarea } from "@/components/ui/textarea";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { SendIcon, ZapIcon, X } from "lucide-react";
-import { useCreative } from "../CreativeContext";
-import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Command, CommandParserProps } from "./types";
+import { parseInstruction, describeCommand, getSuggestionForCommand } from "./commandParserUtils";
+import { classifyCommand } from "./domains";
 
 const CommandParser: React.FC<CommandParserProps> = ({
-  onCommandExecuted,
-  onClarificationNeeded
+  instruction,
+  onParsed,
+  allowedDomains,
+  requireConfirmation = false,
+  className
 }) => {
-  const [command, setCommand] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [parseResult, setParseResult] = useState<CommandParseResult | null>(null);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const creativeContext = useCreative();
-  const { toast } = useToast();
-
-  // Focus the textarea when the component mounts
+  const [parsedCommand, setParsedCommand] = useState<Command | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [suggestion, setSuggestion] = useState<string>("");
+  const [userResponse, setUserResponse] = useState<string>("");
+  
+  // Parse the instruction whenever it changes
   useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.focus();
+    if (!instruction || instruction.trim() === "") {
+      setParsedCommand(null);
+      setShowConfirmation(false);
+      setSuggestion("");
+      return;
     }
-  }, []);
-
-  // Handle command submission
-  const handleSubmit = (e: React.FormEvent) => {
+    
+    // Parse the instruction
+    const command = parseInstruction(instruction);
+    
+    // Check if the command's domain is allowed
+    if (allowedDomains && allowedDomains.length > 0) {
+      if (!allowedDomains.includes(command.domain)) {
+        // Domain not allowed, create a fallback command
+        const fallbackDomain = allowedDomains[0];
+        const fallbackCommand = {
+          ...command,
+          domain: fallbackDomain,
+          confidence: 0.5,
+          requiresConfirmation: true
+        };
+        setParsedCommand(fallbackCommand);
+        setSuggestion(`I understand this as a ${command.domain} command, but I can only handle ${allowedDomains.join(", ")} commands.`);
+        setShowConfirmation(true);
+        return;
+      }
+    }
+    
+    setParsedCommand(command);
+    
+    // Determine if we need to show confirmation
+    const needsConfirmation = requireConfirmation || command.requiresConfirmation;
+    setShowConfirmation(needsConfirmation);
+    
+    if (needsConfirmation) {
+      setSuggestion(getSuggestionForCommand(command));
+    } else if (onParsed) {
+      // Auto-execute if confident and no confirmation required
+      onParsed(command);
+    }
+  }, [instruction, allowedDomains, requireConfirmation, onParsed]);
+  
+  const handleConfirm = () => {
+    if (parsedCommand && onParsed) {
+      const confirmedCommand: Command = {
+        ...parsedCommand,
+        confirmed: true
+      };
+      onParsed(confirmedCommand);
+      setShowConfirmation(false);
+    }
+  };
+  
+  const handleCancel = () => {
+    setParsedCommand(null);
+    setShowConfirmation(false);
+    setSuggestion("");
+  };
+  
+  const handleUserResponseSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!command.trim()) return;
     
-    setIsProcessing(true);
+    if (!userResponse.trim()) return;
     
-    // Parse the command
-    const result = parseCommand(command);
-    setParseResult(result);
+    // Replace original instruction with user's clarification
+    const updatedCommand = parseInstruction(userResponse);
+    setParsedCommand(updatedCommand);
     
-    if (result.success) {
-      // Execute the command if parsing was successful
-      if (result.commandActions && result.commandActions.length > 0) {
-        const success = executeCommandActions(result.commandActions, creativeContext);
-        
-        if (success && onCommandExecuted) {
-          onCommandExecuted(result);
-        }
-        
-        // Reset command input after successful execution
-        setCommand("");
-        setParseResult(null);
+    // Clear user response input
+    setUserResponse("");
+    
+    // If confidence is now high, execute
+    if (updatedCommand.confidence > 0.7) {
+      setShowConfirmation(false);
+      if (onParsed) {
+        onParsed(updatedCommand);
       }
-    } else if (result.clarificationNeeded && result.clarificationQuestion) {
-      // Show the clarification UI
-      setShowSuggestions(true);
-      
-      // Notify parent component if needed
-      if (onClarificationNeeded) {
-        onClarificationNeeded(result.clarificationQuestion, command);
-      }
-    }
-    
-    setIsProcessing(false);
-  };
-
-  // Handle suggestion selection
-  const handleSuggestionClick = (suggestion: string) => {
-    setCommand(suggestion);
-    setShowSuggestions(false);
-    
-    // Auto-submit the suggestion
-    setTimeout(() => {
-      if (textareaRef.current) {
-        const form = textareaRef.current.form;
-        if (form) form.dispatchEvent(new Event("submit", { cancelable: true }));
-      }
-    }, 100);
-  };
-
-  // Handle clarification dismissal
-  const handleDismissClarification = () => {
-    setShowSuggestions(false);
-    setParseResult(null);
-    
-    // Focus back on the textarea
-    if (textareaRef.current) {
-      textareaRef.current.focus();
+    } else {
+      // Still needs confirmation
+      setSuggestion(getSuggestionForCommand(updatedCommand));
     }
   };
-
+  
   return (
-    <div className="w-full bg-[#1A1A2E]/40 rounded-xl border border-[#2A2A4A]/30 p-4">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="relative">
-          <Textarea
-            ref={textareaRef}
-            value={command}
-            onChange={(e) => setCommand(e.target.value)}
-            placeholder="Enter a creative command (e.g., 'Create a red circle' or 'Add some text')"
-            className="min-h-20 bg-[#252547]/50 border border-[#3A3A5A]/50 text-white resize-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          />
-          <Button
-            type="submit"
-            disabled={isProcessing || !command.trim()}
-            className="absolute bottom-2 right-2 bg-blue-600/80 hover:bg-blue-600 h-8 w-8 p-0"
-            aria-label="Send command"
-          >
-            <SendIcon size={16} />
-          </Button>
-        </div>
-        
-        {showSuggestions && parseResult && (
-          <div className="p-4 bg-[#2A2A4A]/70 rounded-lg border border-[#3A3A5A]/50 relative">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="absolute top-2 right-2 h-6 w-6 p-0 text-gray-400 hover:text-white"
-              onClick={handleDismissClarification}
-              aria-label="Dismiss"
-            >
-              <X size={14} />
-            </Button>
-            
-            <div className="text-white mb-3">
-              {parseResult.clarificationQuestion || "Did you mean one of these?"}
-            </div>
-            
-            {parseResult.suggestedAlternatives && parseResult.suggestedAlternatives.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {parseResult.suggestedAlternatives.map((suggestion, index) => (
-                  <Button
-                    key={index}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="bg-[#3A3A6A]/50 border-blue-500/30 text-blue-200 hover:bg-[#3A3A6A] hover:text-blue-100"
-                    onClick={() => handleSuggestionClick(suggestion)}
-                  >
-                    <ZapIcon size={14} className="mr-1" />
-                    {suggestion}
-                  </Button>
-                ))}
-              </div>
-            )}
+    <div className={`space-y-4 ${className}`}>
+      {/* Original instruction display */}
+      {instruction && parsedCommand && (
+        <div className="text-sm">
+          <div className="font-medium mb-1">I understood your request as:</div>
+          <div className="bg-muted p-2 rounded-md">
+            <pre className="text-xs whitespace-pre-wrap">
+              {describeCommand(parsedCommand)}
+            </pre>
           </div>
-        )}
-      </form>
+        </div>
+      )}
+      
+      {/* Confirmation UI */}
+      {showConfirmation && (
+        <Alert className="border-blue-500 bg-blue-500/10">
+          <AlertDescription>
+            {suggestion}
+            <div className="flex space-x-2 mt-2">
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={handleConfirm}
+              >
+                Yes, that's correct
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleCancel}
+              >
+                No, cancel
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      {/* Clarification input */}
+      {showConfirmation && (
+        <form onSubmit={handleUserResponseSubmit} className="flex gap-2">
+          <Input
+            placeholder="Clarify your instruction..."
+            value={userResponse}
+            onChange={(e) => setUserResponse(e.target.value)}
+            className="flex-1"
+          />
+          <Button type="submit">Update</Button>
+        </form>
+      )}
     </div>
   );
 };

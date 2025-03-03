@@ -1,365 +1,365 @@
 
-import { CommandIntent, CommandEntity, CommandAttribute, ParsedCommand, CommandParseResult, CommandAction } from './types';
-import { toast } from "sonner";
+import { Command, ParsedCommand, commonActions } from './types';
+import { CommandDomain, classifyCommand, domainKeywords } from './domains';
+import { extractParameters, ExtractedParameters } from './parameterExtractor';
 
-// Simple patterns for command recognition
-const intentPatterns: Record<CommandIntent, RegExp[]> = {
-  create: [/create|add|draw|make|new|insert/i],
-  modify: [/modify|change|edit|update|adjust|transform/i],
-  delete: [/delete|remove|erase|clear/i],
-  arrange: [/arrange|move|position|place|align|order|layer/i],
-  style: [/style|color|fill|stroke|font|design/i],
-  animate: [/animate|motion|transition|effect/i],
-  save: [/save|store|keep/i],
-  export: [/export|download|share/i],
-  unknown: [/.*/] // Catch all
-};
-
-const entityPatterns: Record<CommandEntity, RegExp[]> = {
-  shape: [/circle|square|rectangle|triangle|polygon|ellipse|line|curve|path/i],
-  text: [/text|label|title|heading|paragraph|caption|font/i],
-  image: [/image|picture|photo|graphic|asset/i],
-  layer: [/layer|level|stack|z-index/i],
-  color: [/color|hue|shade|tint|palette|rgb|rgba|hex/i],
-  size: [/size|width|height|scale|dimension/i],
-  position: [/position|location|coordinate|top|bottom|left|right|center/i],
-  effect: [/effect|shadow|blur|glow|gradient|opacity|transparency/i],
-  unknown: [/.*/] // Catch all
-};
-
-// Common attribute patterns
-const attributePatterns: Record<string, RegExp> = {
-  color: /#[0-9a-f]{3,8}|rgba?\([^)]+\)|[a-z]+ color|blue|red|green|yellow|purple|orange|black|white|gray|grey/i,
-  size: /\d+px|\d+%|\d+em|\d+rem|small|medium|large|huge|tiny/i,
-  position: /top|bottom|left|right|center|middle|\d+px from \w+/i,
-  number: /\d+/
-};
-
-/**
- * Parse a command string into structured data
- */
-export function parseCommand(text: string): CommandParseResult {
-  // Check if command is too short or empty
-  if (!text || text.trim().length < 3) {
-    return {
-      success: false,
-      clarificationNeeded: true,
-      clarificationQuestion: "Could you provide more details about what you'd like to create or modify?"
-    };
-  }
-
-  const words = text.toLowerCase().split(/\s+/);
-  
-  // Detect intent
-  let intent: CommandIntent = "unknown";
-  let intentConfidence = 0;
-  
-  Object.entries(intentPatterns).forEach(([potentialIntent, patterns]) => {
-    patterns.forEach(pattern => {
-      const match = words.some(word => pattern.test(word));
-      if (match && potentialIntent !== "unknown") {
-        intent = potentialIntent as CommandIntent;
-        intentConfidence = 0.7; // Basic confidence score
-      }
-    });
-  });
-  
-  // Detect entity
-  let entity: CommandEntity = "unknown";
-  let entityConfidence = 0;
-  
-  Object.entries(entityPatterns).forEach(([potentialEntity, patterns]) => {
-    patterns.forEach(pattern => {
-      const match = words.some(word => pattern.test(word));
-      if (match && potentialEntity !== "unknown") {
-        entity = potentialEntity as CommandEntity;
-        entityConfidence = 0.7; // Basic confidence score
-      }
-    });
-  });
-  
-  // Extract potential attributes
-  const attributes: CommandAttribute[] = [];
-  
-  // Look for color attributes
-  const colorMatch = text.match(attributePatterns.color);
-  if (colorMatch) {
-    attributes.push({
-      key: "color",
-      value: colorMatch[0]
-    });
-  }
-  
-  // Look for size attributes
-  const sizeMatch = text.match(attributePatterns.size);
-  if (sizeMatch) {
-    attributes.push({
-      key: "size",
-      value: sizeMatch[0]
-    });
-  }
-  
-  // Look for position attributes
-  const positionMatch = text.match(attributePatterns.position);
-  if (positionMatch) {
-    attributes.push({
-      key: "position",
-      value: positionMatch[0]
-    });
-  }
-  
-  // Look for numbers that might be relevant
-  const numbers = text.match(/\d+/g);
-  if (numbers && numbers.length > 0) {
-    // Only add if we don't already have a size with this number
-    const hasSize = attributes.some(attr => attr.key === "size" && attr.value.toString().includes(numbers[0]));
-    if (!hasSize) {
-      attributes.push({
-        key: "value",
-        value: parseInt(numbers[0])
-      });
-    }
-  }
-  
-  // Calculate overall confidence
-  const confidence = (intent !== "unknown" ? intentConfidence : 0.1) * 
-                     (entity !== "unknown" ? entityConfidence : 0.3);
-  
-  // Construct parsed command
+// Function to parse a natural language instruction into a structured command
+export function parseInstruction(instruction: string): Command {
+  // Start with basic command structure
   const parsedCommand: ParsedCommand = {
-    intent,
-    entity,
-    attributes,
-    rawText: text,
-    confidence
+    instruction,
+    action: '',
+    subject: '',
+    domain: 'general',
+    parameters: {},
+    confidence: 0,
+    requiresConfirmation: false,
+    confirmed: false
   };
   
-  // Generate appropriate actions based on the parsed command
-  const commandActions = generateActions(parsedCommand);
+  // 1. Classify the domain
+  const domain = classifyCommand(instruction);
+  parsedCommand.domain = domain;
   
-  // Determine if clarification is needed
-  const needsClarification = confidence < 0.3 || 
-                             (intent === "unknown") || 
-                             (entity === "unknown" && !["save", "export"].includes(intent));
+  // 2. Extract action and subject
+  const { action, subject, confidence } = extractActionAndSubject(instruction, domain);
+  parsedCommand.action = action;
+  parsedCommand.subject = subject;
+  parsedCommand.confidence = confidence;
   
-  // Create suggested alternatives if confidence is low
-  let suggestedAlternatives: string[] = [];
+  // 3. Extract parameters
+  parsedCommand.parameters = extractParameters(instruction);
   
-  if (confidence < 0.5) {
-    if (intent !== "unknown" && entity === "unknown") {
-      // Suggest entities for the detected intent
-      suggestedAlternatives = [
-        `${intent} a circle`,
-        `${intent} some text`,
-        `${intent} an image`
-      ];
-    } else if (intent === "unknown" && entity !== "unknown") {
-      // Suggest intents for the detected entity
-      suggestedAlternatives = [
-        `create a ${entity}`,
-        `modify the ${entity}`,
-        `arrange the ${entity}`
-      ];
+  // 4. Determine if confirmation is needed (low confidence)
+  parsedCommand.requiresConfirmation = confidence < 0.7;
+  
+  // 5. Create domain-specific command
+  return enhanceCommandWithDomainSpecifics(parsedCommand);
+}
+
+// Function to extract the action and subject from an instruction
+function extractActionAndSubject(
+  instruction: string, 
+  domain: CommandDomain
+): { action: string; subject: string; confidence: number } {
+  const words = instruction.toLowerCase().split(/\s+/);
+  let action = '';
+  let subject = '';
+  let confidence = 0;
+  
+  // Look for common actions
+  for (const word of words) {
+    if (commonActions.includes(word)) {
+      action = word;
+      break;
     }
   }
   
-  return {
-    success: !needsClarification,
-    parsedCommand,
-    suggestedAlternatives: suggestedAlternatives.length > 0 ? suggestedAlternatives : undefined,
-    commandActions,
-    clarificationNeeded: needsClarification,
-    clarificationQuestion: generateClarificationQuestion(parsedCommand)
-  };
-}
-
-/**
- * Generate appropriate actions based on the parsed command
- */
-function generateActions(parsedCommand: ParsedCommand): CommandAction[] {
-  const { intent, entity, attributes } = parsedCommand;
-  const actions: CommandAction[] = [];
-  
-  // Handle different intent types
-  switch (intent) {
-    case "create":
-      actions.push({
-        type: "CREATE_ELEMENT",
-        payload: { 
-          type: entity,
-          attributes: attributes.reduce((acc, attr) => {
-            acc[attr.key] = attr.value;
-            return acc;
-          }, {} as Record<string, any>)
-        }
-      });
-      break;
-      
-    case "modify":
-      actions.push({
-        type: "MODIFY_ELEMENT",
-        payload: { 
-          type: entity,
-          attributes: attributes.reduce((acc, attr) => {
-            acc[attr.key] = attr.value;
-            return acc;
-          }, {} as Record<string, any>)
-        }
-      });
-      break;
-      
-    case "delete":
-      actions.push({
-        type: "DELETE_ELEMENT",
-        payload: { 
-          type: entity
-        }
-      });
-      break;
-      
-    case "arrange":
-      actions.push({
-        type: "ARRANGE_ELEMENT",
-        payload: { 
-          type: entity,
-          position: attributes.find(attr => attr.key === "position")?.value
-        }
-      });
-      break;
-      
-    case "style":
-      actions.push({
-        type: "STYLE_ELEMENT",
-        payload: { 
-          type: entity,
-          attributes: attributes.reduce((acc, attr) => {
-            acc[attr.key] = attr.value;
-            return acc;
-          }, {} as Record<string, any>)
-        }
-      });
-      break;
-      
-    case "animate":
-      actions.push({
-        type: "ANIMATE_ELEMENT",
-        payload: { 
-          type: entity,
-          effect: attributes.find(attr => attr.key === "effect")?.value
-        }
-      });
-      break;
-      
-    case "save":
-      actions.push({
-        type: "SAVE_CREATION",
-        payload: { 
-          name: attributes.find(attr => attr.key === "name")?.value
-        }
-      });
-      break;
-      
-    case "export":
-      actions.push({
-        type: "EXPORT_CREATION",
-        payload: { 
-          format: attributes.find(attr => attr.key === "format")?.value
-        }
-      });
-      break;
-  }
-  
-  return actions;
-}
-
-/**
- * Generate a clarification question based on the parsed command
- */
-function generateClarificationQuestion(parsedCommand: ParsedCommand): string {
-  const { intent, entity, attributes } = parsedCommand;
-  
-  if (intent === "unknown") {
-    return "What would you like to do? (create, modify, delete, etc.)";
-  }
-  
-  if (entity === "unknown" && !["save", "export"].includes(intent)) {
-    return `What would you like to ${intent}? (shape, text, image, etc.)`;
-  }
-  
-  if (attributes.length === 0 && !["delete", "save", "export"].includes(intent)) {
-    return `How would you like to ${intent} the ${entity}? Please specify attributes like color, size, or position.`;
-  }
-  
-  return "Could you clarify your instruction a bit more?";
-}
-
-/**
- * Execute the parsed command actions
- */
-export function executeCommandActions(
-  actions: CommandAction[], 
-  creativeContext: any
-): boolean {
-  if (!actions || actions.length === 0) {
-    toast.error("No actions to execute");
-    return false;
-  }
-  
-  try {
-    // Here we would execute the actions using the creative context
-    // For now, we'll just log them and notify the user
-    console.log("Executing actions:", actions);
+  // If no common action found, use the first verb as action
+  if (!action) {
+    // Simple verb detection (could be enhanced with NLP)
+    const verbPatterns = [
+      /\b(\w+)ing\b/, // Creating, drawing, etc.
+      /\b(\w+)ed\b/, // Created, moved, etc.
+      /\b(\w+)s\b/ // Draws, moves, etc.
+    ];
     
-    actions.forEach(action => {
-      // Handle different action types
-      switch (action.type) {
-        case "CREATE_ELEMENT":
-          toast.success(`Created ${action.payload.type}`);
-          // In a real implementation, we would call context functions
-          // creativeContext.addAsset(...);
-          break;
-          
-        case "MODIFY_ELEMENT":
-          toast.success(`Modified ${action.payload.type}`);
-          // creativeContext.updateAsset(...);
-          break;
-          
-        case "DELETE_ELEMENT":
-          toast.success(`Deleted ${action.payload.type}`);
-          // creativeContext.deleteAsset(...);
-          break;
-          
-        case "ARRANGE_ELEMENT":
-          toast.success(`Arranged ${action.payload.type}`);
-          // Update position/ordering
-          break;
-          
-        case "STYLE_ELEMENT":
-          toast.success(`Styled ${action.payload.type}`);
-          // Update styling
-          break;
-          
-        case "ANIMATE_ELEMENT":
-          toast.success(`Animated ${action.payload.type}`);
-          // Add animation
-          break;
-          
-        case "SAVE_CREATION":
-          toast.success("Saved creation");
-          // Save functionality
-          break;
-          
-        case "EXPORT_CREATION":
-          toast.success("Exported creation");
-          // Export functionality
-          break;
+    for (const pattern of verbPatterns) {
+      const match = instruction.match(pattern);
+      if (match && match[1]) {
+        action = match[1];
+        break;
       }
-    });
+    }
     
-    return true;
-  } catch (error) {
-    console.error("Error executing command actions:", error);
-    toast.error("Error executing command");
-    return false;
+    // Fallback to domain-specific default action
+    if (!action) {
+      switch (domain) {
+        case 'drawing': action = 'draw'; break;
+        case 'styling': action = 'style'; break;
+        case 'animation': action = 'animate'; break;
+        case 'website': action = 'create'; break;
+        default: action = 'create';
+      }
+    }
   }
+  
+  // Extract subject based on domain keywords
+  const domainSpecificWords = domainKeywords[domain];
+  
+  for (const word of words) {
+    if (domainSpecificWords.includes(word) && word !== action) {
+      subject = word;
+      confidence += 0.3; // Increase confidence when subject matches domain
+      break;
+    }
+  }
+  
+  // If no subject found, guess based on common patterns
+  if (!subject) {
+    // Look for noun phrases after action words
+    const actionIndex = words.findIndex(w => w === action);
+    if (actionIndex >= 0 && actionIndex < words.length - 1) {
+      subject = words[actionIndex + 1];
+    } else {
+      // Fallback to a generic subject
+      subject = 'element';
+    }
+  }
+  
+  // Calculate confidence based on clarity of parsing
+  confidence += action ? 0.4 : 0.1;
+  confidence += subject ? 0.3 : 0.1;
+  
+  // Cap confidence
+  confidence = Math.min(confidence, 1.0);
+  
+  return { action, subject, confidence };
+}
+
+// Function to enhance a base command with domain-specific details
+function enhanceCommandWithDomainSpecifics(command: ParsedCommand): Command {
+  const { domain, parameters } = command;
+  
+  switch (domain) {
+    case 'drawing':
+      // Enhanced drawing parameters
+      const drawingParams: any = { ...parameters };
+      
+      // Detect brush type
+      if (command.instruction.includes('spray')) {
+        drawingParams.brushType = 'spray';
+      } else if (command.instruction.includes('eraser') || command.instruction.includes('erase')) {
+        drawingParams.brushType = 'eraser';
+      } else {
+        drawingParams.brushType = 'pencil';
+      }
+      
+      // Detect drawing mode
+      if (parameters.shapes) {
+        if (parameters.shapes.includes('circle')) {
+          drawingParams.drawingMode = 'circle';
+        } else if (parameters.shapes.includes('rectangle') || parameters.shapes.includes('square')) {
+          drawingParams.drawingMode = 'rectangle';
+        } else if (parameters.shapes.includes('line')) {
+          drawingParams.drawingMode = 'line';
+        }
+      }
+      
+      return {
+        ...command,
+        domain: 'drawing',
+        parameters: drawingParams
+      };
+      
+    case 'styling':
+      // Enhanced styling parameters
+      const stylingParams: any = { ...parameters };
+      
+      // Extract font-related information
+      if (command.instruction.includes('font')) {
+        // Simple pattern matching for font family
+        const fontFamilyMatch = command.instruction.match(/font\s+(?:to|as)\s+([a-zA-Z\s]+)/i);
+        if (fontFamilyMatch && fontFamilyMatch[1]) {
+          stylingParams.fontFamily = fontFamilyMatch[1].trim();
+        }
+        
+        // Extract font size if present
+        if (parameters.sizes && parameters.sizes.length > 0) {
+          stylingParams.fontSize = parameters.sizes[0];
+        }
+      }
+      
+      // Extract text alignment
+      if (command.instruction.includes('align')) {
+        if (command.instruction.includes('left')) {
+          stylingParams.textAlign = 'left';
+        } else if (command.instruction.includes('center')) {
+          stylingParams.textAlign = 'center';
+        } else if (command.instruction.includes('right')) {
+          stylingParams.textAlign = 'right';
+        } else if (command.instruction.includes('justify')) {
+          stylingParams.textAlign = 'justify';
+        }
+      }
+      
+      return {
+        ...command,
+        domain: 'styling',
+        parameters: stylingParams
+      };
+      
+    case 'animation':
+      // Enhanced animation parameters
+      const animationParams: any = { ...parameters };
+      
+      // Extract duration
+      if (parameters.timing && parameters.timing.length > 0) {
+        const durationMatch = parameters.timing[0].match(/(\d+(?:\.\d+)?)\s*(s|ms)?/);
+        if (durationMatch) {
+          const value = parseFloat(durationMatch[1]);
+          const unit = durationMatch[2] || 's';
+          animationParams.duration = unit === 'ms' ? value / 1000 : value;
+        }
+      }
+      
+      // Extract easing
+      const easingTerms = [
+        'linear', 'ease', 'ease-in', 'ease-out', 'ease-in-out', 
+        'bounce', 'elastic', 'cubic'
+      ];
+      
+      for (const term of easingTerms) {
+        if (command.instruction.includes(term)) {
+          animationParams.easing = term;
+          break;
+        }
+      }
+      
+      // Extract repeat
+      if (command.instruction.includes('infinite') || command.instruction.includes('forever')) {
+        animationParams.repeat = 'infinite';
+      } else {
+        const repeatMatch = command.instruction.match(/repeat\s+(\d+)\s+times/i);
+        if (repeatMatch && repeatMatch[1]) {
+          animationParams.repeat = parseInt(repeatMatch[1], 10);
+        }
+      }
+      
+      return {
+        ...command,
+        domain: 'animation',
+        parameters: animationParams
+      };
+      
+    case 'website':
+      // Enhanced website parameters
+      const websiteParams: any = { ...parameters };
+      
+      // Detect viewport preference
+      if (command.instruction.includes('mobile')) {
+        websiteParams.viewport = 'mobile';
+      } else if (command.instruction.includes('tablet')) {
+        websiteParams.viewport = 'tablet';
+      } else {
+        websiteParams.viewport = 'desktop';
+      }
+      
+      return {
+        ...command,
+        domain: 'website',
+        parameters: websiteParams
+      };
+      
+    default:
+      return command;
+  }
+}
+
+// Helper function to get an appropriate suggestion for ambiguous commands
+export function getSuggestionForCommand(command: Command): string {
+  const { domain, action, subject, parameters } = command;
+  
+  switch (domain) {
+    case 'drawing':
+      if (!subject) {
+        return `What would you like to draw? (e.g., circle, rectangle)`;
+      }
+      if (!parameters.colors || parameters.colors.length === 0) {
+        return `What color would you like to use?`;
+      }
+      return `I'll ${action} a ${parameters.colors?.[0] || ''} ${subject}. Is that correct?`;
+      
+    case 'styling':
+      return `I'll update the styling to ${action} the ${subject}. Is that correct?`;
+      
+    case 'animation':
+      return `I'll create an animation to ${action} the ${subject}. Is that correct?`;
+      
+    case 'website':
+      return `I'll ${action} a website ${subject} for you. Is that correct?`;
+      
+    default:
+      return `I'll try to ${action} ${subject}. Is that correct?`;
+  }
+}
+
+// Function to generate a text description of what a command will do
+export function describeCommand(command: Command): string {
+  const { domain, action, subject, parameters } = command;
+  
+  let description = `Command: ${action} ${subject}\n`;
+  description += `Domain: ${domain}\n`;
+  
+  if (parameters) {
+    description += 'Parameters:\n';
+    
+    if (parameters.colors && parameters.colors.length > 0) {
+      description += `- Colors: ${parameters.colors.join(', ')}\n`;
+    }
+    
+    if (parameters.sizes && parameters.sizes.length > 0) {
+      description += `- Sizes: ${parameters.sizes.join(', ')}\n`;
+    }
+    
+    if (parameters.positions && parameters.positions.length > 0) {
+      description += `- Positions: ${parameters.positions.join(', ')}\n`;
+    }
+    
+    if (parameters.shapes && parameters.shapes.length > 0) {
+      description += `- Shapes: ${parameters.shapes.join(', ')}\n`;
+    }
+    
+    if (parameters.timing && parameters.timing.length > 0) {
+      description += `- Timing: ${parameters.timing.join(', ')}\n`;
+    }
+    
+    if (parameters.numbers && parameters.numbers.length > 0) {
+      description += `- Numbers: ${parameters.numbers.join(', ')}\n`;
+    }
+    
+    // Domain-specific parameters
+    switch (domain) {
+      case 'drawing':
+        if ('brushType' in parameters) {
+          description += `- Brush Type: ${parameters.brushType}\n`;
+        }
+        if ('drawingMode' in parameters) {
+          description += `- Drawing Mode: ${parameters.drawingMode}\n`;
+        }
+        break;
+        
+      case 'styling':
+        if ('fontFamily' in parameters) {
+          description += `- Font Family: ${parameters.fontFamily}\n`;
+        }
+        if ('fontSize' in parameters) {
+          description += `- Font Size: ${parameters.fontSize}\n`;
+        }
+        if ('textAlign' in parameters) {
+          description += `- Text Alignment: ${parameters.textAlign}\n`;
+        }
+        break;
+        
+      case 'animation':
+        if ('duration' in parameters) {
+          description += `- Duration: ${parameters.duration}s\n`;
+        }
+        if ('easing' in parameters) {
+          description += `- Easing: ${parameters.easing}\n`;
+        }
+        if ('repeat' in parameters) {
+          description += `- Repeat: ${parameters.repeat}\n`;
+        }
+        break;
+        
+      case 'website':
+        if ('viewport' in parameters) {
+          description += `- Viewport: ${parameters.viewport}\n`;
+        }
+        break;
+    }
+  }
+  
+  return description;
 }
