@@ -1,15 +1,17 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import DrawingModule from "../draw/DrawingModule";
 import { Button } from "../ui/button";
 import { Layers } from "lucide-react";
 import { useCreative } from "./CreativeContext";
 
 interface CreativeSpaceProps {
-  lastImage: string | null;
-  onDrawingComplete: (dataUrl: string) => void;
+  children?: React.ReactNode;
+  lastImage?: string | null;
+  onDrawingComplete?: (dataUrl: string) => void;
 }
 
-const CreativeSpace = ({ lastImage, onDrawingComplete }: CreativeSpaceProps) => {
+const CreativeSpace = ({ children, lastImage, onDrawingComplete }: CreativeSpaceProps) => {
   const { 
     activeDrawing, 
     setActiveDrawing, 
@@ -28,7 +30,9 @@ const CreativeSpace = ({ lastImage, onDrawingComplete }: CreativeSpaceProps) => 
     );
     
     // Call the parent handler
-    onDrawingComplete(dataUrl);
+    if (onDrawingComplete) {
+      onDrawingComplete(dataUrl);
+    }
     setActiveDrawing(false);
     
     // Trigger suggestion when drawing is complete
@@ -43,6 +47,10 @@ const CreativeSpace = ({ lastImage, onDrawingComplete }: CreativeSpaceProps) => 
   const handleStartDrawing = () => {
     setActiveDrawing(true);
   };
+
+  if (children) {
+    return <div className="creative-space-container">{children}</div>;
+  }
 
   return (
     <div className="col-span-3 md:col-span-2 relative">

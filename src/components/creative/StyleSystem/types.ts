@@ -1,3 +1,4 @@
+
 export type ColorPalette = {
   id: string;
   name: string;
@@ -101,12 +102,27 @@ export interface StyleSystemContextType {
     fontWeight: string;
     padding: string;
     margin: string;
+    stroke?: string;
+    fill?: string;
+    background?: string;
+    duration?: string;
+    delay?: string;
+    distance?: string;
+    gap?: string;
+    ['--font-family']?: string;
+    ['--heading-font-weight']?: string;
+    ['--body-font-weight']?: string;
+    ['--font-size-base']?: string;
+    ['--line-height-base']?: string;
+    [key: string]: string | undefined;
   }>) => void;
 }
 
 // Add new types for the StyleAdapter integration
+export type MediaType = 'drawing' | 'animation' | 'website' | 'text';
+
 export interface StyleAdapterOptions {
-  mediaType: 'drawing' | 'animation' | 'website' | 'text';
+  mediaType: MediaType;
   elementId?: string;
   styles?: Record<string, any>;
 }
@@ -153,6 +169,19 @@ export interface StyleSystemContextType {
     fontWeight: string;
     padding: string;
     margin: string;
+    stroke?: string;
+    fill?: string;
+    background?: string;
+    duration?: string;
+    delay?: string;
+    distance?: string;
+    gap?: string;
+    ['--font-family']?: string;
+    ['--heading-font-weight']?: string;
+    ['--body-font-weight']?: string;
+    ['--font-size-base']?: string;
+    ['--line-height-base']?: string;
+    [key: string]: string | undefined;
   }>) => void;
   
   // Add methods for natural language interface

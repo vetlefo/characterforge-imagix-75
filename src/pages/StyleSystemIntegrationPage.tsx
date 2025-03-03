@@ -2,7 +2,7 @@
 import React from 'react';
 import { StyleSystemProvider } from '../components/creative/StyleSystem/StyleSystemContext';
 import { StyleSystemIntegration } from '../components/creative/StyleSystem/StyleSystemIntegration';
-import { CreativeSpace } from '../components/creative/CreativeSpace';
+import CreativeSpace from '../components/creative/CreativeSpace';
 
 const StyleSystemIntegrationPage: React.FC = () => {
   return (
@@ -19,4 +19,3 @@ const StyleSystemIntegrationPage: React.FC = () => {
 };
 
 export default StyleSystemIntegrationPage;
-

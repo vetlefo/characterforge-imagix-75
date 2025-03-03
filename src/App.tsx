@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import Index from './pages';
+import Index from './pages/Index';
 import DrawingEditor from './pages/DrawingEditor';
 import WebsitePreviewDemo from './pages/WebsitePreviewDemo';
 import AssetLibraryPage from './pages/AssetLibraryPage';

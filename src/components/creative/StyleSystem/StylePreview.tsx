@@ -1,422 +1,259 @@
-
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useStyleSystem } from './StyleSystemContext';
+import { MediaType } from './types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { MediaType } from './StyleAdapter';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface StylePreviewProps {
   mediaType: MediaType;
 }
 
 export const StylePreview: React.FC<StylePreviewProps> = ({ mediaType }) => {
-  const { colorPalette, typography, spacing } = useStyleSystem();
+  const { colorPalette, typography, spacing, applyStylesToElement } = useStyleSystem();
+  const [elementId, setElementId] = useState('preview-element');
+  const [customStyles, setCustomStyles] = useState('');
+  const previewRef = useRef<HTMLDivElement>(null);
+  
+  const [elementColor, setElementColor] = useState('');
+  const [elementBackgroundColor, setElementBackgroundColor] = useState('');
+  const [elementFontFamily, setElementFontFamily] = useState('');
+  const [elementFontSize, setElementFontSize] = useState('');
+  const [elementFontWeight, setElementFontWeight] = useState('');
+  const [elementPadding, setElementPadding] = useState('');
+  const [elementMargin, setElementMargin] = useState('');
 
-  const renderColorPalette = () => (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-sm font-medium mb-2">Color Palette: {colorPalette.name}</h3>
-        <div className="grid grid-cols-4 gap-2 md:grid-cols-7">
-          {Object.entries(colorPalette.colors).map(([name, color]) => (
-            <div key={name} className="flex flex-col items-center">
-              <div 
-                className="w-12 h-12 rounded-md border border-border/40"
-                style={{ backgroundColor: color }}
-              />
-              <span className="text-xs mt-1">{name}</span>
-              <span className="text-xs text-muted-foreground">{color}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+  useEffect(() => {
+    // Apply initial styles based on context
+    applyStyles();
+  }, [colorPalette, typography, spacing, mediaType]);
 
-  const renderTypography = () => (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-sm font-medium mb-2">Typography: {typography.name}</h3>
-        <div className="space-y-2">
-          <div className="p-2 border border-border/40 rounded-md">
-            <p className="mb-1 text-xs text-muted-foreground">Font Family</p>
-            <p style={{ fontFamily: typography.fontFamily }}>{typography.fontFamily}</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <div className="p-2 border border-border/40 rounded-md">
-              <p className="mb-1 text-xs text-muted-foreground">Heading</p>
-              <p style={{ 
-                fontWeight: typography.heading.fontWeight,
-                lineHeight: typography.heading.lineHeight,
-                letterSpacing: typography.heading.letterSpacing
-              }}>
-                Weight: {typography.heading.fontWeight}, 
-                Line height: {typography.heading.lineHeight}, 
-                Letter spacing: {typography.heading.letterSpacing}
-              </p>
-            </div>
-            
-            <div className="p-2 border border-border/40 rounded-md">
-              <p className="mb-1 text-xs text-muted-foreground">Body</p>
-              <p style={{ 
-                fontWeight: typography.body.fontWeight,
-                lineHeight: typography.body.lineHeight,
-                letterSpacing: typography.body.letterSpacing
-              }}>
-                Weight: {typography.body.fontWeight}, 
-                Line height: {typography.body.lineHeight}, 
-                Letter spacing: {typography.body.letterSpacing}
-              </p>
-            </div>
-          </div>
-          
-          <div className="p-2 border border-border/40 rounded-md">
-            <p className="mb-1 text-xs text-muted-foreground">Font Sizes</p>
-            <div className="space-y-1">
-              {Object.entries(typography.sizes).map(([size, value]) => (
-                <p key={size} style={{ fontSize: value }}>
-                  {size}: {value}
-                </p>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const applyStyles = () => {
+    if (!previewRef.current) return;
 
-  const renderSpacing = () => (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-sm font-medium mb-2">Spacing: {spacing.name}</h3>
-        <div className="space-y-4">
-          <div>
-            <p className="mb-1 text-xs text-muted-foreground">Scale</p>
-            <div className="flex items-end gap-2 border border-border/40 p-3 rounded-md">
-              {Object.entries(spacing.scale).map(([size, value]) => (
-                <div key={size} className="flex flex-col items-center">
-                  <div 
-                    className="bg-primary/80 rounded-sm" 
-                    style={{ 
-                      width: value,
-                      height: value 
-                    }}
-                  />
-                  <span className="text-xs mt-1">{size}</span>
-                  <span className="text-xs text-muted-foreground">{value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <div>
-            <p className="mb-1 text-xs text-muted-foreground">Container Widths</p>
-            <div className="space-y-2">
-              {Object.entries(spacing.containerWidth).map(([size, value]) => (
-                <div key={size} className="relative h-6 bg-primary/10 rounded-md overflow-hidden">
-                  <div 
-                    className="absolute top-0 left-0 h-full bg-primary/30 rounded-l-md"
-                    style={{ width: `min(100%, calc(${value} / 10))` }}
-                  />
-                  <span className="absolute inset-0 flex items-center justify-center text-xs">
-                    {size}: {value}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Media-specific preview components
-  const renderMediaPreview = () => {
-    switch (mediaType) {
-      case 'drawing':
-        return (
-          <div className="p-4 border border-border/40 rounded-md bg-card/50">
-            <h3 className="text-sm font-medium mb-4">Drawing Preview</h3>
-            <div 
-              className="relative w-full h-32 rounded-md border border-border/40"
-              style={{ backgroundColor: colorPalette.colors.background }}
-            >
-              {/* Sample drawing elements */}
-              <div 
-                className="absolute top-1/4 left-1/4 w-16 h-16 rounded-full"
-                style={{ backgroundColor: colorPalette.colors.primary }}
-              />
-              <div 
-                className="absolute bottom-1/4 right-1/4 w-16 h-16"
-                style={{ backgroundColor: colorPalette.colors.secondary }}
-              />
-              <div 
-                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center"
-                style={{ 
-                  color: colorPalette.colors.foreground,
-                  fontFamily: typography.fontFamily,
-                  fontSize: typography.sizes.base,
-                  fontWeight: typography.body.fontWeight
-                }}
-              >
-                Sample Text
-              </div>
-            </div>
-          </div>
-        );
-        
-      case 'website':
-        return (
-          <div 
-            className="p-4 border border-border/40 rounded-md"
-            style={{ backgroundColor: colorPalette.colors.background }}
-          >
-            <div className="mb-4 pb-2 border-b" style={{ borderColor: colorPalette.colors.border }}>
-              <h3 
-                className="font-medium"
-                style={{ 
-                  color: colorPalette.colors.foreground,
-                  fontFamily: typography.fontFamily,
-                  fontSize: typography.sizes.lg,
-                  fontWeight: typography.heading.fontWeight
-                }}
-              >
-                Website Preview
-              </h3>
-            </div>
-            
-            <div 
-              className="mb-4 p-2 rounded-md"
-              style={{ backgroundColor: colorPalette.colors.secondary }}
-            >
-              <h4 
-                style={{ 
-                  color: colorPalette.colors.foreground,
-                  fontFamily: typography.fontFamily,
-                  fontSize: typography.sizes.base,
-                  fontWeight: typography.heading.fontWeight
-                }}
-              >
-                Navigation
-              </h4>
-            </div>
-            
-            <div className="flex gap-4 mb-4">
-              <div 
-                className="flex-1 p-2 rounded-md"
-                style={{ backgroundColor: colorPalette.colors.muted }}
-              >
-                <h5 
-                  className="mb-2"
-                  style={{ 
-                    color: colorPalette.colors.foreground,
-                    fontFamily: typography.fontFamily,
-                    fontSize: typography.sizes.sm,
-                    fontWeight: typography.heading.fontWeight
-                  }}
-                >
-                  Sidebar
-                </h5>
-              </div>
-              
-              <div className="flex-3">
-                <h5 
-                  className="mb-2"
-                  style={{ 
-                    color: colorPalette.colors.foreground,
-                    fontFamily: typography.fontFamily,
-                    fontSize: typography.sizes.base,
-                    fontWeight: typography.heading.fontWeight
-                  }}
-                >
-                  Main Content
-                </h5>
-                <p
-                  style={{ 
-                    color: colorPalette.colors.foreground,
-                    fontFamily: typography.fontFamily,
-                    fontSize: typography.sizes.sm,
-                    fontWeight: typography.body.fontWeight,
-                    lineHeight: typography.body.lineHeight
-                  }}
-                >
-                  Sample content with the applied typography and colors.
-                </p>
-                <button
-                  className="mt-2 px-3 py-1 rounded-md"
-                  style={{ 
-                    backgroundColor: colorPalette.colors.primary,
-                    color: colorPalette.colors.background,
-                    fontFamily: typography.fontFamily,
-                    fontSize: typography.sizes.sm,
-                    fontWeight: typography.body.fontWeight,
-                    padding: spacing.scale.xs,
-                  }}
-                >
-                  Button
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-        
-      case 'animation':
-        return (
-          <div className="p-4 border border-border/40 rounded-md">
-            <h3 className="text-sm font-medium mb-4">Animation Preview</h3>
-            <div className="flex justify-center">
-              <div 
-                className="w-16 h-16 rounded-md animate-pulse"
-                style={{ 
-                  backgroundColor: colorPalette.colors.primary,
-                  animationDuration: `calc(${spacing.scale.lg} * 100)`,
-                }}
-              />
-            </div>
-            <div className="mt-4 w-full bg-muted h-2 rounded-full overflow-hidden">
-              <div 
-                className="h-full rounded-full animate-[progressAnimation_2s_ease-in-out_infinite]"
-                style={{ 
-                  backgroundColor: colorPalette.colors.accent,
-                  width: '60%',
-                }}
-              />
-            </div>
-            <style jsx>{`
-              @keyframes progressAnimation {
-                0% { transform: translateX(-100%); }
-                100% { transform: translateX(100%); }
-              }
-            `}</style>
-          </div>
-        );
-        
-      case 'text':
-        return (
-          <div 
-            className="p-4 border border-border/40 rounded-md"
-            style={{ backgroundColor: colorPalette.colors.background }}
-          >
-            <h3 
-              className="mb-2"
-              style={{ 
-                color: colorPalette.colors.foreground,
-                fontFamily: typography.fontFamily,
-                fontSize: typography.sizes.lg,
-                fontWeight: typography.heading.fontWeight,
-                lineHeight: typography.heading.lineHeight,
-                letterSpacing: typography.heading.letterSpacing
-              }}
-            >
-              Text Styling Preview
-            </h3>
-            
-            <p
-              className="mb-2"
-              style={{ 
-                color: colorPalette.colors.foreground,
-                fontFamily: typography.fontFamily,
-                fontSize: typography.sizes.base,
-                fontWeight: typography.body.fontWeight,
-                lineHeight: typography.body.lineHeight,
-                letterSpacing: typography.body.letterSpacing,
-                marginBottom: spacing.scale.md
-              }}
-            >
-              This paragraph demonstrates the body text styling with the current typography settings.
-            </p>
-            
-            <div
-              className="p-2 rounded-md mb-2"
-              style={{ 
-                backgroundColor: colorPalette.colors.muted,
-                borderRadius: spacing.scale.xs,
-                padding: spacing.scale.sm
-              }}
-            >
-              <span
-                style={{ 
-                  color: colorPalette.colors.accent,
-                  fontFamily: typography.fontFamily,
-                  fontSize: typography.sizes.sm,
-                  fontWeight: typography.body.fontWeight
-                }}
-              >
-                Accent colored text in a muted background container
-              </span>
-            </div>
-            
-            <div className="flex gap-2">
-              <span
-                className="px-2 py-1 rounded-full"
-                style={{ 
-                  backgroundColor: colorPalette.colors.primary,
-                  color: colorPalette.colors.background,
-                  fontFamily: typography.fontFamily,
-                  fontSize: typography.sizes.xs,
-                  padding: `${spacing.scale.xs} ${spacing.scale.sm}`
-                }}
-              >
-                Tag
-              </span>
-              
-              <span
-                className="px-2 py-1 rounded-full"
-                style={{ 
-                  backgroundColor: colorPalette.colors.secondary,
-                  color: colorPalette.colors.background,
-                  fontFamily: typography.fontFamily,
-                  fontSize: typography.sizes.xs,
-                  padding: `${spacing.scale.xs} ${spacing.scale.sm}`
-                }}
-              >
-                Another Tag
-              </span>
-            </div>
-          </div>
-        );
-        
-      default:
-        return (
-          <div className="p-4 border border-border/40 rounded-md">
-            <p className="text-muted-foreground">No preview available for {mediaType}</p>
-          </div>
-        );
+    const element = previewRef.current;
+    element.style.color = colorPalette.colors.foreground;
+    element.style.backgroundColor = colorPalette.colors.background;
+    element.style.fontFamily = typography.fontFamily;
+    element.style.fontSize = typography.sizes.base;
+    
+    // Apply custom styles
+    if (customStyles) {
+      try {
+        const parsedStyles = JSON.parse(customStyles);
+        Object.assign(element.style, parsedStyles);
+      } catch (e) {
+        console.error("Invalid JSON:", e);
+      }
     }
   };
 
+  const handleApplyCustomStyle = () => {
+    try {
+      const parsedStyles = JSON.parse(customStyles);
+      applyStylesToElement(elementId, parsedStyles);
+    } catch (e) {
+      console.error("Invalid JSON:", e);
+    }
+  };
+  
+  const handleApplyIndividualStyles = () => {
+    applyStylesToElement(elementId, {
+      color: elementColor,
+      backgroundColor: elementBackgroundColor,
+      fontFamily: elementFontFamily,
+      fontSize: elementFontSize,
+      fontWeight: elementFontWeight,
+      padding: elementPadding,
+      margin: elementMargin,
+    });
+  };
+
+  const generateCSS = () => {
+    const styles = {
+      '--background': colorPalette.colors.background,
+      '--foreground': colorPalette.colors.foreground,
+      '--primary': colorPalette.colors.primary,
+      '--secondary': colorPalette.colors.secondary,
+      '--accent': colorPalette.colors.accent,
+      '--muted': colorPalette.colors.muted,
+      '--border': colorPalette.colors.border,
+      '--font-family': typography.fontFamily,
+      '--heading-font-weight': typography.heading.fontWeight,
+      '--body-font-weight': typography.body.fontWeight,
+      '--font-size-base': typography.sizes.base,
+      '--line-height-base': typography.body.lineHeight,
+      '--spacing-xs': spacing.scale.xs,
+      '--spacing-sm': spacing.scale.sm,
+      '--spacing-md': spacing.scale.md,
+      '--spacing-lg': spacing.scale.lg,
+      '--spacing-xl': spacing.scale.xl,
+      '--spacing-2xl': spacing.scale['2xl'],
+    };
+
+    let cssContent = `:root {\n`;
+    for (const key in styles) {
+      if (styles.hasOwnProperty(key)) {
+        cssContent += `  ${key}: ${styles[key]};\n`;
+      }
+    }
+    cssContent += `}\n\nbody {\n  font-family: var(--font-family);\n  color: var(--foreground);\n  background-color: var(--background);\n}`;
+
+    return cssContent;
+  };
+
+  const cssContent = generateCSS();
+
   return (
-    <Card>
+    <Card className="mb-6">
       <CardHeader>
-        <CardTitle>Style Preview - {mediaType.charAt(0).toUpperCase() + mediaType.slice(1)}</CardTitle>
+        <CardTitle>Style Preview</CardTitle>
       </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="preview">
-          <TabsList className="w-full mb-4">
-            <TabsTrigger value="preview" className="flex-1">Preview</TabsTrigger>
-            <TabsTrigger value="colors" className="flex-1">Colors</TabsTrigger>
-            <TabsTrigger value="typography" className="flex-1">Typography</TabsTrigger>
-            <TabsTrigger value="spacing" className="flex-1">Spacing</TabsTrigger>
-          </TabsList>
+      <CardContent className="grid gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="element-id" className="mb-2 block">Element ID</Label>
+            <Input 
+              id="element-id" 
+              type="text" 
+              value={elementId} 
+              onChange={(e) => setElementId(e.target.value)} 
+              placeholder="Enter element ID"
+            />
+          </div>
           
-          <TabsContent value="preview">
-            {renderMediaPreview()}
-          </TabsContent>
+          <div>
+            <Label htmlFor="media-type" className="mb-2 block">Media Type</Label>
+            <Select 
+              defaultValue={mediaType} 
+              onValueChange={(value) => console.log("Selected media type:", value)}
+            >
+              <SelectTrigger id="media-type" className="w-full">
+                <SelectValue placeholder="Select media type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="drawing">Drawing</SelectItem>
+                <SelectItem value="animation">Animation</SelectItem>
+                <SelectItem value="website">Website</SelectItem>
+                <SelectItem value="text">Text</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="element-color" className="mb-2 block">Color</Label>
+            <Input 
+              id="element-color" 
+              type="color" 
+              value={elementColor} 
+              onChange={(e) => setElementColor(e.target.value)} 
+            />
+          </div>
           
-          <TabsContent value="colors">
-            {renderColorPalette()}
-          </TabsContent>
+          <div>
+            <Label htmlFor="element-bg-color" className="mb-2 block">Background Color</Label>
+            <Input 
+              id="element-bg-color" 
+              type="color" 
+              value={elementBackgroundColor} 
+              onChange={(e) => setElementBackgroundColor(e.target.value)} 
+            />
+          </div>
           
-          <TabsContent value="typography">
-            {renderTypography()}
-          </TabsContent>
+          <div>
+            <Label htmlFor="element-font-family" className="mb-2 block">Font Family</Label>
+            <Input 
+              id="element-font-family" 
+              type="text" 
+              value={elementFontFamily} 
+              onChange={(e) => setElementFontFamily(e.target.value)} 
+              placeholder="Font Family"
+            />
+          </div>
           
-          <TabsContent value="spacing">
-            {renderSpacing()}
-          </TabsContent>
-        </Tabs>
+          <div>
+            <Label htmlFor="element-font-size" className="mb-2 block">Font Size</Label>
+            <Input 
+              id="element-font-size" 
+              type="text" 
+              value={elementFontSize} 
+              onChange={(e) => setElementFontSize(e.target.value)} 
+              placeholder="Font Size"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="element-font-weight" className="mb-2 block">Font Weight</Label>
+            <Input 
+              id="element-font-weight" 
+              type="text" 
+              value={elementFontWeight} 
+              onChange={(e) => setElementFontWeight(e.target.value)} 
+              placeholder="Font Weight"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="element-padding" className="mb-2 block">Padding</Label>
+            <Input 
+              id="element-padding" 
+              type="text" 
+              value={elementPadding} 
+              onChange={(e) => setElementPadding(e.target.value)} 
+              placeholder="Padding"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="element-margin" className="mb-2 block">Margin</Label>
+            <Input 
+              id="element-margin" 
+              type="text" 
+              value={elementMargin} 
+              onChange={(e) => setElementMargin(e.target.value)} 
+              placeholder="Margin"
+            />
+          </div>
+        </div>
+        
+        <Button onClick={handleApplyIndividualStyles}>Apply Individual Styles</Button>
+
+        <div>
+          <Label htmlFor="custom-styles" className="mb-2 block">Custom Styles (JSON)</Label>
+          <Textarea
+            id="custom-styles"
+            value={customStyles}
+            onChange={(e) => setCustomStyles(e.target.value)}
+            placeholder='Enter JSON styles, e.g., {"color": "red", "fontSize": "20px"}'
+            className="resize-none"
+          />
+        </div>
+        <Button onClick={handleApplyCustomStyle}>Apply Custom Style</Button>
+
+        <div className="border rounded-md p-4">
+          <div id={elementId} ref={previewRef} className="p-4">
+            <h1>Heading</h1>
+            <p>
+              This is a preview of the current style system. You can modify the
+              styles using the controls above.
+            </p>
+          </div>
+        </div>
+        
+        <details className="mt-4">
+          <summary className="font-medium cursor-pointer">Show CSS Variables</summary>
+          <pre className="bg-muted p-4 rounded-md text-xs overflow-x-auto">
+            {cssContent}
+          </pre>
+        </details>
+        
+        <style dangerouslySetInnerHTML={{ __html: cssContent }} />
       </CardContent>
     </Card>
   );
 };
-
