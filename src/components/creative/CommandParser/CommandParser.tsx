@@ -1,159 +1,111 @@
 
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Command, CommandParserProps } from "./types";
-import { parseInstruction, describeCommand, getSuggestionForCommand } from "./commandParserUtils";
-import { classifyCommand } from "./domains";
+import { Button } from "@/components/ui/button";
+import { Send, ArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { parseCommand } from "./commandParserUtils";
+import { Command, CommandDomain, CommandParseResult, CommandParserProps } from "./types";
 
-const CommandParser: React.FC<CommandParserProps> = ({
+export const CommandParser = ({
   instruction,
   onParsed,
-  allowedDomains,
-  requireConfirmation = false,
-  className
-}) => {
+  allowedDomains = ["drawing", "animation", "style", "website", "transform", "creative", "general"],
+  requireConfirmation = true,
+  className,
+  onClarificationNeeded
+}: CommandParserProps) => {
+  const [inputValue, setInputValue] = useState("");
   const [parsedCommand, setParsedCommand] = useState<Command | null>(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [suggestion, setSuggestion] = useState<string>("");
-  const [userResponse, setUserResponse] = useState<string>("");
-  
-  // Parse the instruction whenever it changes
-  useEffect(() => {
-    if (!instruction || instruction.trim() === "") {
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+    // Reset confirmation state when input changes
+    if (needsConfirmation) {
+      setNeedsConfirmation(false);
       setParsedCommand(null);
-      setShowConfirmation(false);
-      setSuggestion("");
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!inputValue.trim()) return;
+    
+    if (needsConfirmation && parsedCommand) {
+      // User is confirming a command
+      onParsed({ 
+        success: true, 
+        command: { ...parsedCommand, confirmed: true } 
+      });
+      
+      // Reset state
+      setInputValue("");
+      setParsedCommand(null);
+      setNeedsConfirmation(false);
       return;
     }
     
-    // Parse the instruction
-    const command = parseInstruction(instruction);
+    // Parse the command
+    const result = parseCommand(inputValue, allowedDomains as CommandDomain[]);
     
-    // Check if the command's domain is allowed
-    if (allowedDomains && allowedDomains.length > 0) {
-      if (!allowedDomains.includes(command.domain)) {
-        // Domain not allowed, create a fallback command
-        const fallbackDomain = allowedDomains[0];
-        const fallbackCommand = {
-          ...command,
-          domain: fallbackDomain,
-          confidence: 0.5,
-          requiresConfirmation: true
-        };
-        setParsedCommand(fallbackCommand);
-        setSuggestion(`I understand this as a ${command.domain} command, but I can only handle ${allowedDomains.join(", ")} commands.`);
-        setShowConfirmation(true);
-        return;
-      }
+    if (result.needsClarification && onClarificationNeeded) {
+      onClarificationNeeded(result.clarificationQuestion || "Could you clarify?", inputValue);
+      setInputValue("");
+      return;
     }
     
-    setParsedCommand(command);
-    
-    // Determine if we need to show confirmation
-    const needsConfirmation = requireConfirmation || command.requiresConfirmation;
-    setShowConfirmation(needsConfirmation);
-    
-    if (needsConfirmation) {
-      setSuggestion(getSuggestionForCommand(command));
-    } else if (onParsed) {
-      // Auto-execute if confident and no confirmation required
-      onParsed(command);
-    }
-  }, [instruction, allowedDomains, requireConfirmation, onParsed]);
-  
-  const handleConfirm = () => {
-    if (parsedCommand && onParsed) {
-      const confirmedCommand: Command = {
-        ...parsedCommand,
-        confirmed: true
-      };
-      onParsed(confirmedCommand);
-      setShowConfirmation(false);
-    }
-  };
-  
-  const handleCancel = () => {
-    setParsedCommand(null);
-    setShowConfirmation(false);
-    setSuggestion("");
-  };
-  
-  const handleUserResponseSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!userResponse.trim()) return;
-    
-    // Replace original instruction with user's clarification
-    const updatedCommand = parseInstruction(userResponse);
-    setParsedCommand(updatedCommand);
-    
-    // Clear user response input
-    setUserResponse("");
-    
-    // If confidence is now high, execute
-    if (updatedCommand.confidence > 0.7) {
-      setShowConfirmation(false);
-      if (onParsed) {
-        onParsed(updatedCommand);
+    if (result.success && result.command) {
+      if (requireConfirmation && result.command.requiresConfirmation) {
+        // Store command and request confirmation
+        setParsedCommand(result.command);
+        setNeedsConfirmation(true);
+      } else {
+        // No confirmation needed, pass directly
+        onParsed(result);
+        setInputValue("");
       }
     } else {
-      // Still needs confirmation
-      setSuggestion(getSuggestionForCommand(updatedCommand));
+      // Pass error to parent
+      onParsed(result);
     }
   };
-  
+
   return (
-    <div className={`space-y-4 ${className}`}>
-      {/* Original instruction display */}
-      {instruction && parsedCommand && (
-        <div className="text-sm">
-          <div className="font-medium mb-1">I understood your request as:</div>
-          <div className="bg-muted p-2 rounded-md">
-            <pre className="text-xs whitespace-pre-wrap">
-              {describeCommand(parsedCommand)}
-            </pre>
-          </div>
+    <div className={cn("w-full", className)}>
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <Input
+          value={inputValue}
+          onChange={handleInputChange}
+          placeholder={needsConfirmation ? "Confirm or modify..." : instruction || "Enter a command..."}
+          className={cn(
+            "flex-1 bg-[#0A0A1B] border-[#1A1A2E]",
+            needsConfirmation && "border-blue-500"
+          )}
+        />
+        <Button 
+          type="submit" 
+          size="icon"
+          variant={needsConfirmation ? "default" : "outline"}
+          className={cn(
+            "rounded-full",
+            needsConfirmation && "bg-blue-500 hover:bg-blue-600"
+          )}
+        >
+          {needsConfirmation ? <ArrowRight size={16} /> : <Send size={16} />}
+        </Button>
+      </form>
+      
+      {needsConfirmation && parsedCommand && (
+        <div className="mt-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-md text-sm">
+          <p className="font-medium">Confirm action:</p>
+          <p>
+            {parsedCommand.action} {parsedCommand.subject}
+            {Object.keys(parsedCommand.parameters).length > 0 && 
+              ` with ${Object.keys(parsedCommand.parameters).join(", ")}`}
+          </p>
         </div>
-      )}
-      
-      {/* Confirmation UI */}
-      {showConfirmation && (
-        <Alert className="border-blue-500 bg-blue-500/10">
-          <AlertDescription>
-            {suggestion}
-            <div className="flex space-x-2 mt-2">
-              <Button 
-                variant="default" 
-                size="sm" 
-                onClick={handleConfirm}
-              >
-                Yes, that's correct
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleCancel}
-              >
-                No, cancel
-              </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      {/* Clarification input */}
-      {showConfirmation && (
-        <form onSubmit={handleUserResponseSubmit} className="flex gap-2">
-          <Input
-            placeholder="Clarify your instruction..."
-            value={userResponse}
-            onChange={(e) => setUserResponse(e.target.value)}
-            className="flex-1"
-          />
-          <Button type="submit">Update</Button>
-        </form>
       )}
     </div>
   );

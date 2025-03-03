@@ -1,367 +1,287 @@
 
 import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Wand2, Copy, Check, ColorPicker } from 'lucide-react';
 import { useMediaTransform } from './MediaTransformContext';
-import { Button } from '../../ui/button';
-import { Progress } from '../../ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
-import { Eyedropper, Copy, Check, Paintbrush } from 'lucide-react';
-import { toast } from 'sonner';
-import { useCreative } from '../CreativeContext';
 
-interface StyleExtractorProps {
-  imageUrl?: string;
-  onStyleExtracted?: (styleId: string) => void;
-}
+const StyleExtractor = () => {
+  const { imageUrl, setExtractedStyles } = useMediaTransform();
+  const [extracting, setExtracting] = useState(false);
+  const [extracted, setExtracted] = useState(false);
+  const [styles, setStyles] = useState<any>(null);
+  const [copied, setCopied] = useState<{ [key: string]: boolean }>({});
 
-export const StyleExtractor: React.FC<StyleExtractorProps> = ({ 
-  imageUrl,
-  onStyleExtracted
-}) => {
-  const { extractStyleFromImage, extractedStyles, isProcessing, applyExtractedStyle } = useMediaTransform();
-  const { assets, selectedAssetId } = useCreative();
-  const [activeTab, setActiveTab] = useState('palette');
-  const [progress, setProgress] = useState(0);
-  const [copiedColor, setCopiedColor] = useState<string | null>(null);
-
-  // Get the image URL from the selected asset or use the provided imageUrl
-  const selectedAsset = selectedAssetId 
-    ? assets.find(asset => asset.id === selectedAssetId)
-    : null;
-  
-  const effectiveImageUrl = imageUrl || (selectedAsset?.type === 'image' ? selectedAsset.content : '');
-  
-  const handleExtractStyle = async () => {
-    if (!effectiveImageUrl) {
-      toast.error('No image selected for style extraction');
-      return;
-    }
+  const handleExtractStyles = async () => {
+    if (!imageUrl) return;
     
-    // Simulate progress updates
-    setProgress(0);
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 95) {
-          clearInterval(interval);
-          return prev;
-        }
-        return prev + 5;
-      });
-    }, 100);
+    setExtracting(true);
     
-    try {
-      const extractedStyle = await extractStyleFromImage(effectiveImageUrl);
-      setProgress(100);
-      
-      toast.success('Style extracted successfully');
-      
-      if (onStyleExtracted) {
-        onStyleExtracted(extractedStyle.id);
-      }
-      
-      // Reset progress after a delay
-      setTimeout(() => setProgress(0), 1000);
-    } catch (error) {
-      toast.error('Failed to extract style');
-      setProgress(0);
-    } finally {
-      clearInterval(interval);
-    }
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedColor(text);
-    toast.success(`Copied ${text} to clipboard`);
-    
+    // Simulate extraction with a delay
     setTimeout(() => {
-      setCopiedColor(null);
+      // Mock extracted styles
+      const extractedData = {
+        colors: {
+          dominant: "#4A90E2",
+          palette: ["#4A90E2", "#FFFFFF", "#333333", "#F5F5F5", "#E74C3C"],
+          background: "#FFFFFF",
+          text: "#333333",
+          accent: "#E74C3C"
+        },
+        typography: {
+          fontFamily: "Roboto, sans-serif",
+          headingSize: "32px",
+          bodySize: "16px",
+          lineHeight: 1.5
+        },
+        spacing: {
+          padding: "16px",
+          margin: "24px",
+          gap: "8px"
+        }
+      };
+      
+      setStyles(extractedData);
+      setExtractedStyles(extractedData);
+      setExtracting(false);
+      setExtracted(true);
     }, 2000);
   };
 
-  const handleApplyStyle = (styleId: string) => {
-    const style = extractedStyles.find(s => s.id === styleId);
-    if (style) {
-      applyExtractedStyle(style);
-      toast.success('Style applied to the current theme');
-    }
+  const handleCopy = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied({ ...copied, [key]: true });
+    setTimeout(() => {
+      setCopied({ ...copied, [key]: false });
+    }, 2000);
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        {effectiveImageUrl ? (
-          <div className="rounded-lg overflow-hidden border border-border w-24 h-24 flex-shrink-0">
-            <img 
-              src={effectiveImageUrl} 
-              alt="Source image" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-        ) : (
-          <div className="rounded-lg border border-border bg-muted w-24 h-24 flex items-center justify-center flex-shrink-0">
-            <Paintbrush className="text-muted-foreground" size={24} />
-          </div>
-        )}
-        
-        <div className="flex-1 space-y-2">
-          <h3 className="text-lg font-medium">Style Extractor</h3>
-          <p className="text-sm text-muted-foreground">
-            Extract color palettes, typography, and spacing information from images
-          </p>
-          
-          {progress > 0 && (
-            <Progress value={progress} className="h-2" />
-          )}
+  if (!imageUrl) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center">
+        <div className="w-16 h-16 bg-[#1A1A2E] rounded-full flex items-center justify-center mb-4">
+          <Wand2 size={24} className="text-blue-400" />
         </div>
-        
-        <Button
-          onClick={handleExtractStyle}
-          disabled={isProcessing || !effectiveImageUrl}
+        <h3 className="text-xl font-medium mb-2">No Image Selected</h3>
+        <p className="text-gray-400 mb-4">Select or upload an image to extract styles from</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-medium">Style Extraction</h3>
+        <Button 
+          onClick={handleExtractStyles} 
+          disabled={extracting || !imageUrl}
           className="gap-2"
         >
-          <Eyedropper size={16} />
-          Extract Style
+          <Wand2 size={16} />
+          {extracting ? "Extracting..." : extracted ? "Re-Extract" : "Extract Styles"}
         </Button>
       </div>
       
-      {extractedStyles.length > 0 && (
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-          <TabsList className="mb-4">
-            <TabsTrigger value="palette">Color Palette</TabsTrigger>
-            <TabsTrigger value="typography">Typography</TabsTrigger>
-            <TabsTrigger value="spacing">Spacing</TabsTrigger>
+      {extracting && (
+        <div className="flex flex-col items-center justify-center p-8">
+          <div className="w-16 h-16 border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-gray-300">Analyzing image and extracting styles...</p>
+        </div>
+      )}
+      
+      {styles && !extracting && (
+        <Tabs defaultValue="colors" className="w-full">
+          <TabsList className="w-full mb-4 bg-[#1A1A2E]">
+            <TabsTrigger value="colors" className="flex-1">Colors</TabsTrigger>
+            <TabsTrigger value="typography" className="flex-1">Typography</TabsTrigger>
+            <TabsTrigger value="spacing" className="flex-1">Spacing</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="palette" className="space-y-4">
-            {extractedStyles.map(style => (
-              <Card key={style.id}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center justify-between">
-                    <span>Extracted Colors</span>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleApplyStyle(style.id)}
-                    >
-                      Apply Theme
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-5 gap-2">
-                      {style.colors.palette.map((color, index) => (
-                        <div 
-                          key={index} 
-                          className="flex flex-col items-center"
-                          onClick={() => copyToClipboard(color)}
-                        >
-                          <div 
-                            className="w-12 h-12 rounded-full cursor-pointer relative flex items-center justify-center"
-                            style={{ backgroundColor: color }}
-                          >
-                            {copiedColor === color && (
-                              <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center">
-                                <Check size={16} className="text-white" />
-                              </div>
-                            )}
-                          </div>
-                          <span className="text-xs mt-1">{color}</span>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-1">
-                        <div className="text-xs text-muted-foreground">Background</div>
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-8 h-8 rounded cursor-pointer border border-border"
-                            style={{ backgroundColor: style.colors.background }}
-                            onClick={() => copyToClipboard(style.colors.background)}
-                          />
-                          <span className="text-sm">{style.colors.background}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div className="text-xs text-muted-foreground">Text</div>
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-8 h-8 rounded cursor-pointer border border-border"
-                            style={{ backgroundColor: style.colors.text }}
-                            onClick={() => copyToClipboard(style.colors.text)}
-                          />
-                          <span className="text-sm">{style.colors.text}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div className="text-xs text-muted-foreground">Accent</div>
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-8 h-8 rounded cursor-pointer border border-border"
-                            style={{ backgroundColor: style.colors.accent }}
-                            onClick={() => copyToClipboard(style.colors.accent)}
-                          />
-                          <span className="text-sm">{style.colors.accent}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
+          <TabsContent value="colors" className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="p-4 bg-[#1A1A2E]">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium">Dominant Color</h4>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleCopy(styles.colors.dominant, 'dominant')} 
+                    className="h-6 w-6"
+                  >
+                    {copied.dominant ? <Check size={14} /> : <Copy size={14} />}
+                  </Button>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="w-12 h-12 rounded-md border border-white/10" 
+                    style={{ backgroundColor: styles.colors.dominant }}
+                  ></div>
+                  <span className="font-mono text-sm">{styles.colors.dominant}</span>
+                </div>
               </Card>
-            ))}
+              
+              <Card className="p-4 bg-[#1A1A2E]">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium">Background</h4>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleCopy(styles.colors.background, 'background')} 
+                    className="h-6 w-6"
+                  >
+                    {copied.background ? <Check size={14} /> : <Copy size={14} />}
+                  </Button>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="w-12 h-12 rounded-md border border-white/10" 
+                    style={{ backgroundColor: styles.colors.background }}
+                  ></div>
+                  <span className="font-mono text-sm">{styles.colors.background}</span>
+                </div>
+              </Card>
+            </div>
+            
+            <Card className="p-4 bg-[#1A1A2E]">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium">Color Palette</h4>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => handleCopy(styles.colors.palette.join(', '), 'palette')} 
+                  className="h-6 w-6"
+                >
+                  {copied.palette ? <Check size={14} /> : <Copy size={14} />}
+                </Button>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {styles.colors.palette.map((color: string, index: number) => (
+                  <div key={index} className="flex flex-col items-center">
+                    <div 
+                      className="w-12 h-12 rounded-md border border-white/10" 
+                      style={{ backgroundColor: color }}
+                    ></div>
+                    <span className="font-mono text-xs mt-1">{color}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
           </TabsContent>
           
           <TabsContent value="typography" className="space-y-4">
-            {extractedStyles.map(style => (
-              <Card key={style.id}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Typography Settings</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <div className="text-xs text-muted-foreground">Font Family</div>
-                        <div className="flex items-center gap-2">
-                          <span 
-                            className="text-sm font-medium truncate cursor-pointer"
-                            style={{ fontFamily: style.typography.fontFamily }}
-                            onClick={() => copyToClipboard(style.typography.fontFamily)}
-                          >
-                            {style.typography.fontFamily}
-                          </span>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-6 w-6"
-                            onClick={() => copyToClipboard(style.typography.fontFamily)}
-                          >
-                            <Copy size={14} />
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div className="text-xs text-muted-foreground">Line Height</div>
-                        <div className="text-sm font-medium">
-                          {style.typography.lineHeight}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="text-xs text-muted-foreground">Font Size Preview</div>
-                      <div 
-                        className="text-2xl font-bold"
-                        style={{ 
-                          fontSize: style.typography.headingSize,
-                          fontFamily: style.typography.fontFamily,
-                          lineHeight: style.typography.lineHeight
-                        }}
-                      >
-                        Heading Text
-                      </div>
-                      <div 
-                        className="text-base"
-                        style={{ 
-                          fontSize: style.typography.bodySize,
-                          fontFamily: style.typography.fontFamily,
-                          lineHeight: style.typography.lineHeight
-                        }}
-                      >
-                        This is a paragraph of text that demonstrates the body font size and style that was extracted from the image. The text should be readable and correctly spaced.
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
+            <Card className="p-4 bg-[#1A1A2E]">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium">Font Family</h4>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => handleCopy(styles.typography.fontFamily, 'fontFamily')} 
+                  className="h-6 w-6"
+                >
+                  {copied.fontFamily ? <Check size={14} /> : <Copy size={14} />}
+                </Button>
+              </div>
+              <div className="p-3 bg-[#0F0F23] rounded-md">
+                <span className="font-mono text-sm">{styles.typography.fontFamily}</span>
+              </div>
+            </Card>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="p-4 bg-[#1A1A2E]">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium">Heading Size</h4>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleCopy(styles.typography.headingSize, 'headingSize')} 
+                    className="h-6 w-6"
+                  >
+                    {copied.headingSize ? <Check size={14} /> : <Copy size={14} />}
+                  </Button>
+                </div>
+                <div className="p-3 bg-[#0F0F23] rounded-md">
+                  <span className="font-mono text-sm">{styles.typography.headingSize}</span>
+                </div>
               </Card>
-            ))}
+              
+              <Card className="p-4 bg-[#1A1A2E]">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium">Body Size</h4>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleCopy(styles.typography.bodySize, 'bodySize')} 
+                    className="h-6 w-6"
+                  >
+                    {copied.bodySize ? <Check size={14} /> : <Copy size={14} />}
+                  </Button>
+                </div>
+                <div className="p-3 bg-[#0F0F23] rounded-md">
+                  <span className="font-mono text-sm">{styles.typography.bodySize}</span>
+                </div>
+              </Card>
+            </div>
           </TabsContent>
           
           <TabsContent value="spacing" className="space-y-4">
-            {extractedStyles.map(style => (
-              <Card key={style.id}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Spacing System</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-1">
-                        <div className="text-xs text-muted-foreground">Padding</div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 flex items-center justify-center border border-border bg-background">
-                            <div className="w-6 h-6 bg-muted"></div>
-                          </div>
-                          <span 
-                            className="text-sm cursor-pointer"
-                            onClick={() => copyToClipboard(style.spacing.padding)}
-                          >
-                            {style.spacing.padding}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div className="text-xs text-muted-foreground">Margin</div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 flex items-center justify-center relative">
-                            <div className="absolute inset-1 border border-dashed border-muted-foreground"></div>
-                            <div className="w-4 h-4 bg-muted"></div>
-                          </div>
-                          <span 
-                            className="text-sm cursor-pointer"
-                            onClick={() => copyToClipboard(style.spacing.margin)}
-                          >
-                            {style.spacing.margin}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div className="text-xs text-muted-foreground">Gap</div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 flex items-center justify-between">
-                            <div className="w-3 h-3 bg-muted"></div>
-                            <div className="w-3 h-3 bg-muted"></div>
-                          </div>
-                          <span 
-                            className="text-sm cursor-pointer"
-                            onClick={() => copyToClipboard(style.spacing.gap)}
-                          >
-                            {style.spacing.gap}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="p-4 border border-border rounded-lg bg-muted/20">
-                      <div 
-                        className="p-4 bg-background border border-border rounded flex flex-col"
-                        style={{ padding: style.spacing.padding }}
-                      >
-                        <div className="text-sm font-medium mb-2">Spacing Preview</div>
-                        <div 
-                          className="flex"
-                          style={{ gap: style.spacing.gap }}
-                        >
-                          <div className="w-8 h-8 bg-primary/20 border border-primary/30 rounded"></div>
-                          <div className="w-8 h-8 bg-primary/20 border border-primary/30 rounded"></div>
-                          <div className="w-8 h-8 bg-primary/20 border border-primary/30 rounded"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
+            <div className="grid grid-cols-3 gap-4">
+              <Card className="p-4 bg-[#1A1A2E]">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium">Padding</h4>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleCopy(styles.spacing.padding, 'padding')} 
+                    className="h-6 w-6"
+                  >
+                    {copied.padding ? <Check size={14} /> : <Copy size={14} />}
+                  </Button>
+                </div>
+                <div className="p-3 bg-[#0F0F23] rounded-md">
+                  <span className="font-mono text-sm">{styles.spacing.padding}</span>
+                </div>
               </Card>
-            ))}
+              
+              <Card className="p-4 bg-[#1A1A2E]">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium">Margin</h4>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleCopy(styles.spacing.margin, 'margin')} 
+                    className="h-6 w-6"
+                  >
+                    {copied.margin ? <Check size={14} /> : <Copy size={14} />}
+                  </Button>
+                </div>
+                <div className="p-3 bg-[#0F0F23] rounded-md">
+                  <span className="font-mono text-sm">{styles.spacing.margin}</span>
+                </div>
+              </Card>
+              
+              <Card className="p-4 bg-[#1A1A2E]">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium">Gap</h4>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleCopy(styles.spacing.gap, 'gap')} 
+                    className="h-6 w-6"
+                  >
+                    {copied.gap ? <Check size={14} /> : <Copy size={14} />}
+                  </Button>
+                </div>
+                <div className="p-3 bg-[#0F0F23] rounded-md">
+                  <span className="font-mono text-sm">{styles.spacing.gap}</span>
+                </div>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       )}
     </div>
   );
 };
+
+export default StyleExtractor;

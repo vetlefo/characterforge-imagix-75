@@ -1,253 +1,397 @@
 
 import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Code, Copy, Check, Send } from 'lucide-react';
 import { useMediaTransform } from './MediaTransformContext';
-import { useCreative } from '../CreativeContext';
-import { Button } from '../../ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
-import { Code, Copy, Check, FileCode, Eye } from 'lucide-react';
-import { toast } from 'sonner';
-import { WebsitePreview } from '../../preview/WebsitePreview';
+import WebsitePreview from '../../preview/WebsitePreview';
 
-interface CodeGeneratorProps {
-  assetId?: string;
-  onCodeGenerated?: (codeId: string) => void;
-}
-
-export const CodeGenerator: React.FC<CodeGeneratorProps> = ({
-  assetId,
-  onCodeGenerated
-}) => {
-  const { generateCodeFromVisual, generatedCode, isProcessing } = useMediaTransform();
-  const { assets, selectedAssetId, addAsset, createRelationship } = useCreative();
-  const [progress, setProgress] = useState(0);
-  const [activeTab, setActiveTab] = useState('preview');
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
-
-  // Get the asset from the selected asset or use the provided assetId
-  const effectiveAssetId = assetId || selectedAssetId;
-  const selectedAsset = effectiveAssetId 
-    ? assets.find(asset => asset.id === effectiveAssetId)
-    : null;
+const CodeGenerator = () => {
+  const { imageUrl, setGeneratedCode } = useMediaTransform();
+  const [generating, setGenerating] = useState(false);
+  const [generated, setGenerated] = useState(false);
+  const [code, setCode] = useState<{ html: string; css: string; js: string } | null>(null);
+  const [copied, setCopied] = useState<{ [key: string]: boolean }>({});
+  const [componentType, setComponentType] = useState<string>('card');
 
   const handleGenerateCode = async () => {
-    if (!selectedAsset) {
-      toast.error('No asset selected for code generation');
-      return;
-    }
+    if (!imageUrl) return;
     
-    // Simulate progress updates
-    setProgress(0);
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 95) {
-          clearInterval(interval);
-          return prev;
-        }
-        return prev + 5;
-      });
-    }, 100);
+    setGenerating(true);
     
-    try {
-      const generatedCodeResult = await generateCodeFromVisual(selectedAsset);
-      setProgress(100);
+    // Simulate code generation with a delay
+    setTimeout(() => {
+      // Mock generated code based on component type
+      let generatedCode;
       
-      toast.success('Code generated successfully');
-      
-      // Create a new text asset with the generated code
-      const newAsset = addAsset(
-        'text',
-        JSON.stringify({
-          html: generatedCodeResult.html,
-          css: generatedCodeResult.css,
-          js: generatedCodeResult.js || ''
-        }),
-        ['generated', 'code', 'html', 'css'],
-        { generatedFrom: selectedAsset.id, generatedAt: new Date() }
-      );
-      
-      // Create a relationship between the source asset and the generated code
-      createRelationship(
-        selectedAsset.id,
-        newAsset.id,
-        'iteration',
-        8,
-        { transformationType: 'code-generation' }
-      );
-      
-      if (onCodeGenerated) {
-        onCodeGenerated(generatedCodeResult.id);
+      if (componentType === 'card') {
+        generatedCode = {
+          html: `<div class="card">
+  <div class="card-image">
+    <img src="${imageUrl}" alt="Card image">
+  </div>
+  <div class="card-content">
+    <h3 class="card-title">Card Title</h3>
+    <p class="card-description">This is a description of the card content.</p>
+    <button class="card-button">Learn More</button>
+  </div>
+</div>`,
+          css: `.card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #ffffff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 360px;
+}
+
+.card-image {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-content {
+  padding: 16px;
+}
+
+.card-title {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.card-description {
+  margin: 0 0 16px;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.card-button {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #4A90E2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.card-button:hover {
+  background-color: #3A80D2;
+}`,
+          js: `document.addEventListener('DOMContentLoaded', () => {
+  const button = document.querySelector('.card-button');
+  
+  if (button) {
+    button.addEventListener('click', () => {
+      alert('Button clicked!');
+    });
+  }
+});`
+        };
+      } else if (componentType === 'header') {
+        generatedCode = {
+          html: `<header class="site-header">
+  <div class="logo">
+    <img src="${imageUrl}" alt="Logo" class="logo-img">
+  </div>
+  <nav class="main-nav">
+    <ul class="nav-list">
+      <li class="nav-item"><a href="#" class="nav-link">Home</a></li>
+      <li class="nav-item"><a href="#" class="nav-link">About</a></li>
+      <li class="nav-item"><a href="#" class="nav-link">Services</a></li>
+      <li class="nav-item"><a href="#" class="nav-link">Contact</a></li>
+    </ul>
+  </nav>
+  <button class="mobile-menu-btn">Menu</button>
+</header>`,
+          css: `.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo-img {
+  height: 40px;
+  width: auto;
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+}
+
+.nav-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-item {
+  margin-left: 24px;
+}
+
+.nav-link {
+  color: #333333;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: #4A90E2;
+}
+
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .main-nav {
+    display: none;
+  }
+  
+  .mobile-menu-btn {
+    display: block;
+  }
+}`,
+          js: `document.addEventListener('DOMContentLoaded', () => {
+  const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+  const mainNav = document.querySelector('.main-nav');
+  
+  if (mobileMenuBtn && mainNav) {
+    mobileMenuBtn.addEventListener('click', () => {
+      mainNav.style.display = mainNav.style.display === 'flex' ? 'none' : 'flex';
+    });
+  }
+});`
+        };
+      } else {
+        // Default component
+        generatedCode = {
+          html: `<div class="component">
+  <h2>Generated Component</h2>
+  <img src="${imageUrl}" alt="Component image">
+  <p>This is a generated component based on the image.</p>
+</div>`,
+          css: `.component {
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  text-align: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.component h2 {
+  margin-top: 0;
+  color: #333333;
+}
+
+.component img {
+  max-width: 100%;
+  border-radius: 4px;
+  margin: 16px 0;
+}
+
+.component p {
+  color: #666666;
+  line-height: 1.5;
+}`,
+          js: `// No JavaScript for this component`
+        };
       }
       
-      // Reset progress after a delay
-      setTimeout(() => setProgress(0), 1000);
-    } catch (error) {
-      toast.error('Failed to generate code');
-      setProgress(0);
-    } finally {
-      clearInterval(interval);
-    }
-  };
-
-  const copyToClipboard = (text: string, type: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedCode(type);
-    toast.success(`Copied ${type} to clipboard`);
-    
-    setTimeout(() => {
-      setCopiedCode(null);
+      setCode(generatedCode);
+      setGeneratedCode(generatedCode);
+      setGenerating(false);
+      setGenerated(true);
     }, 2000);
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        {selectedAsset && selectedAsset.type === 'image' ? (
-          <div className="rounded-lg overflow-hidden border border-border w-24 h-24 flex-shrink-0">
-            <img 
-              src={selectedAsset.content} 
-              alt="Source asset" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-        ) : (
-          <div className="rounded-lg border border-border bg-muted w-24 h-24 flex items-center justify-center flex-shrink-0">
-            <FileCode className="text-muted-foreground" size={24} />
-          </div>
-        )}
-        
-        <div className="flex-1 space-y-2">
-          <h3 className="text-lg font-medium">Code Generator</h3>
-          <p className="text-sm text-muted-foreground">
-            Generate HTML, CSS, and JavaScript from visual elements
-          </p>
-          
-          {progress > 0 && (
-            <div className="w-full bg-muted rounded-full h-2.5">
-              <div 
-                className="bg-primary h-2.5 rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              ></div>
-            </div>
-          )}
+  const handleCopy = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied({ ...copied, [key]: true });
+    setTimeout(() => {
+      setCopied({ ...copied, [key]: false });
+    }, 2000);
+  };
+
+  const handleComponentTypeChange = (type: string) => {
+    setComponentType(type);
+    setGenerated(false);
+    setCode(null);
+  };
+
+  if (!imageUrl) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center">
+        <div className="w-16 h-16 bg-[#1A1A2E] rounded-full flex items-center justify-center mb-4">
+          <Code size={24} className="text-blue-400" />
         </div>
-        
-        <Button
-          onClick={handleGenerateCode}
-          disabled={isProcessing || !selectedAsset}
-          className="gap-2"
-        >
-          <Code size={16} />
-          Generate Code
-        </Button>
+        <h3 className="text-xl font-medium mb-2">No Image Selected</h3>
+        <p className="text-gray-400 mb-4">Select or upload an image to generate code from</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-medium">Code Generation</h3>
+        <div className="flex gap-3">
+          <select 
+            className="bg-[#1A1A2E] border border-[#2A2A4A] rounded p-2 text-sm"
+            value={componentType}
+            onChange={(e) => handleComponentTypeChange(e.target.value)}
+          >
+            <option value="card">Card</option>
+            <option value="header">Header</option>
+            <option value="gallery">Gallery</option>
+            <option value="form">Form</option>
+          </select>
+          <Button 
+            onClick={handleGenerateCode} 
+            disabled={generating || !imageUrl}
+            className="gap-2"
+          >
+            <Code size={16} />
+            {generating ? "Generating..." : generated ? "Re-Generate" : "Generate Code"}
+          </Button>
+        </div>
       </div>
       
-      {generatedCode.length > 0 && (
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-          <TabsList className="mb-4">
-            <TabsTrigger value="preview">
-              <Eye className="mr-2 h-4 w-4" />
-              Preview
-            </TabsTrigger>
-            <TabsTrigger value="html">
-              <span className="font-mono text-xs mr-2">HTML</span>
-              HTML
-            </TabsTrigger>
-            <TabsTrigger value="css">
-              <span className="font-mono text-xs mr-2">CSS</span>
-              CSS
-            </TabsTrigger>
-          </TabsList>
-          
-          {generatedCode.map(code => (
-            <React.Fragment key={code.id}>
-              <TabsContent value="preview" className="space-y-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Generated Component Preview</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="border border-border rounded-lg overflow-hidden">
-                      <WebsitePreview
-                        html={code.html}
-                        css={code.css}
-                        js={code.js}
-                        defaultViewport="desktop"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+      {generating && (
+        <div className="flex flex-col items-center justify-center p-8">
+          <div className="w-16 h-16 border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-gray-300">Analyzing image and generating code...</p>
+        </div>
+      )}
+      
+      {code && !generating && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <Tabs defaultValue="html" className="w-full">
+              <TabsList className="w-full mb-4 bg-[#1A1A2E]">
+                <TabsTrigger value="html" className="flex-1">HTML</TabsTrigger>
+                <TabsTrigger value="css" className="flex-1">CSS</TabsTrigger>
+                <TabsTrigger value="js" className="flex-1">JavaScript</TabsTrigger>
+              </TabsList>
               
               <TabsContent value="html" className="space-y-4">
-                <Card>
-                  <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                    <CardTitle className="text-base">HTML Code</CardTitle>
+                <Card className="p-4 bg-[#1A1A2E] relative">
+                  <div className="absolute top-4 right-4">
                     <Button 
                       variant="ghost" 
-                      size="sm" 
-                      onClick={() => copyToClipboard(code.html, 'html')}
-                      className="gap-2 h-8"
+                      size="icon" 
+                      onClick={() => handleCopy(code.html, 'html')} 
+                      className="h-8 w-8"
                     >
-                      {copiedCode === 'html' ? (
-                        <>
-                          <Check size={14} />
-                          Copied
-                        </>
-                      ) : (
-                        <>
-                          <Copy size={14} />
-                          Copy Code
-                        </>
-                      )}
+                      {copied.html ? <Check size={16} /> : <Copy size={16} />}
                     </Button>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="bg-muted p-4 rounded-lg overflow-x-auto">
-                      <pre className="text-sm font-mono">
-                        <code>{code.html}</code>
-                      </pre>
-                    </div>
-                  </CardContent>
+                  </div>
+                  <pre className="overflow-auto p-4 bg-[#0F0F23] rounded-md text-sm">
+                    <code>{code.html}</code>
+                  </pre>
                 </Card>
               </TabsContent>
               
               <TabsContent value="css" className="space-y-4">
-                <Card>
-                  <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                    <CardTitle className="text-base">CSS Code</CardTitle>
+                <Card className="p-4 bg-[#1A1A2E] relative">
+                  <div className="absolute top-4 right-4">
                     <Button 
                       variant="ghost" 
-                      size="sm" 
-                      onClick={() => copyToClipboard(code.css, 'css')}
-                      className="gap-2 h-8"
+                      size="icon" 
+                      onClick={() => handleCopy(code.css, 'css')} 
+                      className="h-8 w-8"
                     >
-                      {copiedCode === 'css' ? (
-                        <>
-                          <Check size={14} />
-                          Copied
-                        </>
-                      ) : (
-                        <>
-                          <Copy size={14} />
-                          Copy Code
-                        </>
-                      )}
+                      {copied.css ? <Check size={16} /> : <Copy size={16} />}
                     </Button>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="bg-muted p-4 rounded-lg overflow-x-auto">
-                      <pre className="text-sm font-mono">
-                        <code>{code.css}</code>
-                      </pre>
-                    </div>
-                  </CardContent>
+                  </div>
+                  <pre className="overflow-auto p-4 bg-[#0F0F23] rounded-md text-sm">
+                    <code>{code.css}</code>
+                  </pre>
                 </Card>
               </TabsContent>
-            </React.Fragment>
-          ))}
-        </Tabs>
+              
+              <TabsContent value="js" className="space-y-4">
+                <Card className="p-4 bg-[#1A1A2E] relative">
+                  <div className="absolute top-4 right-4">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => handleCopy(code.js, 'js')} 
+                      className="h-8 w-8"
+                    >
+                      {copied.js ? <Check size={16} /> : <Copy size={16} />}
+                    </Button>
+                  </div>
+                  <pre className="overflow-auto p-4 bg-[#0F0F23] rounded-md text-sm">
+                    <code>{code.js}</code>
+                  </pre>
+                </Card>
+              </TabsContent>
+            </Tabs>
+            
+            <Button 
+              variant="outline" 
+              className="w-full gap-2"
+              onClick={() => handleCopy(`${code.html}\n\n<style>\n${code.css}\n</style>\n\n<script>\n${code.js}\n</script>`, 'all')}
+            >
+              {copied.all ? <Check size={16} /> : <Copy size={16} />}
+              {copied.all ? "Copied All Code" : "Copy All Code"}
+            </Button>
+          </div>
+          
+          <div className="space-y-4">
+            <Card className="p-4 bg-[#1A1A2E]">
+              <h4 className="font-medium mb-4">Preview</h4>
+              <div className="bg-white rounded-md overflow-hidden" style={{ height: "400px" }}>
+                <WebsitePreview
+                  html={code.html}
+                  css={code.css}
+                  js={code.js}
+                  width="100%"
+                  height="100%"
+                />
+              </div>
+            </Card>
+            
+            <Button className="w-full gap-2">
+              <Send size={16} />
+              Apply to Current Project
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );
 };
+
+export default CodeGenerator;

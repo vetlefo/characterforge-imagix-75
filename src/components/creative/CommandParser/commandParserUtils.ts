@@ -1,365 +1,309 @@
 
-import { Command, ParsedCommand, commonActions } from './types';
-import { CommandDomain, classifyCommand, domainKeywords } from './domains';
-import { extractParameters, ExtractedParameters } from './parameterExtractor';
+import { domains } from "./domains";
+import { Command, ParsedCommand, CommandDomain, CommandParseResult, commonActions } from "./types";
+import { extractParameters } from "./parameterExtractor";
 
-// Function to parse a natural language instruction into a structured command
-export function parseInstruction(instruction: string): Command {
-  // Start with basic command structure
-  const parsedCommand: ParsedCommand = {
-    instruction,
-    action: '',
-    subject: '',
-    domain: 'general',
-    parameters: {},
-    confidence: 0,
-    requiresConfirmation: false,
-    confirmed: false
+/**
+ * Processes a user command and confirms the action
+ * @param command The user command to process
+ */
+export const confirmCommand = (command: ParsedCommand): Command => {
+  return {
+    ...command,
+    confirmed: true,
+    originalCommand: command.originalCommand || ""
   };
-  
-  // 1. Classify the domain
-  const domain = classifyCommand(instruction);
-  parsedCommand.domain = domain;
-  
-  // 2. Extract action and subject
-  const { action, subject, confidence } = extractActionAndSubject(instruction, domain);
-  parsedCommand.action = action;
-  parsedCommand.subject = subject;
-  parsedCommand.confidence = confidence;
-  
-  // 3. Extract parameters
-  parsedCommand.parameters = extractParameters(instruction);
-  
-  // 4. Determine if confirmation is needed (low confidence)
-  parsedCommand.requiresConfirmation = confidence < 0.7;
-  
-  // 5. Create domain-specific command
-  return enhanceCommandWithDomainSpecifics(parsedCommand);
-}
+};
 
-// Function to extract the action and subject from an instruction
-function extractActionAndSubject(
-  instruction: string, 
-  domain: CommandDomain
-): { action: string; subject: string; confidence: number } {
-  const words = instruction.toLowerCase().split(/\s+/);
-  let action = '';
-  let subject = '';
-  let confidence = 0;
+/**
+ * Extracts the main action from a command
+ * @param text The command text to parse
+ */
+const extractAction = (text: string): string | null => {
+  // Look for common verbs that indicate actions
+  for (const action of commonActions) {
+    if (text.toLowerCase().includes(action)) {
+      return action;
+    }
+  }
+
+  return null;
+};
+
+/**
+ * Determines the domain of the command
+ * @param text The command text to analyze
+ */
+const determineDomain = (text: string, allowedDomains: CommandDomain[]): CommandDomain => {
+  const lowercaseText = text.toLowerCase();
   
-  // Look for common actions
-  for (const word of words) {
-    if (commonActions.includes(word)) {
-      action = word;
-      break;
+  // Check for explicit domain indicators
+  for (const domain of allowedDomains) {
+    if (domains[domain]) {
+      const { indicators, keywords } = domains[domain];
+      
+      // Check for direct indicators
+      for (const indicator of indicators) {
+        if (lowercaseText.includes(indicator.toLowerCase())) {
+          return domain;
+        }
+      }
+      
+      // Check for keyword matches
+      let keywordMatches = 0;
+      for (const keyword of keywords) {
+        if (lowercaseText.includes(keyword.toLowerCase())) {
+          keywordMatches++;
+        }
+      }
+      
+      // If multiple keywords match, it's likely this domain
+      if (keywordMatches >= 2) {
+        return domain;
+      }
     }
   }
   
-  // If no common action found, use the first verb as action
-  if (!action) {
-    // Simple verb detection (could be enhanced with NLP)
-    const verbPatterns = [
-      /\b(\w+)ing\b/, // Creating, drawing, etc.
-      /\b(\w+)ed\b/, // Created, moved, etc.
-      /\b(\w+)s\b/ // Draws, moves, etc.
-    ];
-    
-    for (const pattern of verbPatterns) {
-      const match = instruction.match(pattern);
-      if (match && match[1]) {
-        action = match[1];
-        break;
+  // If no clear domain is found, make a best guess based on keywords
+  let bestDomain: CommandDomain = "unknown";
+  let bestScore = 0;
+  
+  for (const domain of allowedDomains) {
+    if (domains[domain]) {
+      const { keywords } = domains[domain];
+      let score = 0;
+      
+      for (const keyword of keywords) {
+        if (lowercaseText.includes(keyword.toLowerCase())) {
+          score++;
+        }
+      }
+      
+      if (score > bestScore) {
+        bestScore = score;
+        bestDomain = domain;
       }
     }
+  }
+  
+  return bestScore > 0 ? bestDomain : "unknown";
+};
+
+/**
+ * Determines the subject of the command
+ * @param text The command text
+ * @param domain The domain of the command
+ * @param action The action being performed
+ */
+const determineSubject = (text: string, domain: CommandDomain, action: string): string => {
+  const lowercaseText = text.toLowerCase();
+  
+  // Remove the action from the text to help isolate the subject
+  const textWithoutAction = lowercaseText.replace(action, "");
+  
+  // Check for domain-specific subjects
+  if (domains[domain]) {
+    const { subjects } = domains[domain];
     
-    // Fallback to domain-specific default action
+    for (const subject of subjects) {
+      if (textWithoutAction.includes(subject.toLowerCase())) {
+        return subject;
+      }
+    }
+  }
+  
+  // If no specific subject is found, use a generic one based on the domain
+  switch (domain) {
+    case "drawing":
+      return "canvas";
+    case "animation":
+      return "animation";
+    case "style":
+      return "style";
+    case "website":
+      return "website";
+    case "transform":
+      return "media";
+    case "creative":
+      return "project";
+    case "general":
+      return "application";
+    default:
+      return "item";
+  }
+};
+
+/**
+ * Parse a command string into a structured command object
+ * @param commandText The raw command text from the user
+ * @param allowedDomains Domains that are allowed in the current context
+ */
+export const parseCommand = (
+  commandText: string, 
+  allowedDomains: CommandDomain[] = ["drawing", "animation", "style", "website", "transform", "creative", "general"]
+): CommandParseResult => {
+  try {
+    const trimmedCommand = commandText.trim();
+    
+    if (trimmedCommand.length === 0) {
+      return {
+        success: false,
+        error: "Command cannot be empty"
+      };
+    }
+    
+    // Extract the action from the command
+    const action = extractAction(trimmedCommand);
+    
     if (!action) {
-      switch (domain) {
-        case 'drawing': action = 'draw'; break;
-        case 'styling': action = 'style'; break;
-        case 'animation': action = 'animate'; break;
-        case 'website': action = 'create'; break;
-        default: action = 'create';
-      }
+      return {
+        success: false,
+        error: "Could not determine action",
+        needsClarification: true,
+        clarificationQuestion: "What would you like to do? (create, update, delete, etc.)"
+      };
     }
-  }
-  
-  // Extract subject based on domain keywords
-  const domainSpecificWords = domainKeywords[domain];
-  
-  for (const word of words) {
-    if (domainSpecificWords.includes(word) && word !== action) {
-      subject = word;
-      confidence += 0.3; // Increase confidence when subject matches domain
-      break;
+    
+    // Determine the domain
+    const domain = determineDomain(trimmedCommand, allowedDomains);
+    
+    if (domain === "unknown") {
+      return {
+        success: false,
+        error: "Could not determine the domain",
+        needsClarification: true,
+        clarificationQuestion: `What area are you working with? (${allowedDomains.join(", ")})`
+      };
     }
+    
+    // Determine the subject of the command
+    const subject = determineSubject(trimmedCommand, domain, action);
+    
+    // Extract parameters from the command
+    const parameters = extractParameters(trimmedCommand, domain, action);
+    
+    // Determine if the command requires confirmation
+    const requiresConfirmation = action === "delete" || 
+                                 action === "update" ||
+                                 action === "transform";
+    
+    // Create the command object
+    const command: Command = {
+      domain,
+      action,
+      subject,
+      parameters,
+      requiresConfirmation,
+      confidence: 0.8, // Default confidence
+      instruction: trimmedCommand,
+      originalCommand: trimmedCommand
+    };
+    
+    return {
+      success: true,
+      command
+    };
+  } catch (error) {
+    console.error("Error parsing command:", error);
+    return {
+      success: false,
+      error: "Failed to parse command due to an error"
+    };
   }
-  
-  // If no subject found, guess based on common patterns
-  if (!subject) {
-    // Look for noun phrases after action words
-    const actionIndex = words.findIndex(w => w === action);
-    if (actionIndex >= 0 && actionIndex < words.length - 1) {
-      subject = words[actionIndex + 1];
-    } else {
-      // Fallback to a generic subject
-      subject = 'element';
-    }
-  }
-  
-  // Calculate confidence based on clarity of parsing
-  confidence += action ? 0.4 : 0.1;
-  confidence += subject ? 0.3 : 0.1;
-  
-  // Cap confidence
-  confidence = Math.min(confidence, 1.0);
-  
-  return { action, subject, confidence };
-}
+};
 
-// Function to enhance a base command with domain-specific details
-function enhanceCommandWithDomainSpecifics(command: ParsedCommand): Command {
-  const { domain, parameters } = command;
+/**
+ * Adds or updates a parameter in a command
+ * @param command The command to update
+ * @param paramName The parameter name
+ * @param paramValue The parameter value
+ */
+export const updateCommandParameter = (
+  command: Command, 
+  paramName: string, 
+  paramValue: any
+): Command => {
+  return {
+    ...command,
+    parameters: {
+      ...command.parameters,
+      [paramName]: paramValue
+    },
+    originalCommand: command.originalCommand
+  };
+};
+
+/**
+ * Generates a response to a command
+ * @param command The command to respond to
+ */
+export const generateCommandResponse = (command: Command): string => {
+  if (!command) return "I don't understand that command.";
   
-  switch (domain) {
-    case 'drawing':
-      // Enhanced drawing parameters
-      const drawingParams: any = { ...parameters };
-      
-      // Detect brush type
-      if (command.instruction.includes('spray')) {
-        drawingParams.brushType = 'spray';
-      } else if (command.instruction.includes('eraser') || command.instruction.includes('erase')) {
-        drawingParams.brushType = 'eraser';
-      } else {
-        drawingParams.brushType = 'pencil';
-      }
-      
-      // Detect drawing mode
-      if (parameters.shapes) {
-        if (parameters.shapes.includes('circle')) {
-          drawingParams.drawingMode = 'circle';
-        } else if (parameters.shapes.includes('rectangle') || parameters.shapes.includes('square')) {
-          drawingParams.drawingMode = 'rectangle';
-        } else if (parameters.shapes.includes('line')) {
-          drawingParams.drawingMode = 'line';
-        }
-      }
-      
-      return {
-        ...command,
-        domain: 'drawing',
-        parameters: drawingParams
-      };
-      
-    case 'styling':
-      // Enhanced styling parameters
-      const stylingParams: any = { ...parameters };
-      
-      // Extract font-related information
-      if (command.instruction.includes('font')) {
-        // Simple pattern matching for font family
-        const fontFamilyMatch = command.instruction.match(/font\s+(?:to|as)\s+([a-zA-Z\s]+)/i);
-        if (fontFamilyMatch && fontFamilyMatch[1]) {
-          stylingParams.fontFamily = fontFamilyMatch[1].trim();
-        }
-        
-        // Extract font size if present
-        if (parameters.sizes && parameters.sizes.length > 0) {
-          stylingParams.fontSize = parameters.sizes[0];
-        }
-      }
-      
-      // Extract text alignment
-      if (command.instruction.includes('align')) {
-        if (command.instruction.includes('left')) {
-          stylingParams.textAlign = 'left';
-        } else if (command.instruction.includes('center')) {
-          stylingParams.textAlign = 'center';
-        } else if (command.instruction.includes('right')) {
-          stylingParams.textAlign = 'right';
-        } else if (command.instruction.includes('justify')) {
-          stylingParams.textAlign = 'justify';
-        }
-      }
-      
-      return {
-        ...command,
-        domain: 'styling',
-        parameters: stylingParams
-      };
-      
-    case 'animation':
-      // Enhanced animation parameters
-      const animationParams: any = { ...parameters };
-      
-      // Extract duration
-      if (parameters.timing && parameters.timing.length > 0) {
-        const durationMatch = parameters.timing[0].match(/(\d+(?:\.\d+)?)\s*(s|ms)?/);
-        if (durationMatch) {
-          const value = parseFloat(durationMatch[1]);
-          const unit = durationMatch[2] || 's';
-          animationParams.duration = unit === 'ms' ? value / 1000 : value;
-        }
-      }
-      
-      // Extract easing
-      const easingTerms = [
-        'linear', 'ease', 'ease-in', 'ease-out', 'ease-in-out', 
-        'bounce', 'elastic', 'cubic'
-      ];
-      
-      for (const term of easingTerms) {
-        if (command.instruction.includes(term)) {
-          animationParams.easing = term;
-          break;
-        }
-      }
-      
-      // Extract repeat
-      if (command.instruction.includes('infinite') || command.instruction.includes('forever')) {
-        animationParams.repeat = 'infinite';
-      } else {
-        const repeatMatch = command.instruction.match(/repeat\s+(\d+)\s+times/i);
-        if (repeatMatch && repeatMatch[1]) {
-          animationParams.repeat = parseInt(repeatMatch[1], 10);
-        }
-      }
-      
-      return {
-        ...command,
-        domain: 'animation',
-        parameters: animationParams
-      };
-      
-    case 'website':
-      // Enhanced website parameters
-      const websiteParams: any = { ...parameters };
-      
-      // Detect viewport preference
-      if (command.instruction.includes('mobile')) {
-        websiteParams.viewport = 'mobile';
-      } else if (command.instruction.includes('tablet')) {
-        websiteParams.viewport = 'tablet';
-      } else {
-        websiteParams.viewport = 'desktop';
-      }
-      
-      return {
-        ...command,
-        domain: 'website',
-        parameters: websiteParams
-      };
-      
+  const { action, subject, parameters } = command;
+  
+  // Simple response templates based on action
+  switch (action) {
+    case "create":
+      return `Created ${subject} ${Object.keys(parameters).length > 0 ? 
+        `with ${Object.entries(parameters).map(([k, v]) => `${k}: ${v}`).join(", ")}` : 
+        ''}`;
+    
+    case "update":
+      return `Updated ${subject} ${Object.keys(parameters).length > 0 ? 
+        `with ${Object.entries(parameters).map(([k, v]) => `${k}: ${v}`).join(", ")}` : 
+        ''}`;
+    
+    case "delete":
+      return `Deleted ${subject}`;
+    
+    case "get":
+      return `Retrieved ${subject}`;
+    
+    case "list":
+      return `Listed all ${subject}s`;
+    
+    case "apply":
+      return `Applied to ${subject} ${Object.keys(parameters).length > 0 ? 
+        `with ${Object.entries(parameters).map(([k, v]) => `${k}: ${v}`).join(", ")}` : 
+        ''}`;
+    
+    case "generate":
+      return `Generated ${subject} ${Object.keys(parameters).length > 0 ? 
+        `with ${Object.entries(parameters).map(([k, v]) => `${k}: ${v}`).join(", ")}` : 
+        ''}`;
+    
+    case "transform":
+      return `Transformed ${subject} ${Object.keys(parameters).length > 0 ? 
+        `with ${Object.entries(parameters).map(([k, v]) => `${k}: ${v}`).join(", ")}` : 
+        ''}`;
+    
+    case "extract":
+      return `Extracted from ${subject} ${Object.keys(parameters).length > 0 ? 
+        `with ${Object.entries(parameters).map(([k, v]) => `${k}: ${v}`).join(", ")}` : 
+        ''}`;
+    
+    case "analyze":
+      return `Analyzed ${subject} ${Object.keys(parameters).length > 0 ? 
+        `with ${Object.entries(parameters).map(([k, v]) => `${k}: ${v}`).join(", ")}` : 
+        ''}`;
+    
+    case "save":
+      return `Saved ${subject} ${Object.keys(parameters).length > 0 ? 
+        `with ${Object.entries(parameters).map(([k, v]) => `${k}: ${v}`).join(", ")}` : 
+        ''}`;
+    
+    case "load":
+      return `Loaded ${subject} ${Object.keys(parameters).length > 0 ? 
+        `with ${Object.entries(parameters).map(([k, v]) => `${k}: ${v}`).join(", ")}` : 
+        ''}`;
+    
+    case "export":
+      return `Exported ${subject} ${Object.keys(parameters).length > 0 ? 
+        `with ${Object.entries(parameters).map(([k, v]) => `${k}: ${v}`).join(", ")}` : 
+        ''}`;
+    
     default:
-      return command;
+      return `Executed ${action} on ${subject}`;
   }
-}
-
-// Helper function to get an appropriate suggestion for ambiguous commands
-export function getSuggestionForCommand(command: Command): string {
-  const { domain, action, subject, parameters } = command;
-  
-  switch (domain) {
-    case 'drawing':
-      if (!subject) {
-        return `What would you like to draw? (e.g., circle, rectangle)`;
-      }
-      if (!parameters.colors || parameters.colors.length === 0) {
-        return `What color would you like to use?`;
-      }
-      return `I'll ${action} a ${parameters.colors?.[0] || ''} ${subject}. Is that correct?`;
-      
-    case 'styling':
-      return `I'll update the styling to ${action} the ${subject}. Is that correct?`;
-      
-    case 'animation':
-      return `I'll create an animation to ${action} the ${subject}. Is that correct?`;
-      
-    case 'website':
-      return `I'll ${action} a website ${subject} for you. Is that correct?`;
-      
-    default:
-      return `I'll try to ${action} ${subject}. Is that correct?`;
-  }
-}
-
-// Function to generate a text description of what a command will do
-export function describeCommand(command: Command): string {
-  const { domain, action, subject, parameters } = command;
-  
-  let description = `Command: ${action} ${subject}\n`;
-  description += `Domain: ${domain}\n`;
-  
-  if (parameters) {
-    description += 'Parameters:\n';
-    
-    if (parameters.colors && parameters.colors.length > 0) {
-      description += `- Colors: ${parameters.colors.join(', ')}\n`;
-    }
-    
-    if (parameters.sizes && parameters.sizes.length > 0) {
-      description += `- Sizes: ${parameters.sizes.join(', ')}\n`;
-    }
-    
-    if (parameters.positions && parameters.positions.length > 0) {
-      description += `- Positions: ${parameters.positions.join(', ')}\n`;
-    }
-    
-    if (parameters.shapes && parameters.shapes.length > 0) {
-      description += `- Shapes: ${parameters.shapes.join(', ')}\n`;
-    }
-    
-    if (parameters.timing && parameters.timing.length > 0) {
-      description += `- Timing: ${parameters.timing.join(', ')}\n`;
-    }
-    
-    if (parameters.numbers && parameters.numbers.length > 0) {
-      description += `- Numbers: ${parameters.numbers.join(', ')}\n`;
-    }
-    
-    // Domain-specific parameters
-    switch (domain) {
-      case 'drawing':
-        if ('brushType' in parameters) {
-          description += `- Brush Type: ${parameters.brushType}\n`;
-        }
-        if ('drawingMode' in parameters) {
-          description += `- Drawing Mode: ${parameters.drawingMode}\n`;
-        }
-        break;
-        
-      case 'styling':
-        if ('fontFamily' in parameters) {
-          description += `- Font Family: ${parameters.fontFamily}\n`;
-        }
-        if ('fontSize' in parameters) {
-          description += `- Font Size: ${parameters.fontSize}\n`;
-        }
-        if ('textAlign' in parameters) {
-          description += `- Text Alignment: ${parameters.textAlign}\n`;
-        }
-        break;
-        
-      case 'animation':
-        if ('duration' in parameters) {
-          description += `- Duration: ${parameters.duration}s\n`;
-        }
-        if ('easing' in parameters) {
-          description += `- Easing: ${parameters.easing}\n`;
-        }
-        if ('repeat' in parameters) {
-          description += `- Repeat: ${parameters.repeat}\n`;
-        }
-        break;
-        
-      case 'website':
-        if ('viewport' in parameters) {
-          description += `- Viewport: ${parameters.viewport}\n`;
-        }
-        break;
-    }
-  }
-  
-  return description;
-}
+};

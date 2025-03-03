@@ -1,14 +1,5 @@
 
-import { StyleExtractor } from './StyleExtractor';
-import { CodeGenerator } from './CodeGenerator';
-import { AnimationGenerator } from './AnimationGenerator';
-import { MediaTransformContext, MediaTransformProvider, useMediaTransform } from './MediaTransformContext';
-
-export {
-  StyleExtractor,
-  CodeGenerator,
-  AnimationGenerator,
-  MediaTransformContext,
-  MediaTransformProvider,
-  useMediaTransform
-};
+export { default as MediaTransform } from './MediaTransform';
+export { default as StyleExtractor } from './StyleExtractor';
+export { default as CodeGenerator } from './CodeGenerator';
+export { default as AnimationGenerator } from './AnimationGenerator';

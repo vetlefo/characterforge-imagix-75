@@ -1,15 +1,35 @@
 
-export type CommandDomain = "design" | "interface" | "animation" | "data" | "navigation" | "logic" | "style" | "asset" | "system";
+// Define the possible domains for commands
+export type CommandDomain = 
+  | "drawing" 
+  | "animation" 
+  | "style" 
+  | "website" 
+  | "transform"
+  | "creative"
+  | "general"
+  | "unknown";
 
-export interface Command {
-  domain: CommandDomain | string;
-  action: string;
-  subject: string;
-  parameters: Record<string, any>;
-  originalCommand: string;
-  confidence: number;
-}
+// Define the common actions available across domains
+export const commonActions = [
+  "create",
+  "update",
+  "delete",
+  "get",
+  "list",
+  "apply",
+  "generate",
+  "transform",
+  "extract",
+  "analyze",
+  "save",
+  "load",
+  "export"
+] as const;
 
+export type CommonAction = typeof commonActions[number];
+
+// Base command interface
 export interface ParsedCommand {
   domain: CommandDomain | string;
   action: string;
@@ -19,32 +39,29 @@ export interface ParsedCommand {
   confidence?: number;
   instruction?: string;
   originalCommand?: string;
+  confirmed?: boolean;
 }
 
+// Command with required originalCommand
+export interface Command extends Omit<ParsedCommand, "originalCommand"> {
+  originalCommand: string;
+}
+
+// Result of parsing a command
+export interface CommandParseResult {
+  success: boolean;
+  command?: Command;
+  error?: string;
+  needsClarification?: boolean;
+  clarificationQuestion?: string;
+}
+
+// Props for the CommandParser component
 export interface CommandParserProps {
-  onCommand?: (command: Command) => void;
-  requireConfirmation?: boolean;
+  instruction: string;
+  onParsed: (result: CommandParseResult) => void;
   allowedDomains?: CommandDomain[];
-  placeholder?: string;
+  requireConfirmation?: boolean;
   className?: string;
+  onClarificationNeeded?: (question: string, originalCommand: string) => void;
 }
-
-export const commonActions = [
-  "create",
-  "update",
-  "delete",
-  "get",
-  "list",
-  "filter",
-  "sort",
-  "add",
-  "remove",
-  "modify",
-  "animate",
-  "transform",
-  "apply",
-  "generate",
-  "extract",
-  "convert",
-  "set"
-];
