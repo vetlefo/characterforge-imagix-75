@@ -1,17 +1,20 @@
 
 import React from 'react';
-import ReactMarkdown, { Options } from 'react-markdown';
+import ReactMarkdown from 'react-markdown';
 
-interface MarkdownProps extends Omit<Options, 'children'> {
+interface MarkdownProps {
   content: string;
   className?: string;
+  [key: string]: any; // This allows for spreading other props to ReactMarkdown
 }
 
 export const Markdown: React.FC<MarkdownProps> = ({ content, className, ...props }) => {
   return (
-    <ReactMarkdown className={className} {...props}>
-      {content}
-    </ReactMarkdown>
+    <div className={className}>
+      <ReactMarkdown {...props}>
+        {content}
+      </ReactMarkdown>
+    </div>
   );
 };
 
