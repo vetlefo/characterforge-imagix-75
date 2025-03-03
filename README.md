@@ -1,4 +1,12 @@
-# Welcome to your Lovable project
+# CharacterForge-Imagix
+
+A creative assistant platform built with React, TypeScript, and Tailwind CSS, with some components using Svelte 5 through web components integration.
+
+## 🚀 Quick Links
+
+- [Project Status](PROJECT_STATUS.md) - Current implementation status and roadmap
+- [Svelte Integration](SVELTE_INTEGRATION.md) - Details about our Svelte component integration
+- [Svelte Setup Guide](SVELTE_SETUP_GUIDE.md) - Beginner-friendly guide to working with Svelte components
 
 ## Project info
 
