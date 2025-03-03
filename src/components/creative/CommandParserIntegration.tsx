@@ -1,54 +1,80 @@
 
-import React, { useState } from "react";
-import { CommandParser } from "./CommandParser";
-import { CommandParseResult } from "./CommandParser/types";
-import { Toaster } from "sonner";
-import { useCreative } from "./CreativeContext";
+import React, { useState } from 'react';
+import { CommandParser } from './CommandParser';
+import { CommandParseResult } from './CommandParser/types';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const CommandParserIntegration: React.FC = () => {
-  const [clarificationQuestion, setClarificationQuestion] = useState<string | null>(null);
-  const [originalCommand, setOriginalCommand] = useState<string | null>(null);
-  const creativeContext = useCreative();
-
-  // Handle successful command execution
-  const handleCommandExecuted = (result: CommandParseResult) => {
-    console.log("Command executed:", result);
-    
-    // Update creative context state based on the command
-    if (result.parsedCommand && result.commandActions) {
-      // In a real implementation, we would update the creative context based on the command
-      // For example, adding assets, updating assets, etc.
-      
-      // Clear any pending clarification
-      setClarificationQuestion(null);
-      setOriginalCommand(null);
-    }
+  const [command, setCommand] = useState<string>('');
+  const [result, setResult] = useState<CommandParseResult | null>(null);
+  const [clarification, setClarification] = useState<string | null>(null);
+  
+  const handleCommandSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Reset states
+    setResult(null);
+    setClarification(null);
   };
-
-  // Handle clarification needed
-  const handleClarificationNeeded = (question: string, command: string) => {
-    setClarificationQuestion(question);
-    setOriginalCommand(command);
-    
-    // In a real implementation, we might want to provide UI feedback or suggestions
+  
+  const handleCommandExecuted = (parseResult: CommandParseResult) => {
+    setResult(parseResult);
+    setClarification(null);
   };
-
+  
+  const handleClarificationNeeded = (question: string, originalCommand: string) => {
+    setClarification(question);
+    setResult(null);
+  };
+  
   return (
-    <div className="w-full">
-      <h3 className="text-xl font-medium text-white mb-3">Command Interpreter</h3>
-      <CommandParser
-        onCommandExecuted={handleCommandExecuted}
-        onClarificationNeeded={handleClarificationNeeded}
-      />
-      {clarificationQuestion && (
-        <div className="mt-3 p-3 bg-blue-900/20 border border-blue-800/30 rounded-lg text-sm text-blue-200">
-          <p>{clarificationQuestion}</p>
-          {originalCommand && (
-            <p className="mt-1 text-xs text-blue-300">Original command: "{originalCommand}"</p>
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Command Parser</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleCommandSubmit} className="flex gap-2">
+            <Input
+              value={command}
+              onChange={(e) => setCommand(e.target.value)}
+              placeholder="Enter a creative command..."
+              className="flex-1"
+            />
+            <Button type="submit">Execute</Button>
+          </form>
+          
+          {command && (
+            <CommandParser 
+              instruction={command} 
+              onParsed={handleCommandExecuted}
+              onClarificationNeeded={handleClarificationNeeded}
+            />
           )}
-        </div>
-      )}
-      <Toaster position="top-right" />
+          
+          {clarification && (
+            <div className="mt-4 p-3 bg-yellow-500/20 text-yellow-200 rounded-md">
+              <p className="font-medium">Clarification needed:</p>
+              <p>{clarification}</p>
+            </div>
+          )}
+          
+          {result && (
+            <div className="mt-4 space-y-2">
+              <div className="p-3 bg-green-500/20 text-green-200 rounded-md">
+                <p className="font-medium">Command Parsed Successfully</p>
+                <p>Domain: {result.domain}</p>
+                <p>Action: {result.action}</p>
+                <p>Subject: {result.subject}</p>
+                <pre className="mt-2 p-2 bg-black/50 rounded overflow-x-auto">
+                  {JSON.stringify(result.parameters, null, 2)}
+                </pre>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
