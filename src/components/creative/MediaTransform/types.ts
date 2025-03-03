@@ -9,3 +9,15 @@ export interface MediaTransformProps {
 export interface MediaPreviewProps {
   imageUrl: string;
 }
+
+export interface StyleExtractorProps {
+  imageUrl: string;
+}
+
+export interface AnimationGeneratorProps {
+  imageUrl: string;
+}
+
+export interface CodeGeneratorProps {
+  imageUrl: string;
+}

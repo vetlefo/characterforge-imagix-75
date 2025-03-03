@@ -52,11 +52,11 @@ export const MessageList: React.FC<MessageListProps> = ({
       {messages.map((message) => (
         <ConversationMessageComponent
           key={message.id}
-          id={message.id}
+          id={message.id || ""}
           sender={message.sender as "user" | "assistant"}
           content={adaptMessageContent(message.content)}
-          timestamp={message.timestamp}
-          onActionClick={onActionClick}
+          timestamp={message.timestamp || new Date()}
+          actions={message.actions}
           visualIndicator={
             message.sender === "system" 
               ? message.metadata?.command 

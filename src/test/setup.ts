@@ -16,7 +16,7 @@ const mockResponse = {
 };
 
 // Define mock Response constructor with all required methods
-const mockResponseClass = vi.fn().mockImplementation((body, init) => {
+const MockResponse = vi.fn().mockImplementation((body, init) => {
   return {
     body,
     status: init?.status || 200,
@@ -27,21 +27,21 @@ const mockResponseClass = vi.fn().mockImplementation((body, init) => {
   };
 });
 
-// Add static methods directly to the constructor function
-mockResponseClass.error = vi.fn().mockImplementation(() => {
-  return new mockResponseClass(null, { status: 500 });
+// Assign it to global
+global.Response = MockResponse as any;
+
+// Add static methods to Response
+Response.error = vi.fn().mockImplementation(() => {
+  return new Response(null, { status: 500 });
 });
 
-mockResponseClass.json = vi.fn().mockImplementation((data, init) => {
-  return new mockResponseClass(JSON.stringify(data), init);
+Response.json = vi.fn().mockImplementation((data, init) => {
+  return new Response(JSON.stringify(data), init);
 });
 
-mockResponseClass.redirect = vi.fn().mockImplementation((url, status) => {
-  return new mockResponseClass(null, { 
+Response.redirect = vi.fn().mockImplementation((url, status) => {
+  return new Response(null, { 
     status: status || 302,
     headers: { Location: url.toString() }
   });
 });
-
-// Assign the mock to global Response
-global.Response = mockResponseClass as any;

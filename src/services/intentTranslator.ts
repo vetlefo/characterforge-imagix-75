@@ -1,312 +1,220 @@
 
-import { classifyIntent, IntentType } from '../components/creative/CommandParser/intentClassifier';
+import { GraphNode, GraphConnection } from "./graphDB";
 
-// Add the missing TranslationContext type
-export interface TranslationContext {
-  conversationHistory?: string[];
-  selectedAssetId?: string | null;
+// Define interfaces and types
+export interface GraphQuery {
+  keyword?: string;
+  domain?: string;
+  nodeType?: string;
+  connections?: {
+    type?: string;
+    target?: string;
+  }[];
 }
 
-export interface TranslationStrategy {
-  name: string;
-  translate: (input: string, context?: TranslationContext) => Promise<TranslationResult>;
-  priority: number;
-}
+export type IntentType = "drawing" | "styling" | "animation" | "transform" | "ui" | "unknown";
 
-export interface AlternativeIntent {
-  intent: Intent;
-  confidence: number;
+export interface Intent {
+  type: IntentType;
+  domain: string;
+  action: string;
+  params?: Record<string, any>;
 }
 
 export interface TranslationResult {
-  original: string;
-  intent: Intent;
+  success: boolean;
+  originalInput: string;
+  intent?: Intent;
   confidence: number;
-  alternativeIntents: AlternativeIntent[];
-  parameters: Record<string, any>;
-  relatedNodes?: any[]; // Add missing fields
-  explanation?: string; // Add missing fields
+  actions?: { type: string; payload: any }[];
+  metadata?: Record<string, any>;
+  relatedNodes?: GraphNode[];
+  explanation?: string;
 }
 
-// Export the strategy classes for testing
-export class PatternMatchingStrategy implements TranslationStrategy {
-  name = 'Pattern Matching';
-  priority = 1;
-  
-  async translate(input: string, context?: TranslationContext): Promise<TranslationResult> {
-    const intent = await classifyIntent(input);
+export interface TranslationContext {
+  recentIntents: Intent[];
+  userPreferences?: Record<string, any>;
+  projectContext?: {
+    currentDomain?: string;
+    recentAssets?: string[];
+  };
+}
+
+// Abstract strategy class
+export abstract class TranslationStrategy {
+  abstract translate(input: string, context?: TranslationContext): TranslationResult;
+  abstract name: string;
+}
+
+// Pattern matching strategy implementation
+export class PatternMatchingStrategy extends TranslationStrategy {
+  name = "pattern-matching";
+
+  translate(input: string, context?: TranslationContext): TranslationResult {
+    // Simple pattern matching implementation
+    const drawingPatterns = [
+      /\bdraw\b/i, /\bsketch\b/i, /\bcreate\s+(?:a|an)\s+image\b/i
+    ];
     
-    // Adjust confidence based on pattern matching precision
-    // This is a simplified example - real implementation would have more complex patterns
-    if (input.match(/^(create|draw|make|add)\s+a?\s+(circle|square|rectangle|triangle)/i)) {
-      intent.type = 'draw.shape';
-      intent.confidence = Math.min(intent.confidence + 0.2, 1.0);
-    } else if (input.match(/^(animate|move|rotate|spin|scale)\s+the\s+/i)) {
-      intent.type = 'animate.general';
-      intent.confidence = Math.min(intent.confidence + 0.15, 1.0);
-    } else if (input.match(/^(change|set|modify)\s+(color|style|font|size)/i)) {
-      intent.type = 'style.general';
-      intent.confidence = Math.min(intent.confidence + 0.15, 1.0);
+    const stylingPatterns = [
+      /\bstyle\b/i, /\bdesign\b/i, /\bcolor\b/i, /\btheme\b/i
+    ];
+    
+    const animationPatterns = [
+      /\banimate\b/i, /\bmotion\b/i, /\bmove\b/i
+    ];
+    
+    const transformPatterns = [
+      /\btransform\b/i, /\bconvert\b/i, /\bchange\b/i
+    ];
+    
+    const uiPatterns = [
+      /\bbutton\b/i, /\binterface\b/i, /\bui\b/i, /\bux\b/i
+    ];
+    
+    const conversations = [
+      /\bhello\b/i, /\bhi\b/i, /\bhey\b/i, /\bgreetings\b/i, /\bhow are you\b/i
+    ];
+
+    // Determine intent type based on patterns
+    let intentType: IntentType = "unknown";
+    let confidence = 0.0;
+    
+    if (drawingPatterns.some(pattern => pattern.test(input))) {
+      intentType = "drawing";
+      confidence = 0.7;
+    } else if (stylingPatterns.some(pattern => pattern.test(input))) {
+      intentType = "styling";
+      confidence = 0.7;
+    } else if (animationPatterns.some(pattern => pattern.test(input))) {
+      intentType = "animation";
+      confidence = 0.7;
+    } else if (transformPatterns.some(pattern => pattern.test(input))) {
+      intentType = "transform";
+      confidence = 0.7;
+    } else if (uiPatterns.some(pattern => pattern.test(input))) {
+      intentType = "ui";
+      confidence = 0.7;
+    } else if (conversations.some(pattern => pattern.test(input))) {
+      intentType = "unknown";
+      confidence = 0.5;
     }
     
+    // Build result
     return {
-      original: input,
-      intent,
-      confidence: intent.confidence,
-      alternativeIntents: [],
-      parameters: intent.parameters
+      success: intentType !== "unknown",
+      originalInput: input,
+      intent: intentType !== "unknown" ? {
+        type: intentType,
+        domain: intentType,
+        action: "create",
+        params: {}
+      } : undefined,
+      confidence: confidence
     };
   }
 }
 
-export class ContextAwareStrategy implements TranslationStrategy {
-  name = 'Context Aware';
-  priority = 2;
-  
-  async translate(input: string, context?: TranslationContext): Promise<TranslationResult> {
-    // Get base intent from the general classifier
-    const intent = await classifyIntent(input);
-    
-    // If we have context, use it to refine the intent
-    if (context) {
-      // Example: if we're in the drawing context, bias towards drawing intents
-      if (context.conversationHistory && context.conversationHistory.length > 0) {
-        const recentMessages = context.conversationHistory.slice(-3);
-        const drawingContext = recentMessages.some(msg => 
-          msg.toLowerCase().includes('draw') || 
-          msg.toLowerCase().includes('shape') || 
-          msg.toLowerCase().includes('circle')
-        );
-        
-        if (drawingContext && intent.domain !== 'drawing' && intent.confidence < 0.8) {
-          intent.domain = 'drawing';
-          intent.type = 'draw.general' as IntentType;
-          // Lower confidence since we're overriding
-          intent.confidence = Math.min(intent.confidence + 0.1, 0.9);
-        }
-      }
-      
-      // Example: if there's a selected element, bias towards modification intents
-      if (context.selectedAssetId) {
-        if (input.match(/this|it|that|the selected/i)) {
-          // Likely referring to the selected element
-          if (input.match(/change|modify|update|edit/i)) {
-            intent.type = 'style.general';
-            intent.confidence = Math.min(intent.confidence + 0.15, 0.95);
-          }
-        }
-        
-        try {
-          // Get related nodes from the graph database - fixed to use proper GraphDB API
-          const relatedNodes = await import('./graphDB').then(module => {
-            return module.default.getAllNodes().filter(node => 
-              node.connections?.some(conn => conn.targetId === context.selectedAssetId)
-            );
-          });
-          
-          return {
-            original: input,
-            intent,
-            confidence: intent.confidence,
-            alternativeIntents: this.generateAlternativeIntents(intent),
-            parameters: intent.parameters,
-            relatedNodes,
-            explanation: 'Context-based translation using selected asset and conversation history'
-          };
-        } catch (error) {
-          console.error('Error querying graph database:', error);
-        }
-      }
-    }
-    
-    return {
-      original: input,
-      intent,
-      confidence: intent.confidence,
-      alternativeIntents: this.generateAlternativeIntents(intent),
-      parameters: intent.parameters,
-      explanation: 'Basic context-aware translation'
-    };
-  }
-  
-  private generateAlternativeIntents(primaryIntent: Intent): AlternativeIntent[] {
-    // Generate some alternative interpretations with lower confidence
-    const alternatives: AlternativeIntent[] = [];
-    
-    if (primaryIntent.domain === 'drawing') {
-      alternatives.push({
-        intent: {
-          ...primaryIntent,
-          domain: 'animation',
-          type: 'animate.general',
-          confidence: primaryIntent.confidence * 0.8
-        },
-        confidence: primaryIntent.confidence * 0.8
-      });
-    } else if (primaryIntent.domain === 'animation') {
-      alternatives.push({
-        intent: {
-          ...primaryIntent,
-          domain: 'drawing',
-          type: 'draw.general',
-          confidence: primaryIntent.confidence * 0.7
-        },
-        confidence: primaryIntent.confidence * 0.7
-      });
-    }
-    
-    // Add a general conversation alternative with lower confidence
-    alternatives.push({
-      intent: {
-        ...primaryIntent,
-        domain: 'general',
-        type: 'general.conversation' as IntentType, // Fix for 'conversation' type
-        confidence: primaryIntent.confidence * 0.6
-      },
-      confidence: primaryIntent.confidence * 0.6
-    });
-    
-    return alternatives;
-  }
-}
+// Context-aware strategy implementation
+export class ContextAwareStrategy extends TranslationStrategy {
+  name = "context-aware";
 
-export class GraphEnhancedStrategy implements TranslationStrategy {
-  name = 'Graph Enhanced';
-  priority = 3;
-  
-  async translate(input: string, context?: TranslationContext): Promise<TranslationResult> {
-    // Get base intent from the general classifier
-    const intent = await classifyIntent(input);
+  translate(input: string, context?: TranslationContext): TranslationResult {
+    // First use pattern matching for basic understanding
+    const patternStrategy = new PatternMatchingStrategy();
+    const patternResult = patternStrategy.translate(input, context);
     
-    try {
-      // Get related concepts from the graph database - fixed to use proper GraphDB API
-      const graphDB = (await import('./graphDB')).default;
-      const relatedConcepts = graphDB.getAllNodes().filter(node => 
-        node.properties && 
-        typeof node.properties.text === 'string' && 
-        node.properties.text.includes(input.substring(0, 20))
-      );
+    // If we have context, use it to improve understanding
+    if (context?.recentIntents?.length && patternResult.intent) {
+      const mostRecentIntent = context.recentIntents[0];
       
-      // Use related concepts to enhance understanding
-      if (relatedConcepts.length > 0) {
-        // Check if any related concepts strongly suggest a domain
-        const domainHints = relatedConcepts.filter(concept => 
-          concept.type === 'domain' || concept.type === 'intent'
-        );
-        
-        if (domainHints.length > 0) {
-          // Bias towards the suggested domain if confidence isn't already high
-          const suggestedDomain = domainHints[0].type.toLowerCase();
-          if (intent.domain !== suggestedDomain && intent.confidence < 0.8) {
-            intent.domain = suggestedDomain;
-            intent.type = `${suggestedDomain}.general` as IntentType;
-            intent.confidence = Math.min(intent.confidence + 0.1, 0.85);
-          }
-        }
-        
-        // Use parameter hints from the graph
-        const paramHints = relatedConcepts.filter(concept => 
-          concept.type === 'parameter' || concept.type === 'value'
-        );
-        
-        if (paramHints.length > 0) {
-          paramHints.forEach(param => {
-            if (param.properties && param.properties.key && param.properties.value) {
-              intent.parameters[param.properties.key] = param.properties.value;
-            }
-          });
-        }
-        
+      // If intent type is unknown but we have a recent intent, bias toward that type
+      if (patternResult.confidence < 0.5 && mostRecentIntent) {
         return {
-          original: input,
-          intent,
-          confidence: intent.confidence,
-          alternativeIntents: [],
-          parameters: intent.parameters,
-          relatedNodes: relatedConcepts,
-          explanation: 'Graph-enhanced translation using semantic relationships'
+          ...patternResult,
+          intent: {
+            ...patternResult.intent,
+            type: mostRecentIntent.type,
+            domain: mostRecentIntent.domain
+          },
+          confidence: Math.min(patternResult.confidence + 0.2, 0.7),
+          metadata: {
+            ...patternResult.metadata,
+            contextBoosted: true,
+            originalConfidence: patternResult.confidence
+          }
         };
       }
-    } catch (error) {
-      console.error('Error using graph database for intent enhancement:', error);
+      
+      // If intent type is the same as recent intent, increase confidence
+      if (patternResult.intent.type === mostRecentIntent.type) {
+        return {
+          ...patternResult,
+          confidence: Math.min(patternResult.confidence + 0.1, 0.9),
+          metadata: {
+            ...patternResult.metadata,
+            contextBoosted: true,
+            originalConfidence: patternResult.confidence
+          }
+        };
+      }
     }
     
-    return {
-      original: input,
-      intent,
-      confidence: intent.confidence,
-      alternativeIntents: [],
-      parameters: intent.parameters
-    };
+    return patternResult;
   }
 }
 
+// Main translator class that uses strategies
 export class IntentTranslator {
-  strategies: TranslationStrategy[];
+  private strategies: TranslationStrategy[] = [];
+  private context: TranslationContext = { recentIntents: [] };
   
-  constructor(strategies: TranslationStrategy[]) {
-    this.strategies = strategies;
+  constructor() {
+    // Register default strategies in priority order
+    this.registerStrategy(new ContextAwareStrategy());
+    this.registerStrategy(new PatternMatchingStrategy());
   }
   
-  async translateIntent(input: string, context?: TranslationContext): Promise<TranslationResult> {
-    return this.translateWithBestStrategy(input, context);
+  registerStrategy(strategy: TranslationStrategy) {
+    this.strategies.push(strategy);
   }
   
-  getStrategies(): TranslationStrategy[] {
-    return this.strategies;
+  setContext(context: TranslationContext) {
+    this.context = context;
   }
   
-  async translateWithStrategy(input: string, strategyName: string, context?: TranslationContext): Promise<TranslationResult> {
-    const strategy = this.strategies.find(s => s.name === strategyName);
-    
-    if (!strategy) {
-      throw new Error(`Strategy "${strategyName}" not found`);
+  translate(input: string): TranslationResult {
+    // Try each strategy in order until one succeeds with high confidence
+    for (const strategy of this.strategies) {
+      const result = strategy.translate(input, this.context);
+      
+      if (result.success && result.confidence > 0.7) {
+        // Update context with this new intent if it exists
+        if (result.intent) {
+          this.context.recentIntents = [
+            result.intent, 
+            ...this.context.recentIntents.slice(0, 2)
+          ];
+        }
+        return result;
+      }
     }
     
-    return strategy.translate(input, context);
-  }
-  
-  async translateWithBestStrategy(input: string, context?: TranslationContext): Promise<TranslationResult> {
-    // Run all strategies in parallel
-    const results = await Promise.all(
-      this.strategies.map(strategy => strategy.translate(input, context))
-    );
+    // If no strategy gave a high-confidence result, use the first strategy's result
+    const fallbackResult = this.strategies[0].translate(input, this.context);
     
-    // Sort by confidence
-    const sortedResults = [...results].sort((a, b) => b.confidence - a.confidence);
+    // Only update context if the result has some confidence
+    if (fallbackResult.intent && fallbackResult.confidence > 0.4) {
+      this.context.recentIntents = [
+        fallbackResult.intent, 
+        ...this.context.recentIntents.slice(0, 2)
+      ];
+    }
     
-    // The best intent is the one with the highest confidence
-    const bestResult = sortedResults[0];
-    
-    // Create alternative intents list (excluding the best one)
-    const alternativeIntents = sortedResults.slice(1).flatMap(result => 
-      result.alternativeIntents.concat([{
-        intent: result.intent,
-        confidence: result.confidence
-      }])
-    );
-    
-    return {
-      original: input,
-      intent: bestResult.intent,
-      confidence: bestResult.confidence,
-      alternativeIntents,
-      parameters: bestResult.parameters,
-      relatedNodes: bestResult.relatedNodes,
-      explanation: bestResult.explanation
-    };
+    return fallbackResult;
   }
 }
 
-// Create a default instance with all strategies
-const patternMatchingStrategy = new PatternMatchingStrategy();
-const contextAwareStrategy = new ContextAwareStrategy();
-const graphEnhancedStrategy = new GraphEnhancedStrategy();
-
-const intentTranslator = new IntentTranslator([
-  patternMatchingStrategy,
-  contextAwareStrategy,
-  graphEnhancedStrategy
-]);
-
-export default intentTranslator;
+// Export default instance for convenience
+export default new IntentTranslator();
