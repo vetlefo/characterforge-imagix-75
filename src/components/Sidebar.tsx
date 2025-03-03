@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Settings,
@@ -15,9 +16,24 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
-import { useSidebar } from "@/hooks/use-sidebar";
-import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { ChevronRight } from "lucide-react";
+
+// Create a simple useSidebar hook to replace the missing one
+const useSidebar = () => {
+  const [openSections, setOpenSections] = useState<string[]>(["creative"]);
+
+  const toggleSection = (section: string) => {
+    setOpenSections(prev => 
+      prev.includes(section) 
+        ? prev.filter(s => s !== section)
+        : [...prev, section]
+    );
+  };
+
+  return { openSections, toggleSection };
+};
 
 export function Sidebar() {
   const { openSections, toggleSection } = useSidebar();
@@ -42,7 +58,7 @@ export function Sidebar() {
             onClick={() => toggleSection("creative")}
           >
             Creative Tools
-            <ChevronRightIcon
+            <ChevronRight
               className={cn("h-4 w-4", {
                 "transform rotate-90": openSections.includes("creative"),
               })}

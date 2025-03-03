@@ -1,304 +1,211 @@
 
-import graphDB, { GraphNode, GraphQuery } from './graphDB';
-import { classifyIntent, Intent, IntentType } from '../components/creative/CommandParser/intentClassifier';
+import { getGraphNeighbors } from './graphDB';
+import { Intent, classifyIntent, IntentType } from '../components/creative/CommandParser/intentClassifier';
 
-/**
- * Translation strategy interface
- */
 export interface TranslationStrategy {
   name: string;
-  translate: (input: string, context?: TranslationContext) => Promise<TranslationResult>;
-  getConfidence: (input: string, context?: TranslationContext) => Promise<number>;
+  translate: (input: string, context?: any) => Promise<Intent>;
+  priority: number;
 }
 
-/**
- * Translation context - provides additional information for more accurate translations
- */
-export interface TranslationContext {
-  recentIntents?: Intent[];
-  conversationHistory?: string[];
-  selectedAssetId?: string | null;
-  relatedNodes?: GraphNode[];
+export interface AlternativeIntent {
+  intent: Intent;
+  confidence: number;
 }
 
-/**
- * Translation result with confidence scoring and alternatives
- */
 export interface TranslationResult {
   original: string;
   intent: Intent;
   confidence: number;
-  alternativeIntents: {
-    intent: Intent;
-    confidence: number;
-  }[];
+  alternativeIntents: AlternativeIntent[];
   parameters: Record<string, any>;
-  relatedNodes?: GraphNode[];
-  explanation?: string;
 }
 
-/**
- * Pattern-based translation strategy
- * Uses regex patterns and keyword matching for intent detection
- */
-export class PatternMatchingStrategy implements TranslationStrategy {
-  name = 'Pattern Matching';
-
-  async translate(input: string, context?: TranslationContext): Promise<TranslationResult> {
-    // Classify the input using the existing intentClassifier
-    const intent = classifyIntent(input);
+// Pattern matching strategy using regular expressions
+const patternMatchingStrategy: TranslationStrategy = {
+  name: 'Pattern Matching',
+  priority: 1,
+  async translate(input: string): Promise<Intent> {
+    const intent = await classifyIntent(input);
     
-    // Basic confidence score from the classifier
-    const confidence = intent.confidence;
-    
-    // Extract any additional parameters that might be relevant
-    const parameters = intent.parameters || {};
-    
-    // Find related nodes in the graph DB if context is provided
-    const relatedNodes: GraphNode[] = [];
-    
-    if (context?.selectedAssetId) {
-      try {
-        const node = graphDB.getNode(context.selectedAssetId);
-        if (node) {
-          // Find nodes related to the current selection
-          const relationships = graphDB.getNodeRelationships(context.selectedAssetId);
-          for (const rel of relationships) {
-            const relatedId = rel.sourceId === context.selectedAssetId ? rel.targetId : rel.sourceId;
-            const relatedNode = graphDB.getNode(relatedId);
-            if (relatedNode) {
-              relatedNodes.push(relatedNode);
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error finding related nodes:", error);
-      }
+    // Adjust confidence based on pattern matching precision
+    // This is a simplified example - real implementation would have more complex patterns
+    if (input.match(/^(create|draw|make|add)\s+a?\s+(circle|square|rectangle|triangle)/i)) {
+      intent.type = 'draw.shape';
+      intent.confidence = Math.min(intent.confidence + 0.2, 1.0);
+    } else if (input.match(/^(animate|move|rotate|spin|scale)\s+the\s+/i)) {
+      intent.type = 'animate.general';
+      intent.confidence = Math.min(intent.confidence + 0.15, 1.0);
+    } else if (input.match(/^(change|set|modify)\s+(color|style|font|size)/i)) {
+      intent.type = 'style.general';
+      intent.confidence = Math.min(intent.confidence + 0.15, 1.0);
     }
     
-    // Construct the result
-    return {
-      original: input,
-      intent,
-      confidence,
-      alternativeIntents: [],  // In a real implementation, we would provide alternatives
-      parameters,
-      relatedNodes,
-    };
+    return intent;
   }
+};
 
-  async getConfidence(input: string, context?: TranslationContext): Promise<number> {
-    const intent = classifyIntent(input);
-    return intent.confidence;
-  }
-}
-
-/**
- * Context-aware translation strategy
- * Uses conversation history and graph relationships for more accurate translations
- */
-export class ContextAwareStrategy implements TranslationStrategy {
-  name = 'Context Aware';
-
-  async translate(input: string, context?: TranslationContext): Promise<TranslationResult> {
-    // Base classification
-    const intent = classifyIntent(input);
-    let confidence = intent.confidence;
+// Context-aware strategy that considers previous interactions and application state
+const contextAwareStrategy: TranslationStrategy = {
+  name: 'Context Aware',
+  priority: 2,
+  async translate(input: string, context?: any): Promise<Intent> {
+    // Get base intent from the general classifier
+    const intent = await classifyIntent(input);
     
-    // Extract parameters
-    const parameters = { ...intent.parameters };
-    
-    // Find related nodes in the graph DB
-    const relatedNodes: GraphNode[] = [];
-    let explanation = '';
-    
-    // Boost confidence based on context
+    // If we have context, use it to refine the intent
     if (context) {
-      // 1. Check conversation history for context clues
-      if (context.conversationHistory && context.conversationHistory.length > 0) {
-        const recentMessages = context.conversationHistory.slice(-3);
-        
-        // Check if recent messages have related keywords
-        const domainKeywords = this.getDomainKeywords(intent.domain);
-        const hasRelevantHistory = recentMessages.some(msg => 
-          domainKeywords.some(keyword => msg.toLowerCase().includes(keyword))
-        );
-        
-        if (hasRelevantHistory) {
-          confidence = Math.min(0.95, confidence + 0.1);
-          explanation += 'Confidence boosted by recent conversation history. ';
+      // Example: if we're in the drawing context, bias towards drawing intents
+      if (context.currentTool === 'drawing') {
+        if (intent.domain !== 'drawing' && intent.confidence < 0.8) {
+          intent.domain = 'drawing';
+          intent.type = 'draw.general';
+          // Lower confidence since we're overriding
+          intent.confidence = Math.min(intent.confidence + 0.1, 0.9);
         }
       }
       
-      // 2. Use graph DB for related content
-      if (context.selectedAssetId) {
-        try {
-          // Query the graph for nodes related to the current context
-          const query: GraphQuery = {
-            properties: {
-              type: intent.domain
-            }
-          };
-          
-          const relevantNodes = graphDB.executeQuery(query);
-          
-          if (relevantNodes.length > 0) {
-            confidence = Math.min(0.95, confidence + 0.15);
-            explanation += 'Confidence boosted by related graph nodes. ';
-            relatedNodes.push(...relevantNodes.slice(0, 5));
-            
-            // Extract additional parameters from related nodes
-            relevantNodes.forEach(node => {
-              if (node.properties && node.properties.parameters) {
-                Object.entries(node.properties.parameters).forEach(([key, value]) => {
-                  if (!parameters[key]) {
-                    parameters[key] = value;
-                  }
-                });
-              }
-            });
+      // Example: if there's a selected element, bias towards modification intents
+      if (context.selectedElementId) {
+        if (input.match(/this|it|that|the selected/i)) {
+          // Likely referring to the selected element
+          if (input.match(/change|modify|update|edit/i)) {
+            intent.type = 'style.general';
+            intent.confidence = Math.min(intent.confidence + 0.15, 0.95);
           }
-        } catch (error) {
-          console.error("Error querying graph DB:", error);
         }
       }
     }
     
-    // Generate alternative intents
-    const alternativeIntents = this.generateAlternatives(intent, input);
+    return intent;
+  }
+};
+
+// Graph-enhanced strategy that uses the graph database for context and understanding
+const graphEnhancedStrategy: TranslationStrategy = {
+  name: 'Graph Enhanced',
+  priority: 3,
+  async translate(input: string): Promise<Intent> {
+    // Get base intent from the general classifier
+    const intent = await classifyIntent(input);
+    
+    try {
+      // Get related concepts from the graph database
+      const relatedConcepts = await getGraphNeighbors('input', input, 2);
+      
+      // Use related concepts to enhance understanding
+      if (relatedConcepts.length > 0) {
+        // Check if any related concepts strongly suggest a domain
+        const domainHints = relatedConcepts.filter(concept => 
+          concept.type === 'domain' || concept.type === 'intent'
+        );
+        
+        if (domainHints.length > 0) {
+          // Bias towards the suggested domain if confidence isn't already high
+          const suggestedDomain = domainHints[0].label.toLowerCase();
+          if (intent.domain !== suggestedDomain && intent.confidence < 0.8) {
+            intent.domain = suggestedDomain;
+            intent.type = `${suggestedDomain}.general` as IntentType;
+            intent.confidence = Math.min(intent.confidence + 0.1, 0.85);
+          }
+        }
+        
+        // Use parameter hints from the graph
+        const paramHints = relatedConcepts.filter(concept => 
+          concept.type === 'parameter' || concept.type === 'value'
+        );
+        
+        if (paramHints.length > 0) {
+          paramHints.forEach(param => {
+            if (param.properties && param.properties.key && param.properties.value) {
+              intent.parameters[param.properties.key] = param.properties.value;
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error using graph database for intent enhancement:', error);
+    }
+    
+    return intent;
+  }
+};
+
+// Combine all strategies
+const strategies: TranslationStrategy[] = [
+  patternMatchingStrategy,
+  contextAwareStrategy,
+  graphEnhancedStrategy
+];
+
+// Main service object
+const intentTranslator = {
+  /**
+   * Translate a natural language input into a structured intent
+   */
+  async translateIntent(input: string, context?: any): Promise<TranslationResult> {
+    // Use the best strategy by default
+    const result = await this.translateWithBestStrategy(input, context);
+    return result;
+  },
+  
+  /**
+   * Get all available translation strategies
+   */
+  getStrategies(): { name: string }[] {
+    return strategies.map(strategy => ({ name: strategy.name }));
+  },
+  
+  /**
+   * Translate using a specific named strategy
+   */
+  async translateWithStrategy(input: string, strategyName: string, context?: any): Promise<TranslationResult> {
+    const strategy = strategies.find(s => s.name === strategyName);
+    
+    if (!strategy) {
+      throw new Error(`Strategy "${strategyName}" not found`);
+    }
+    
+    const intent = await strategy.translate(input, context);
     
     return {
       original: input,
       intent,
-      confidence,
-      alternativeIntents,
-      parameters,
-      relatedNodes,
-      explanation
+      confidence: intent.confidence,
+      alternativeIntents: [],
+      parameters: intent.parameters
     };
-  }
-
-  async getConfidence(input: string, context?: TranslationContext): Promise<number> {
-    const result = await this.translate(input, context);
-    return result.confidence;
-  }
-  
-  private getDomainKeywords(domain: string): string[] {
-    // Map domains to relevant keywords for context matching
-    const keywords: Record<string, string[]> = {
-      'drawing': ['draw', 'sketch', 'color', 'shape', 'line', 'canvas'],
-      'styling': ['style', 'theme', 'color', 'font', 'layout', 'design'],
-      'animation': ['animate', 'move', 'transition', 'timing', 'motion'],
-      'website': ['website', 'page', 'section', 'element', 'component'],
-      'general': ['help', 'create', 'transform', 'convert', 'generate']
-    };
-    
-    return keywords[domain] || keywords['general'];
-  }
-  
-  private generateAlternatives(
-    primaryIntent: Intent, 
-    input: string
-  ): { intent: Intent; confidence: number }[] {
-    const alternatives: { intent: Intent; confidence: number }[] = [];
-    
-    // For demonstration purposes, generate some alternatives with lower confidence
-    // In a real implementation, we would use more sophisticated methods
-    
-    // Create an alternative with the same domain but different type
-    const alternativeTypes: Record<string, IntentType[]> = {
-      'drawing': ['draw.shape', 'draw.line', 'draw.fill'],
-      'styling': ['style.changeColor', 'style.changeFont', 'style.applyTheme'],
-      'animation': ['animate.fadeIn', 'animate.move', 'animate.rotate'],
-      'website': ['website.addSection', 'website.editElement', 'website.preview'],
-      'general': ['conversation', 'transform.styleExtraction']
-    };
-    
-    const possibleTypes = alternativeTypes[primaryIntent.domain] || alternativeTypes['general'];
-    const filteredTypes = possibleTypes.filter(type => type !== primaryIntent.type);
-    
-    if (filteredTypes.length > 0) {
-      // Take the first two alternatives
-      filteredTypes.slice(0, 2).forEach((type, index) => {
-        const confidenceReduction = 0.2 + (index * 0.1); // First alternative has higher confidence
-        
-        alternatives.push({
-          intent: {
-            ...primaryIntent,
-            type,
-            confidence: Math.max(0.1, primaryIntent.confidence - confidenceReduction)
-          },
-          confidence: Math.max(0.1, primaryIntent.confidence - confidenceReduction)
-        });
-      });
-    }
-    
-    return alternatives;
-  }
-}
-
-/**
- * Intent Translator class
- * Provides methods for translating natural language to structured intents
- */
-export class IntentTranslator {
-  private strategies: TranslationStrategy[] = [];
-  private defaultStrategy: TranslationStrategy;
-  
-  constructor() {
-    // Register translation strategies
-    const patternStrategy = new PatternMatchingStrategy();
-    const contextStrategy = new ContextAwareStrategy();
-    
-    this.strategies = [patternStrategy, contextStrategy];
-    this.defaultStrategy = contextStrategy; // Use context-aware as default
-  }
+  },
   
   /**
-   * Translates natural language input to a structured intent
+   * Translate using all strategies and pick the best result based on confidence
    */
-  async translateIntent(
-    input: string, 
-    context?: TranslationContext
-  ): Promise<TranslationResult> {
-    // Use the default strategy
-    return this.defaultStrategy.translate(input, context);
-  }
-  
-  /**
-   * Compares multiple translation strategies and returns the best result
-   */
-  async translateWithBestStrategy(
-    input: string, 
-    context?: TranslationContext
-  ): Promise<TranslationResult> {
-    // Get results from all strategies
-    const results = await Promise.all(
-      this.strategies.map(async strategy => ({
-        strategy: strategy.name,
-        result: await strategy.translate(input, context)
-      }))
+  async translateWithBestStrategy(input: string, context?: any): Promise<TranslationResult> {
+    // Run all strategies in parallel
+    const intents = await Promise.all(
+      strategies.map(strategy => strategy.translate(input, context))
     );
     
-    // Find the strategy with the highest confidence
-    let bestResult = results[0];
-    for (let i = 1; i < results.length; i++) {
-      if (results[i].result.confidence > bestResult.result.confidence) {
-        bestResult = results[i];
-      }
-    }
+    // Sort by confidence
+    const sortedIntents = [...intents].sort((a, b) => b.confidence - a.confidence);
     
-    return bestResult.result;
+    // The best intent is the one with the highest confidence
+    const bestIntent = sortedIntents[0];
+    
+    // Create alternative intents list (excluding the best one)
+    const alternativeIntents = sortedIntents.slice(1).map(intent => ({
+      intent,
+      confidence: intent.confidence
+    }));
+    
+    return {
+      original: input,
+      intent: bestIntent,
+      confidence: bestIntent.confidence,
+      alternativeIntents,
+      parameters: bestIntent.parameters
+    };
   }
-  
-  /**
-   * Gets all available translation strategies
-   */
-  getStrategies(): TranslationStrategy[] {
-    return this.strategies;
-  }
-}
+};
 
-// Create a singleton instance for global use
-const intentTranslator = new IntentTranslator();
 export default intentTranslator;

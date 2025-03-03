@@ -5,9 +5,17 @@
 import { classifyCommand } from './domains';
 import { extractParameters } from './parameterExtractor';
 
+export type IntentType = 
+  | 'draw.shape' | 'draw.line' | 'draw.text' | 'draw.image' | 'draw.general'
+  | 'style.color' | 'style.typography' | 'style.layout' | 'style.size' | 'style.general'
+  | 'animate.move' | 'animate.rotate' | 'animate.scale' | 'animate.fade' | 'animate.general'
+  | 'website.layout' | 'website.navigation' | 'website.form' | 'website.content' | 'website.general'
+  | 'media.extract' | 'media.generate' | 'media.transform' | 'media.general'
+  | 'general.conversation';
+
 export interface Intent {
   domain: string;         // e.g., 'drawing', 'styling', 'animation'
-  type: string;           // e.g., 'draw.shape', 'style.color', 'animate.bounce'
+  type: IntentType;       // e.g., 'draw.shape', 'style.color', 'animate.bounce'
   parameters: Record<string, any>; // Extracted parameters like color, size, position
   confidence: number;     // 0-1 value indicating confidence in classification
   rawInput: string;       // Original input text
@@ -26,7 +34,7 @@ export async function classifyIntent(input: string): Promise<Intent> {
   const type = determineIntentType(input, domain);
   
   // Extract parameters from the input
-  const parameters = extractParameters(input, domain, type);
+  const parameters = extractParameters(input);
   
   // Calculate confidence score
   const confidence = calculateConfidence(input, domain, type, parameters);
@@ -43,7 +51,7 @@ export async function classifyIntent(input: string): Promise<Intent> {
 /**
  * Determines the specific intent type based on domain and input text
  */
-function determineIntentType(input: string, domain: string): string {
+function determineIntentType(input: string, domain: string): IntentType {
   const normalizedInput = input.toLowerCase();
   
   // Domain-specific intent type classification
@@ -124,13 +132,13 @@ function determineIntentType(input: string, domain: string): string {
 function calculateConfidence(
   input: string, 
   domain: string, 
-  type: string, 
+  type: IntentType, 
   parameters: Record<string, any>
 ): number {
   let confidence = 0.5; // Base confidence
   
   // More specific intent types increase confidence
-  if (type !== `${domain}.general`) {
+  if (type !== `${domain}.general` as IntentType) {
     confidence += 0.15;
   }
   

@@ -30,7 +30,7 @@ export const parseCommand = (input: string): Command | null => {
       action,
       subject,
       parameters,
-      originalCommand: input
+      originalText: input
     };
   }
   
@@ -40,7 +40,7 @@ export const parseCommand = (input: string): Command | null => {
 // Simple domain determination based on subject keywords
 const determineDomain = (subject: string): CommandDomain => {
   if (subject.includes('style') || subject.includes('color') || subject.includes('font')) {
-    return 'style';
+    return 'styling';
   } else if (subject.includes('animation') || subject.includes('animate')) {
     return 'animation';
   } else if (subject.includes('draw') || subject.includes('shape')) {

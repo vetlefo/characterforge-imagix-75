@@ -3,9 +3,44 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
 // Mock fetch API
-global.fetch = vi.fn();
+global.fetch = vi.fn().mockImplementation(() => 
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({}),
+    text: () => Promise.resolve(""),
+    blob: () => Promise.resolve(new Blob()),
+    arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+    formData: () => Promise.resolve(new FormData()),
+    headers: new Headers(),
+    redirected: false,
+    status: 200,
+    statusText: "OK",
+    type: "basic" as ResponseType,
+    url: "",
+    clone: function() { return this; },
+    body: null,
+    bodyUsed: false
+  })
+);
+
 global.Request = vi.fn();
-global.Response = vi.fn();
+global.Response = vi.fn().mockImplementation(() => ({
+  ok: true,
+  json: () => Promise.resolve({}),
+  text: () => Promise.resolve(""),
+  blob: () => Promise.resolve(new Blob()),
+  arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+  formData: () => Promise.resolve(new FormData()),
+  headers: new Headers(),
+  redirected: false,
+  status: 200,
+  statusText: "OK",
+  type: "basic" as ResponseType,
+  url: "",
+  clone: function() { return this; },
+  body: null,
+  bodyUsed: false
+}));
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
