@@ -9,6 +9,7 @@ import AnimationPreviewPage from './pages/AnimationPreviewPage';
 import NotFound from './pages/NotFound';
 import StyleSystemPage from './pages/StyleSystemPage';
 import StyleSystemIntegrationPage from './pages/StyleSystemIntegrationPage';
+import MediaTransformPage from './pages/MediaTransformPage';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/animation" element={<AnimationPreviewPage />} />
         <Route path="/style-system" element={<StyleSystemPage />} />
         <Route path="/style-system-integration" element={<StyleSystemIntegrationPage />} />
+        <Route path="/media-transform" element={<MediaTransformPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </div>

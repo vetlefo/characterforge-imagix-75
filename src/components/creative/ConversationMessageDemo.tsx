@@ -1,192 +1,157 @@
+import React from 'react';
+import { Avatar } from '../ui/avatar';
+import { AvatarImage, AvatarFallback } from '@radix-ui/react-avatar';
+import { MessageCircle } from 'lucide-react';
+import { Separator } from '../ui/separator';
+import { Badge } from '../ui/badge';
+import { ScrollArea } from '../ui/scroll-area';
 
-import React, { useState } from "react";
-import { 
-  ConversationMessage, 
-  MessageGroupContainer,
-  InteractiveMessageElement
-} from "./ConversationMessage";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-
-const ConversationMessageDemo: React.FC = () => {
-  const [color, setColor] = useState("#ff5500");
-  const [size, setSize] = useState(100);
-  
-  // Example message group
-  const messageGroup = {
-    id: "group-1",
-    title: "Drawing Instructions",
-    messages: [
-      {
-        id: "msg-1",
-        sender: "user",
-        content: { type: "text", content: "Create a red circle in the center of the canvas" },
-        timestamp: new Date(Date.now() - 300000)
-      },
-      {
-        id: "msg-2",
-        sender: "assistant",
-        content: [
-          { type: "text", content: "I'll create a red circle for you. What size would you like it to be?" },
-          { 
-            type: "slider", 
-            min: 10, 
-            max: 300, 
-            defaultValue: [100], 
-            onValueChange: (value) => setSize(value[0]),
-            label: "Circle Size"
-          }
-        ],
-        timestamp: new Date(Date.now() - 240000)
-      },
-      {
-        id: "msg-3",
-        sender: "user",
-        content: { type: "text", content: "Make it 150px wide" },
-        timestamp: new Date(Date.now() - 180000)
-      }
-    ]
+interface ConversationMessageProps {
+  id: string;
+  sender: "user" | "assistant";
+  content: {
+    type: "text" | "image" | "code";
+    content: string | string[];
   };
+  timestamp: Date;
+}
+
+const ConversationMessage: React.FC<ConversationMessageProps> = ({
+  id,
+  sender,
+  content,
+  timestamp
+}) => {
+  const isUser = sender === "user";
+  const messageContent = Array.isArray(content.content) ? content.content : [content.content];
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Enhanced Conversation Messages</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="individual">
-          <TabsList className="mb-4">
-            <TabsTrigger value="individual">Individual Messages</TabsTrigger>
-            <TabsTrigger value="group">Message Groups</TabsTrigger>
-            <TabsTrigger value="interactive">Interactive Elements</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="individual">
-            <div className="space-y-4">
-              <ConversationMessage
-                id="msg-a"
-                sender="user"
-                content={{ type: "text", content: "I want to create a new website with a dark theme" }}
-              />
-              
-              <ConversationMessage
-                id="msg-b"
-                sender="assistant"
-                content={{ type: "text", content: "Great choice! Here's a preview of a dark-themed website I created based on your request:" }}
-              />
-              
-              <ConversationMessage
-                id="msg-c"
-                sender="assistant"
-                content={[
-                  { type: "text", content: "I've also prepared some code for you:" },
-                  { 
-                    type: "code", 
-                    content: `// Dark theme styles
-const darkTheme = {
-  background: '#121212',
-  text: '#ffffff',
-  primary: '#bb86fc',
-  secondary: '#03dac6',
-  error: '#cf6679'
-};` 
-                  }
-                ]}
-                visualIndicator="info"
-              />
-              
-              <ConversationMessage
-                id="msg-d"
-                sender="user"
-                content={{ type: "text", content: "Can you change the primary color to something more blue?" }}
-                referencesMessageId="msg-c"
-              />
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="group">
-            <MessageGroupContainer group={messageGroup} />
-          </TabsContent>
-          
-          <TabsContent value="interactive">
-            <ConversationMessage
-              id="interactive-1"
-              sender="assistant"
-              content={[
-                { type: "text", content: "Here are some interactive controls you can use to customize your design:" }
-              ]}
-            />
-            
-            <Card className="mt-4 bg-[#1A1A2E] border border-[#2A2A4A]/50 text-white">
-              <CardContent className="p-4">
-                <InteractiveMessageElement 
-                  label="Color Selection" 
-                  tooltip="Choose a color for your design element"
-                >
-                  <div className="flex gap-2 items-center">
-                    <Input 
-                      type="color" 
-                      value={color}
-                      onChange={(e) => setColor(e.target.value)}
-                      className="w-12 h-10 p-1 bg-transparent"
-                    />
-                    <Input 
-                      type="text" 
-                      value={color}
-                      onChange={(e) => setColor(e.target.value)}
-                      className="w-32"
-                    />
-                    <div 
-                      className="w-8 h-8 rounded-full ml-2" 
-                      style={{ backgroundColor: color }}
-                    />
-                  </div>
-                </InteractiveMessageElement>
-                
-                <InteractiveMessageElement 
-                  label="Size Adjustment" 
-                  tooltip="Adjust the size of your element"
-                >
-                  <div className="flex gap-4 items-center">
-                    <Slider
-                      min={10}
-                      max={300}
-                      step={1}
-                      defaultValue={[size]}
-                      onValueChange={(value) => setSize(value[0])}
-                      className="w-full"
-                    />
-                    <span className="text-sm w-12 text-right">{size}px</span>
-                  </div>
-                </InteractiveMessageElement>
-                
-                <InteractiveMessageElement label="Preview">
-                  <div className="flex justify-center items-center p-4 bg-[#0A0A1B] rounded-lg">
-                    <div 
-                      style={{ 
-                        width: `${size}px`, 
-                        height: `${size}px`, 
-                        backgroundColor: color,
-                        borderRadius: '50%'
-                      }} 
-                    />
-                  </div>
-                </InteractiveMessageElement>
-                
-                <div className="mt-4 flex justify-end gap-2">
-                  <Button variant="outline">Reset</Button>
-                  <Button>Apply Changes</Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
+      <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
+        <div className="flex items-center">
+          {!isUser && (
+            <Avatar className="mr-2">
+              <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+              <AvatarFallback>CN</AvatarFallback>
+            </Avatar>
+          )}
+          <div className="flex flex-col">
+            {messageContent.map((message, index) => (
+              <div
+                key={`${id}-${index}`}
+                className={`rounded-lg p-3 text-sm w-fit max-w-[400px] ${isUser ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-800'}`}
+              >
+                {content.type === "text" ? (
+                  message
+                ) : content.type === "image" ? (
+                  <img src={message} alt="Message Image" className="max-w-full rounded-md" />
+                ) : (
+                  <pre className="text-xs font-mono">{message}</pre>
+                )}
+              </div>
+            ))}
+          </div>
+          {isUser && (
+            <Avatar className="ml-2">
+              <AvatarImage src="https://github.com/sadmann7.png" alt="@sadmann7" />
+              <AvatarFallback>SM</AvatarFallback>
+            </Avatar>
+          )}
+        </div>
+        <span className="text-xs text-gray-500 mt-1">
+          {timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </span>
+      </div>
+    </div>
   );
+};
+
+interface ExampleMessageGroup {
+  id: string;
+  title: string;
+  messages: ConversationMessageProps[];
+}
+
+interface ConversationDemoProps {
+  messageGroup: ExampleMessageGroup;
+}
+
+const ConversationMessageDemo: React.FC<ConversationDemoProps> = ({ messageGroup }) => {
+  return (
+    <div className="w-full flex flex-col rounded-lg border border-border bg-card text-card-foreground shadow-sm">
+      <div className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-4">
+          <MessageCircle size={20} className="text-muted-foreground" />
+          <h2 className="text-lg font-semibold">{messageGroup.title}</h2>
+        </div>
+        <Badge variant="secondary">3 Messages</Badge>
+      </div>
+      <Separator />
+      <ScrollArea className="flex-1 h-[300px]">
+        <div className="p-4">
+          {messageGroup.messages.map(message => (
+            <ConversationMessage key={message.id} {...message} />
+          ))}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+};
+
+// Update the example message group to match the required types
+const exampleMessageGroup: ExampleMessageGroup = {
+  id: "group-1",
+  title: "Generate a Landing Page",
+  messages: [
+    {
+      id: "msg-1",
+      sender: "user",
+      content: {
+        type: "text",
+        content: "Generate a landing page for my fitness app called FitQuest."
+      },
+      timestamp: new Date(Date.now() - 60000)
+    },
+    {
+      id: "msg-2",
+      sender: "assistant",
+      content: [
+        {
+          type: "text",
+          content: "I'll create a landing page for your fitness app FitQuest. What specific features would you like to highlight?"
+        }
+      ],
+      timestamp: new Date(Date.now() - 45000)
+    },
+    {
+      id: "msg-3",
+      sender: "user",
+      content: {
+        type: "text",
+        content: "I want to showcase workout tracking, personalized fitness plans, and social sharing."
+      },
+      timestamp: new Date(Date.now() - 30000)
+    },
+    {
+      id: "msg-4",
+      sender: "assistant",
+      content: [
+        {
+          type: "text",
+          content: "Okay, I'm generating a landing page design that highlights workout tracking, personalized fitness plans, and social sharing for FitQuest. Here's a preview:"
+        },
+        {
+          type: "image",
+          content: "https://placehold.co/600x400/png",
+        },
+        {
+          type: "text",
+          content: "Do you like this direction? Should I refine the color scheme or layout?"
+        }
+      ],
+      timestamp: new Date(Date.now() - 15000)
+    }
+  ]
 };
 
 export default ConversationMessageDemo;

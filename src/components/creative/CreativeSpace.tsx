@@ -2,8 +2,9 @@
 import { useState } from "react";
 import DrawingModule from "../draw/DrawingModule";
 import { Button } from "../ui/button";
-import { Layers } from "lucide-react";
+import { Layers, Wand2 } from "lucide-react";
 import { useCreative } from "./CreativeContext";
+import MediaTransform from "./MediaTransform/MediaTransform";
 
 interface CreativeSpaceProps {
   children?: React.ReactNode;
@@ -20,6 +21,8 @@ const CreativeSpace = ({ children, lastImage, onDrawingComplete }: CreativeSpace
     setSuggestionsVisible,
     addAsset
   } = useCreative();
+  
+  const [showMediaTransform, setShowMediaTransform] = useState(false);
 
   // Handle drawing completion with context awareness
   const handleDrawingComplete = (dataUrl: string) => {
@@ -41,6 +44,9 @@ const CreativeSpace = ({ children, lastImage, onDrawingComplete }: CreativeSpace
         setSuggestionsVisible(true);
       }, 1000);
     }
+    
+    // Show media transform options after drawing is complete
+    setShowMediaTransform(true);
   };
 
   // Start drawing mode
@@ -64,6 +70,14 @@ const CreativeSpace = ({ children, lastImage, onDrawingComplete }: CreativeSpace
                 triggerLabel="Continue Creating"
                 initialImage={lastImage}
               />
+              <Button 
+                variant="outline" 
+                className="border-white/20 text-white bg-black/30 backdrop-blur-sm gap-2"
+                onClick={() => setShowMediaTransform(!showMediaTransform)}
+              >
+                <Wand2 size={16} />
+                Transform Media
+              </Button>
               <Button variant="outline" className="border-white/20 text-white bg-black/30 backdrop-blur-sm">
                 Export
               </Button>
@@ -109,6 +123,13 @@ const CreativeSpace = ({ children, lastImage, onDrawingComplete }: CreativeSpace
               </Button>
             </div>
           </div>
+        </div>
+      )}
+      
+      {/* Media transformation panel */}
+      {showMediaTransform && lastImage && (
+        <div className="mt-4">
+          <MediaTransform imageUrl={lastImage} />
         </div>
       )}
     </div>
