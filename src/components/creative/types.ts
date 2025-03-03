@@ -27,6 +27,33 @@ export interface CreativeContextState {
   lastPrompt: string;
   assets: Asset[];
   selectedAssetId: string | null;
+  conversationHistory: ConversationMessage[];
+  creativeIntent?: string;
 }
 
 export type AssetUpdateData = Partial<Omit<Asset, "id" | "createdAt">>;
+
+export interface MessageContent {
+  type: string;
+  content: string;
+}
+
+export interface ConversationMessage {
+  id?: string;
+  sender: string;
+  content: MessageContent | MessageContent[];
+  timestamp?: Date;
+  actions?: Action[];
+  metadata?: Record<string, any>;
+  intentData?: {
+    type: string;
+    confidence: number;
+    parameters: Record<string, any>;
+  };
+}
+
+export interface Action {
+  type: string;
+  label: string;
+  payload: Record<string, any>;
+}

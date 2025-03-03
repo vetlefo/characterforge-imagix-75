@@ -44,29 +44,3 @@ export interface DomainHandler {
   execute: (command: Command) => void;
   canHandle: (command: Command) => boolean;
 }
-
-// These interfaces are needed for ConversationalInterface.tsx
-export interface MessageContent {
-  type: string;
-  content: string;
-}
-
-export interface ConversationMessage {
-  id?: string;
-  sender: string;
-  content: MessageContent;
-  timestamp?: Date;
-  actions?: Action[];
-  metadata?: Record<string, any>;
-  intentData?: {
-    type: string;
-    confidence: number;
-    parameters: Record<string, any>;
-  };
-}
-
-export interface Action {
-  type: string;
-  label: string;
-  payload: Record<string, any>;
-}

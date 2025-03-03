@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
-import { Asset, Relationship, CreativeContextState, AssetUpdateData } from "./types";
+import { Asset, Relationship, CreativeContextState, AssetUpdateData, ConversationMessage, Action } from "./types";
 import { v4 as uuidv4 } from "uuid";
 
 interface CreativeContextType extends CreativeContextState {
@@ -29,6 +29,12 @@ interface CreativeContextType extends CreativeContextState {
   
   // Helper to get all unique tags
   tags: string[];
+  
+  // Conversation methods
+  addConversationMessage: (message: ConversationMessage) => void;
+  executeCreativeAction: (actionType: string, payload: any) => void;
+  suggestRelevantAssets: () => Asset[];
+  analyzeCreativeIntent: (input: string) => void;
 }
 
 const CreativeContext = createContext<CreativeContextType | undefined>(undefined);
@@ -40,7 +46,8 @@ export const CreativeProvider = ({ children }: { children: ReactNode }) => {
     suggestionsVisible: false,
     lastPrompt: "",
     assets: [],
-    selectedAssetId: null
+    selectedAssetId: null,
+    conversationHistory: []
   });
 
   // Load assets from localStorage on mount
@@ -255,6 +262,50 @@ export const CreativeProvider = ({ children }: { children: ReactNode }) => {
     return Array.from(tagSet);
   }, [state.assets]);
 
+  // New conversation methods
+  const addConversationMessage = useCallback((message: ConversationMessage) => {
+    const messageWithId = {
+      ...message,
+      id: message.id || uuidv4(),
+      timestamp: message.timestamp || new Date()
+    };
+    
+    setState(prev => ({
+      ...prev,
+      conversationHistory: [...prev.conversationHistory, messageWithId]
+    }));
+    
+    return messageWithId;
+  }, []);
+  
+  const executeCreativeAction = useCallback((actionType: string, payload: any) => {
+    console.log(`Executing action: ${actionType}`, payload);
+    
+    // Here we would implement actual action handling logic
+    // For now just log it
+    
+    // Update last action in state
+    setState(prev => ({
+      ...prev,
+      lastAction: {
+        type: actionType,
+        payload
+      }
+    }));
+  }, []);
+  
+  const suggestRelevantAssets = useCallback(() => {
+    // Implement logic to suggest assets based on current context
+    // For now just return most recent assets
+    return state.assets.slice(-5);
+  }, [state.assets]);
+  
+  const analyzeCreativeIntent = useCallback((input: string) => {
+    // Here we would implement actual intent analysis
+    // For now just set the current intent directly
+    setCurrentIntent(input);
+  }, []);
+
   return (
     <CreativeContext.Provider
       value={{
@@ -275,7 +326,11 @@ export const CreativeProvider = ({ children }: { children: ReactNode }) => {
         deleteRelationship,
         getRelatedAssets,
         setSelectedAssetId,
-        tags: getAllUniqueTags()
+        tags: getAllUniqueTags(),
+        addConversationMessage,
+        executeCreativeAction,
+        suggestRelevantAssets,
+        analyzeCreativeIntent
       }}
     >
       {children}
