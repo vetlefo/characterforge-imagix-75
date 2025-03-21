@@ -100,26 +100,10 @@ export default function Index() {
         <section className="my-12 max-w-7xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">Recent Creations</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <CreationCard
-              type="image"
-              name="Abstract Art"
-              image="https://source.unsplash.com/random/400x300?art"
-            />
-            <CreationCard
-              type="image"
-              name="Modern Logo"
-              image="https://source.unsplash.com/random/400x300?logo"
-            />
-            <CreationCard
-              type="image"
-              name="UI Mockup"
-              image="https://source.unsplash.com/random/400x300?ui"
-            />
-            <CreationCard
-              type="image"
-              name="3D Render"
-              image="https://source.unsplash.com/random/400x300?3d"
-            />
+            <CreationCard type="image" />
+            <CreationCard type="image" />
+            <CreationCard type="image" />
+            <CreationCard type="image" />
           </div>
         </section>
 
