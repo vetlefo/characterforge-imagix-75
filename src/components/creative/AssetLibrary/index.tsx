@@ -141,7 +141,7 @@ const AssetLibrary = ({
   return <div className={`space-y-6 ${className}`}>
       <div className="flex flex-col gap-4">
         <div className="flex justify-between items-start">
-          <h2 className="text-2xl font-medium text-white">Asset Library</h2>
+          <h2 className="text-2xl font-medium text-white">Your personal media assets</h2>
           
           <Dialog open={creationDialogOpen} onOpenChange={setCreationDialogOpen}>
             <DialogTrigger asChild>
