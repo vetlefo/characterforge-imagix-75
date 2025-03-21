@@ -7,17 +7,17 @@ export interface MediaTransformProps {
 }
 
 export interface MediaPreviewProps {
-  imageUrl: string;
+  imageUrl?: string;
 }
 
 export interface StyleExtractorProps {
-  imageUrl: string;
+  imageUrl?: string;
 }
 
 export interface AnimationGeneratorProps {
-  imageUrl: string;
+  imageUrl?: string;
 }
 
 export interface CodeGeneratorProps {
-  imageUrl: string;
+  imageUrl?: string;
 }

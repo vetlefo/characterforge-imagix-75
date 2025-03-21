@@ -1,4 +1,3 @@
-
 import React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import ReactMarkdown from "react-markdown";
+import { Action } from "./types";
 
 // Define the types of content that can be displayed in a message
 export type MessageContent = 
@@ -32,6 +32,7 @@ export interface ConversationMessageProps {
   referencesMessageId?: string;
   groupId?: string;
   visualIndicator?: "success" | "error" | "warning" | "info";
+  actions?: Action[];
 }
 
 export const ConversationMessage: React.FC<ConversationMessageProps> = ({
@@ -42,7 +43,8 @@ export const ConversationMessage: React.FC<ConversationMessageProps> = ({
   className,
   isHighlighted,
   referencesMessageId,
-  visualIndicator
+  visualIndicator,
+  actions
 }) => {
   // Format the timestamp
   const formattedTime = timestamp.toLocaleTimeString([], { 

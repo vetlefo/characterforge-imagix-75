@@ -31,15 +31,15 @@ const MockResponse = vi.fn().mockImplementation((body, init) => {
 global.Response = MockResponse as any;
 
 // Add static methods to Response
-Response.error = vi.fn().mockImplementation(() => {
+global.Response.error = vi.fn().mockImplementation(() => {
   return new Response(null, { status: 500 });
 });
 
-Response.json = vi.fn().mockImplementation((data, init) => {
+global.Response.json = vi.fn().mockImplementation((data, init) => {
   return new Response(JSON.stringify(data), init);
 });
 
-Response.redirect = vi.fn().mockImplementation((url, status) => {
+global.Response.redirect = vi.fn().mockImplementation((url, status) => {
   return new Response(null, { 
     status: status || 302,
     headers: { Location: url.toString() }

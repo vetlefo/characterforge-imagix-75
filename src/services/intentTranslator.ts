@@ -1,5 +1,5 @@
 
-import { GraphNode, GraphConnection } from "./graphDB";
+import { GraphNode } from "./graphDB";
 
 // Define interfaces and types
 export interface GraphQuery {
@@ -12,38 +12,48 @@ export interface GraphQuery {
   }[];
 }
 
-export type IntentType = "drawing" | "styling" | "animation" | "transform" | "ui" | "unknown";
+export type IntentType = "drawing" | "styling" | "animation" | "transform" | "ui" | "unknown" | "general" | "conversation";
 
 export interface Intent {
   type: IntentType;
   domain: string;
   action: string;
   params?: Record<string, any>;
+  confidence?: number;
+  rawInput?: string;
 }
 
 export interface TranslationResult {
   success: boolean;
   originalInput: string;
-  intent?: Intent;
+  original?: string;
+  intent: Intent;
   confidence: number;
   actions?: { type: string; payload: any }[];
   metadata?: Record<string, any>;
   relatedNodes?: GraphNode[];
   explanation?: string;
+  parameters?: Record<string, any>;
+  alternativeIntents?: Array<{
+    intent: Intent;
+    confidence: number;
+  }>;
 }
 
 export interface TranslationContext {
-  recentIntents: Intent[];
+  recentIntents?: Intent[];
   userPreferences?: Record<string, any>;
   projectContext?: {
     currentDomain?: string;
     recentAssets?: string[];
   };
+  conversationHistory?: string[];
+  selectedAssetId?: string | null;
 }
 
 // Abstract strategy class
 export abstract class TranslationStrategy {
-  abstract translate(input: string, context?: TranslationContext): TranslationResult;
+  abstract translate(input: string, context?: TranslationContext): Promise<TranslationResult> | TranslationResult;
   abstract name: string;
 }
 
@@ -97,7 +107,7 @@ export class PatternMatchingStrategy extends TranslationStrategy {
       intentType = "ui";
       confidence = 0.7;
     } else if (conversations.some(pattern => pattern.test(input))) {
-      intentType = "unknown";
+      intentType = "general";
       confidence = 0.5;
     }
     
@@ -105,13 +115,16 @@ export class PatternMatchingStrategy extends TranslationStrategy {
     return {
       success: intentType !== "unknown",
       originalInput: input,
-      intent: intentType !== "unknown" ? {
+      original: input,
+      intent: {
         type: intentType,
         domain: intentType,
         action: "create",
         params: {}
-      } : undefined,
-      confidence: confidence
+      },
+      confidence: confidence,
+      parameters: {},
+      alternativeIntents: []
     };
   }
 }
@@ -161,7 +174,44 @@ export class ContextAwareStrategy extends TranslationStrategy {
       }
     }
     
-    return patternResult;
+    // For related context, we would need to query a graph database
+    // This is a simplified approximation
+    if (context?.selectedAssetId) {
+      const query: GraphQuery = {
+        nodeType: patternResult.intent.type,
+        domain: patternResult.intent.domain
+      };
+      
+      // In a real implementation, we would use the query to fetch related nodes
+      // from a graph database. For now, we're just simulating it.
+      const relatedNodes: GraphNode[] = [];
+      
+      // Add related nodes if found
+      if (relatedNodes.length > 0) {
+        return {
+          ...patternResult,
+          relatedNodes
+        };
+      }
+    }
+    
+    // Generate alternative interpretations
+    const alternativeIntents = [
+      {
+        intent: {
+          type: "general" as IntentType,
+          domain: "general",
+          action: "respond",
+          params: {}
+        },
+        confidence: 0.4
+      }
+    ];
+    
+    return {
+      ...patternResult,
+      alternativeIntents
+    };
   }
 }
 
@@ -184,35 +234,32 @@ export class IntentTranslator {
     this.context = context;
   }
   
-  translate(input: string): TranslationResult {
+  translateIntent(input: string, context?: TranslationContext): Promise<TranslationResult> | TranslationResult {
     // Try each strategy in order until one succeeds with high confidence
-    for (const strategy of this.strategies) {
-      const result = strategy.translate(input, this.context);
-      
-      if (result.success && result.confidence > 0.7) {
-        // Update context with this new intent if it exists
-        if (result.intent) {
-          this.context.recentIntents = [
-            result.intent, 
-            ...this.context.recentIntents.slice(0, 2)
-          ];
-        }
-        return result;
-      }
+    const currentContext = context || this.context;
+    return this.strategies[0].translate(input, currentContext);
+  }
+  
+  translateWithBestStrategy(input: string, context?: TranslationContext): Promise<TranslationResult> | TranslationResult {
+    // Try each strategy in order until one succeeds with high confidence
+    const currentContext = context || this.context;
+    const results = this.strategies.map(strategy => strategy.translate(input, currentContext));
+    
+    if (Array.isArray(results) && results.length > 0) {
+      // Sort by confidence
+      results.sort((a, b) => b.confidence - a.confidence);
+      return results[0];
     }
     
-    // If no strategy gave a high-confidence result, use the first strategy's result
-    const fallbackResult = this.strategies[0].translate(input, this.context);
-    
-    // Only update context if the result has some confidence
-    if (fallbackResult.intent && fallbackResult.confidence > 0.4) {
-      this.context.recentIntents = [
-        fallbackResult.intent, 
-        ...this.context.recentIntents.slice(0, 2)
-      ];
-    }
-    
-    return fallbackResult;
+    return this.strategies[0].translate(input, currentContext);
+  }
+  
+  getStrategies(): TranslationStrategy[] {
+    return this.strategies;
+  }
+  
+  translate(input: string): TranslationResult {
+    return this.translateIntent(input, this.context) as TranslationResult;
   }
 }
 
