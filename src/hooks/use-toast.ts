@@ -1,3 +1,4 @@
+
 import * as React from "react"
 
 import type {
@@ -6,7 +7,7 @@ import type {
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 5000 // Updated to 5 seconds
+const TOAST_REMOVE_DELAY = 5000 // 5 seconds
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
@@ -23,6 +24,16 @@ function genId() {
 }
 
 type ActionType = typeof actionTypes
+
+// Define the ToasterToast type that was missing
+interface ToasterToast extends ToastProps {
+  id: string
+  title?: React.ReactNode
+  description?: React.ReactNode
+  action?: ToastActionElement
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
 
 type Action =
   | {
