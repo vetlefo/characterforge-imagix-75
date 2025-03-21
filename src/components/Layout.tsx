@@ -1,18 +1,24 @@
+
 import React from 'react';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup } from '@/components/ui/sidebar';
 import { Home, PenLine, Layers, Play, LightbulbIcon, Orbit, PanelLeft, PanelRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
+import CollaborationVisualizer from './creative/CollaborationVisualizer';
+
 interface LayoutProps {
   children: React.ReactNode;
 }
+
 const Layout: React.FC<LayoutProps> = ({
   children
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
+  
   const toggleSidebar = () => {
     setIsExpanded(prev => !prev);
   };
+  
   return <SidebarProvider defaultOpen={isExpanded}>
       <div className="flex h-screen w-full bg-background">
         <Sidebar variant="sidebar" collapsible={isExpanded ? "none" : "icon"} className="bg-[#333370] z-50 border-none" style={{
@@ -106,7 +112,11 @@ const Layout: React.FC<LayoutProps> = ({
         <main className="flex-1 overflow-auto bg-background">
           {children}
         </main>
+        
+        {/* Add the Collaboration Visualizer */}
+        <CollaborationVisualizer />
       </div>
     </SidebarProvider>;
 };
+
 export default Layout;

@@ -46,6 +46,52 @@ class InMemoryGraphDB {
     this.nodes = new Map();
     this.relationships = new Map();
     this.nodeRelationships = new Map();
+    
+    // Initialize with some basic nodes for the collaboration visualizer
+    this.initializeCollaborationGraph();
+  }
+  
+  private initializeCollaborationGraph() {
+    // Add core nodes - human and AI
+    this.createNode('human-core', 'human', { label: 'User', importance: 10 });
+    this.createNode('ai-core', 'ai', { label: 'AI Assistant', importance: 10 });
+    
+    // Add some initial concept nodes
+    this.createNode('concept-1', 'concept', { label: 'Initial Idea', importance: 5 });
+    this.createNode('concept-2', 'concept', { label: 'Refined Concept', importance: 6 });
+    
+    // Create relationships
+    this.createRelationship(
+      'rel-1', 
+      'human-core', 
+      'concept-1', 
+      'created', 
+      { confidence: 1.0 }
+    );
+    
+    this.createRelationship(
+      'rel-2', 
+      'ai-core', 
+      'concept-1', 
+      'improved', 
+      { confidence: 0.8 }
+    );
+    
+    this.createRelationship(
+      'rel-3', 
+      'ai-core', 
+      'concept-2', 
+      'created', 
+      { confidence: 0.9 }
+    );
+    
+    this.createRelationship(
+      'rel-4', 
+      'concept-1', 
+      'concept-2', 
+      'led-to', 
+      { strength: 0.7 }
+    );
   }
 
   // Node operations
@@ -301,6 +347,51 @@ class InMemoryGraphDB {
     return results;
   }
 
+  // Visualization-specific operations
+  
+  public getGraphForVisualization(options: {
+    nodeTypes?: string[];
+    maxNodes?: number;
+    includeProperties?: boolean;
+  } = {}) {
+    const { nodeTypes, maxNodes = 50, includeProperties = false } = options;
+    
+    // Filter nodes by type if specified
+    let filteredNodes = nodeTypes 
+      ? Array.from(this.nodes.values()).filter(node => nodeTypes.includes(node.type))
+      : Array.from(this.nodes.values());
+      
+    // Limit the number of nodes if specified
+    if (filteredNodes.length > maxNodes) {
+      filteredNodes = filteredNodes.slice(0, maxNodes);
+    }
+    
+    // Get all relationships involving these nodes
+    const nodeIds = new Set(filteredNodes.map(node => node.id));
+    const filteredRelationships = Array.from(this.relationships.values())
+      .filter(rel => nodeIds.has(rel.sourceId) && nodeIds.has(rel.targetId));
+    
+    // Format for visualization
+    const visNodes = filteredNodes.map(node => ({
+      id: node.id,
+      type: node.type,
+      label: node.properties.label || node.id,
+      properties: includeProperties ? node.properties : undefined,
+      createdAt: node.createdAt
+    }));
+    
+    const visEdges = filteredRelationships.map(rel => ({
+      id: rel.id,
+      source: rel.sourceId,
+      target: rel.targetId,
+      type: rel.type,
+      properties: includeProperties ? rel.properties : undefined,
+      createdAt: rel.createdAt
+    }));
+    
+    return { nodes: visNodes, edges: visEdges };
+  }
+  
   // Utility operations
   
   public getAllNodes(): GraphNode[] {
