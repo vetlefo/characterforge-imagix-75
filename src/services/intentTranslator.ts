@@ -240,18 +240,28 @@ export class IntentTranslator {
     return this.strategies[0].translate(input, currentContext);
   }
   
-  translateWithBestStrategy(input: string, context?: TranslationContext): Promise<TranslationResult> | TranslationResult {
+  async translateWithBestStrategy(input: string, context?: TranslationContext): Promise<TranslationResult> {
     // Try each strategy in order until one succeeds with high confidence
     const currentContext = context || this.context;
-    const results = this.strategies.map(strategy => strategy.translate(input, currentContext));
     
-    if (Array.isArray(results) && results.length > 0) {
-      // Sort by confidence
+    // Collect all strategy results, resolving any promises
+    const resultsPromises = this.strategies.map(strategy => {
+      const result = strategy.translate(input, currentContext);
+      return result instanceof Promise ? result : Promise.resolve(result);
+    });
+    
+    // Wait for all results to resolve
+    const results = await Promise.all(resultsPromises);
+    
+    if (results.length > 0) {
+      // Sort by confidence after all promises have resolved
       results.sort((a, b) => b.confidence - a.confidence);
       return results[0];
     }
     
-    return this.strategies[0].translate(input, currentContext);
+    // Fallback to first strategy if something went wrong
+    const result = await Promise.resolve(this.strategies[0].translate(input, currentContext));
+    return result;
   }
   
   getStrategies(): TranslationStrategy[] {
