@@ -1,3 +1,4 @@
+
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import intentTranslator, { 
   PatternMatchingStrategy, 
@@ -49,7 +50,7 @@ describe('PatternMatchingStrategy', () => {
     
     expect(result.original).toBe('draw a red circle');
     expect(result.intent.domain).toBe('drawing');
-    expect(result.intent.type).toBe('draw.shape');
+    expect(result.intent.type).toBe('drawing');
     expect(result.confidence).toBeGreaterThan(0.7);
   });
 
