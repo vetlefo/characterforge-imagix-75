@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup } from '@/components/ui/sidebar';
 import { Home, PenLine, Layers, Play, Orbit, PanelLeft, PanelRight, BookImage, Palette, Settings, User } from 'lucide-react';
@@ -111,7 +112,7 @@ const Layout: React.FC<LayoutProps> = ({
               <SidebarMenu className="w-full">
                 <SidebarMenuItem className="flex justify-center">
                   <SidebarMenuButton asChild tooltip="Settings" isActive={location.pathname === '/settings'}>
-                    <Link to="/settings" className="flex items-center justify-center">
+                    <Link to="/settings" className="flex items-center justify-center" style={{ marginLeft: "15px" }}>
                       <Settings size={20} />
                       <span>Settings</span>
                     </Link>
@@ -126,12 +127,13 @@ const Layout: React.FC<LayoutProps> = ({
                   size="icon" 
                   onClick={toggleSidebar} 
                   className="flex justify-center text-white hover:bg-[#1a1a40] mt-3 mb-2 w-8 h-8 p-0"
+                  style={{ marginLeft: "15px" }}
                 >
                   <PanelRight size={16} />
                 </Button>
               )}
               
-              <div className="text-xs text-center text-sidebar-foreground/60 mt-1">
+              <div className="text-xs text-center text-sidebar-foreground/60 mt-1" style={{ marginLeft: "15px" }}>
                 v1.0
               </div>
             </div>
