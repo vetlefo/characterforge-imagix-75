@@ -35,14 +35,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ className, children }) => {
       {isOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={() => toggle()}
+          onClick={toggle}
         />
       )}
       
       {/* Sidebar panel */}
       <aside 
         className={cn(
-          "fixed left-0 top-0 h-full w-64 border-r bg-background z-50 transform transition-transform duration-200 ease-in-out",
+          "fixed left-0 top-0 h-full w-64 bg-background z-50 transform transition-transform duration-200 ease-in-out",
           isOpen ? "translate-x-0" : "-translate-x-full",
           "md:translate-x-0 md:z-10", // Always visible on desktop with lower z-index
           className
