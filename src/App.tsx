@@ -18,6 +18,9 @@ import WebsitePreviewDemo from "./pages/WebsitePreviewDemo";
 import AssetLibraryPage from "./pages/AssetLibraryPage";
 import StyleSystemPage from "./pages/StyleSystemPage";
 import Home from "./pages/Home";
+import Settings from "./pages/Settings";
+import Profile from "./pages/Profile";
+import Integrations from "./pages/Integrations";
 
 // Routes configuration
 const routes = [
@@ -73,6 +76,18 @@ const routes = [
   {
     path: "/style-system",
     element: <StyleSystemPage />,
+  },
+  {
+    path: "/settings",
+    element: <Settings />,
+  },
+  {
+    path: "/profile",
+    element: <Profile />,
+  },
+  {
+    path: "/integrations",
+    element: <Integrations />,
   }
 ];
 

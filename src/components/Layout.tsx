@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup } from '@/components/ui/sidebar';
-import { Home, PenLine, Layers, Play, LightbulbIcon, Orbit, PanelLeft, PanelRight, BookImage, Palette } from 'lucide-react';
+import { Home, PenLine, Layers, Play, Orbit, PanelLeft, PanelRight, BookImage, Palette, Settings, User } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from './ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,7 +13,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({
   children
 }) => {
-  const [isExpanded, setIsExpanded] = React.useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const location = useLocation();
   
   const toggleSidebar = () => {
@@ -102,6 +103,15 @@ const Layout: React.FC<LayoutProps> = ({
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Settings" isActive={location.pathname === '/settings'}>
+                    <Link to="/settings">
+                      <Settings size={20} />
+                      <span>Settings</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroup>
           </SidebarContent>
@@ -119,9 +129,37 @@ const Layout: React.FC<LayoutProps> = ({
           </SidebarFooter>
         </Sidebar>
         
-        <main className="flex-1 overflow-auto bg-[#0F0F23]">
-          {children}
-        </main>
+        <div className="flex flex-col flex-1 overflow-hidden bg-[#0F0F23]">
+          {/* Top navigation bar for user and settings */}
+          <header className="h-12 bg-[#0f0f23] border-b border-[#333370]/30 px-4 flex items-center justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 bg-[#333370]/20 text-white hover:bg-[#333370]/40">
+                  <User size={16} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 bg-[#1a1a40] border-[#333370] text-white">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/profile" className="cursor-pointer">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/settings" className="cursor-pointer">Settings</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/integrations" className="cursor-pointer">Integrations</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer">Log out</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </header>
+          
+          <main className="flex-1 overflow-auto">
+            {children}
+          </main>
+        </div>
       </div>
     </SidebarProvider>
   );
