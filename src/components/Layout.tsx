@@ -20,7 +20,7 @@ const Layout: React.FC<LayoutProps> = ({
           <SidebarContent className="#0F0F23 bg-[#0f0f23]">
             <SidebarGroup>
               <SidebarMenu>
-                <SidebarMenuItem>
+                <SidebarMenuItem className="bg-[#0f0f23]">
                   <SidebarMenuButton asChild tooltip="Home" isActive={window.location.pathname === '/'}>
                     <Link to="/">
                       <Home size={20} />
