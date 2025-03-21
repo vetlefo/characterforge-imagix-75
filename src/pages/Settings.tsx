@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Layout from '../components/Layout';
@@ -10,15 +10,28 @@ import AppearanceSettings from '../components/settings/AppearanceSettings';
 import SecuritySettings from '../components/settings/SecuritySettings';
 import IntegrationSettings from '../components/settings/IntegrationSettings';
 import CreditSettings from '../components/settings/CreditSettings';
+import { useLocation } from 'react-router-dom';
 
 const Settings = () => {
+  const [activeTab, setActiveTab] = useState('profile');
+  const location = useLocation();
+
+  useEffect(() => {
+    // Extract tab from URL search params
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get('tab');
+    if (tabParam && ['profile', 'notifications', 'appearance', 'security', 'integrations', 'credits'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [location.search]);
+
   return (
     <Layout>
       <div className="p-8 bg-[#0F0F23] min-h-screen">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-3xl font-bold mb-6 text-white">Settings</h1>
           
-          <Tabs defaultValue="profile" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="mb-8 bg-[#1a1a40] border border-[#333370]/50">
               <TabsTrigger value="profile" className="data-[state=active]:bg-[#333370]">
                 <User className="mr-2 h-4 w-4" />
