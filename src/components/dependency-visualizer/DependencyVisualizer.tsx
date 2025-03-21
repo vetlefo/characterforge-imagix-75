@@ -32,8 +32,20 @@ const DependencyVisualizer: React.FC<DependencyVisualizerProps> = ({ className =
             </div>
           </div>
           
-          <div className="text-xs text-gray-500 mt-4">
-            <p>Tip: Drag nodes to reposition them. Click on a node to see its dependencies.</p>
+          <div className="text-xs text-gray-500 mt-4 bg-[#0F0F23]/30 p-3 rounded-lg">
+            <p className="flex items-center gap-2">
+              <span className="inline-block w-3 h-3 rounded-full bg-blue-500"></span>
+              <strong>UI Components</strong> - 
+              <span className="inline-block w-3 h-3 rounded-full bg-red-500 ml-4"></span>
+              <strong>Pages</strong> - 
+              <span className="inline-block w-3 h-3 rounded-full bg-green-500 ml-4"></span>
+              <strong>Hooks</strong> - 
+              <span className="inline-block w-3 h-3 rounded-full bg-purple-500 ml-4"></span>
+              <strong>Context</strong>
+            </p>
+            <p className="mt-2">
+              Tip: Drag nodes to reposition them. Click on a node to see its dependencies. Use the view selector to switch between Force, Tree, and Radial layouts.
+            </p>
           </div>
         </div>
       </div>
