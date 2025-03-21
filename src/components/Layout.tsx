@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup } from '@/components/ui/sidebar';
 import { Home, PenLine, Layers, Play, Orbit, PanelLeft, PanelRight, BookImage, Palette, Settings, User } from 'lucide-react';
@@ -108,12 +107,11 @@ const Layout: React.FC<LayoutProps> = ({
           </SidebarContent>
           
           <SidebarFooter className="bg-[#0f0f23]">
-            <div className="p-4 flex flex-col items-center">
-              {/* Settings button moved to footer with proper alignment */}
-              <SidebarMenu>
-                <SidebarMenuItem>
+            <div className="flex flex-col items-center justify-center w-full p-2">
+              <SidebarMenu className="w-full">
+                <SidebarMenuItem className="flex justify-center">
                   <SidebarMenuButton asChild tooltip="Settings" isActive={location.pathname === '/settings'}>
-                    <Link to="/settings">
+                    <Link to="/settings" className="flex items-center justify-center">
                       <Settings size={20} />
                       <span>Settings</span>
                     </Link>
@@ -127,13 +125,13 @@ const Layout: React.FC<LayoutProps> = ({
                   variant="ghost" 
                   size="icon" 
                   onClick={toggleSidebar} 
-                  className="w-full flex justify-center text-white hover:bg-[#1a1a40] mt-4"
+                  className="flex justify-center text-white hover:bg-[#1a1a40] mt-3 mb-2 w-8 h-8 p-0"
                 >
-                  <PanelRight size={18} />
+                  <PanelRight size={16} />
                 </Button>
               )}
               
-              <div className="text-xs text-center text-sidebar-foreground/60 mt-2">
+              <div className="text-xs text-center text-sidebar-foreground/60 mt-1">
                 v1.0
               </div>
             </div>
