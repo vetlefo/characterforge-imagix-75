@@ -3,7 +3,7 @@ import React from 'react';
 import Layout from '../components/Layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Github, Database, Google, Cloud } from 'lucide-react';
+import { Github, Database, Cloud, Mail } from 'lucide-react';
 
 const Integrations = () => {
   return (
@@ -60,7 +60,7 @@ const Integrations = () => {
             <Card className="bg-[#1a1a40] border-[#333370]/50 text-white">
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <Google className="h-6 w-6" />
+                  <Mail className="h-6 w-6" />
                   <CardTitle>Google Drive</CardTitle>
                 </div>
                 <CardDescription className="text-gray-400">
