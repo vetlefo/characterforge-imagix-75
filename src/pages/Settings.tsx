@@ -3,12 +3,13 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Layout from '../components/Layout';
-import { User, Bell, Globe, Lock, Plug } from 'lucide-react';
+import { User, Bell, Globe, Lock, Plug, CreditCard } from 'lucide-react';
 import ProfileSettings from '../components/settings/ProfileSettings';
 import NotificationSettings from '../components/settings/NotificationSettings';
 import AppearanceSettings from '../components/settings/AppearanceSettings';
 import SecuritySettings from '../components/settings/SecuritySettings';
 import IntegrationSettings from '../components/settings/IntegrationSettings';
+import CreditSettings from '../components/settings/CreditSettings';
 
 const Settings = () => {
   return (
@@ -38,6 +39,10 @@ const Settings = () => {
               <TabsTrigger value="integrations" className="data-[state=active]:bg-[#333370]">
                 <Plug className="mr-2 h-4 w-4" />
                 Integrations
+              </TabsTrigger>
+              <TabsTrigger value="credits" className="data-[state=active]:bg-[#333370]">
+                <CreditCard className="mr-2 h-4 w-4" />
+                Credits
               </TabsTrigger>
             </TabsList>
             
@@ -107,6 +112,20 @@ const Settings = () => {
                 </CardHeader>
                 <CardContent>
                   <IntegrationSettings />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="credits">
+              <Card className="bg-[#1a1a40] border-[#333370]/50 text-white">
+                <CardHeader>
+                  <CardTitle>Credit Settings</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Manage your credits for AI-powered features.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <CreditSettings />
                 </CardContent>
               </Card>
             </TabsContent>
