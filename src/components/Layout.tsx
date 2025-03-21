@@ -1,50 +1,32 @@
-
 import React from 'react';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup } from '@/components/ui/sidebar';
 import { Home, PenLine, Layers, Play, LightbulbIcon, Orbit, PanelLeft, PanelRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
-
 interface LayoutProps {
   children: React.ReactNode;
 }
-
 const Layout: React.FC<LayoutProps> = ({
   children
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
-
   const toggleSidebar = () => {
     setIsExpanded(prev => !prev);
   };
-
-  return (
-    <SidebarProvider defaultOpen={isExpanded}>
+  return <SidebarProvider defaultOpen={isExpanded}>
       <div className="flex h-screen w-full bg-background">
-        <Sidebar 
-          variant="sidebar" 
-          collapsible={isExpanded ? "none" : "icon"} 
-          className="bg-[#333370] z-50 border-none"
-          style={{ 
-            "--sidebar-width": "200px", 
-            "--sidebar-width-icon": "50px" 
-          } as React.CSSProperties}
-        >
+        <Sidebar variant="sidebar" collapsible={isExpanded ? "none" : "icon"} className="bg-[#333370] z-50 border-none" style={{
+        "--sidebar-width": "200px",
+        "--sidebar-width-icon": "50px"
+      } as React.CSSProperties}>
           <SidebarHeader>
             <div className="flex h-14 items-center justify-center px-4 bg-[#0f0f23]">
-              <strong className="text-lg font-semibold text-center">LC</strong>
+              <strong className="text-lg font-semibold text-center">OI</strong>
               
               {/* Toggle button that appears only when sidebar is expanded */}
-              {isExpanded && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={toggleSidebar} 
-                  className="ml-auto text-white hover:bg-[#1a1a40]"
-                >
+              {isExpanded && <Button variant="ghost" size="icon" onClick={toggleSidebar} className="ml-auto text-white hover:bg-[#1a1a40]">
                   <PanelLeft size={18} />
-                </Button>
-              )}
+                </Button>}
             </div>
           </SidebarHeader>
           
@@ -108,19 +90,12 @@ const Layout: React.FC<LayoutProps> = ({
             </SidebarGroup>
           </SidebarContent>
           
-          <SidebarFooter>
+          <SidebarFooter className="bg-[#0f0f23]">
             <div className="p-4">
               {/* Toggle button in footer when collapsed */}
-              {!isExpanded && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={toggleSidebar} 
-                  className="w-full flex justify-center text-white hover:bg-[#1a1a40]"
-                >
+              {!isExpanded && <Button variant="ghost" size="icon" onClick={toggleSidebar} className="w-full flex justify-center text-white hover:bg-[#1a1a40]">
                   <PanelRight size={18} />
-                </Button>
-              )}
+                </Button>}
               <div className="text-xs text-center text-sidebar-foreground/60">
                 v1.0
               </div>
@@ -132,8 +107,6 @@ const Layout: React.FC<LayoutProps> = ({
           {children}
         </main>
       </div>
-    </SidebarProvider>
-  );
+    </SidebarProvider>;
 };
-
 export default Layout;
