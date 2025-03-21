@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,72 +12,71 @@ export interface AssetFilterOptions {
   tags: string[];
   sortBy: 'newest' | 'oldest' | 'a-z' | 'z-a';
 }
-
 type FilterProps = {
   onClose?: () => void;
   onFiltersChange: (filters: AssetFilterOptions) => void;
   availableTags: string[];
   filters: AssetFilterOptions;
 };
-
-const AssetFilters: React.FC<FilterProps> = ({ 
-  onClose, 
-  onFiltersChange, 
+const AssetFilters: React.FC<FilterProps> = ({
+  onClose,
+  onFiltersChange,
   availableTags,
-  filters: initialFilters 
+  filters: initialFilters
 }) => {
   const [activeFilters, setActiveFilters] = useState<AssetFilterOptions>(initialFilters || {
     types: [],
     tags: [],
     sortBy: 'newest'
   });
-  
   const handleTypeChange = (value: string) => {
-    const newTypes = activeFilters.types.includes(value)
-      ? activeFilters.types.filter(t => t !== value)
-      : [...activeFilters.types, value];
-      
+    const newTypes = activeFilters.types.includes(value) ? activeFilters.types.filter(t => t !== value) : [...activeFilters.types, value];
     if (value === 'all') {
       // If "all" is selected, clear other selections
       setActiveFilters(prev => {
-        const newFilters = { ...prev, types: [] };
+        const newFilters = {
+          ...prev,
+          types: []
+        };
         onFiltersChange(newFilters);
         return newFilters;
       });
     } else {
       setActiveFilters(prev => {
-        const newFilters = { ...prev, types: newTypes };
+        const newFilters = {
+          ...prev,
+          types: newTypes
+        };
         onFiltersChange(newFilters);
         return newFilters;
       });
     }
   };
-
   const toggleTag = (tag: string) => {
     setActiveFilters(prev => {
-      const newTags = prev.tags.includes(tag)
-        ? prev.tags.filter(t => t !== tag)
-        : [...prev.tags, tag];
-      
-      const newFilters = { ...prev, tags: newTags };
+      const newTags = prev.tags.includes(tag) ? prev.tags.filter(t => t !== tag) : [...prev.tags, tag];
+      const newFilters = {
+        ...prev,
+        tags: newTags
+      };
       onFiltersChange(newFilters);
       return newFilters;
     });
   };
-
   const handleDateRangeChange = (value: [number, number]) => {
     // Implementation would go here
     console.log('Date range changed:', value);
   };
-
   const handleSortChange = (value: AssetFilterOptions['sortBy']) => {
     setActiveFilters(prev => {
-      const newFilters = { ...prev, sortBy: value };
+      const newFilters = {
+        ...prev,
+        sortBy: value
+      };
       onFiltersChange(newFilters);
       return newFilters;
     });
   };
-
   const clearFilters = () => {
     const defaultFilters: AssetFilterOptions = {
       types: [],
@@ -88,26 +86,21 @@ const AssetFilters: React.FC<FilterProps> = ({
     setActiveFilters(defaultFilters);
     onFiltersChange(defaultFilters);
   };
-
   const isTypeSelected = (type: string) => {
     if (type === 'all') {
       return activeFilters.types.length === 0;
     }
     return activeFilters.types.includes(type);
   };
-
-  return (
-    <div className="p-5 bg-card rounded-xl border border-border">
+  return <div className="p-5 rounded-xl border border-border bg-[#0f0f23]">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium flex items-center">
           <Filter size={18} className="mr-2" />
           Filters
         </h3>
-        {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose}>
+        {onClose && <Button variant="ghost" size="icon" onClick={onClose}>
             <X size={18} />
-          </Button>
-        )}
+          </Button>}
       </div>
 
       <Tabs defaultValue="type" className="w-full">
@@ -119,91 +112,44 @@ const AssetFilters: React.FC<FilterProps> = ({
 
         <TabsContent value="type" className="space-y-4">
           <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant={isTypeSelected('all') ? 'default' : 'outline'}
-              onClick={() => handleTypeChange('all')}
-              className="w-full"
-            >
+            <Button variant={isTypeSelected('all') ? 'default' : 'outline'} onClick={() => handleTypeChange('all')} className="w-full">
               All
             </Button>
-            <Button
-              variant={isTypeSelected('image') ? 'default' : 'outline'}
-              onClick={() => handleTypeChange('image')}
-              className="w-full"
-            >
+            <Button variant={isTypeSelected('image') ? 'default' : 'outline'} onClick={() => handleTypeChange('image')} className="w-full">
               Images
             </Button>
-            <Button
-              variant={isTypeSelected('text') ? 'default' : 'outline'}
-              onClick={() => handleTypeChange('text')}
-              className="w-full"
-            >
+            <Button variant={isTypeSelected('text') ? 'default' : 'outline'} onClick={() => handleTypeChange('text')} className="w-full">
               Text
             </Button>
-            <Button
-              variant={isTypeSelected('website') ? 'default' : 'outline'}
-              onClick={() => handleTypeChange('website')}
-              className="w-full"
-            >
+            <Button variant={isTypeSelected('website') ? 'default' : 'outline'} onClick={() => handleTypeChange('website')} className="w-full">
               Websites
             </Button>
-            <Button
-              variant={isTypeSelected('other') ? 'default' : 'outline'}
-              onClick={() => handleTypeChange('other')}
-              className="w-full"
-            >
+            <Button variant={isTypeSelected('other') ? 'default' : 'outline'} onClick={() => handleTypeChange('other')} className="w-full">
               Other
             </Button>
           </div>
         </TabsContent>
 
         <TabsContent value="tags" className="space-y-4">
-          {availableTags.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {availableTags.map((tag) => (
-                <Button
-                  key={tag}
-                  variant={activeFilters.tags.includes(tag) ? 'default' : 'outline'}
-                  onClick={() => toggleTag(tag)}
-                  size="sm"
-                >
+          {availableTags.length > 0 ? <div className="flex flex-wrap gap-2">
+              {availableTags.map(tag => <Button key={tag} variant={activeFilters.tags.includes(tag) ? 'default' : 'outline'} onClick={() => toggleTag(tag)} size="sm">
                   {tag}
-                </Button>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No tags available</p>
-          )}
+                </Button>)}
+            </div> : <p className="text-sm text-muted-foreground">No tags available</p>}
         </TabsContent>
 
         <TabsContent value="sort" className="space-y-4">
           <div className="space-y-2">
-            <Button
-              variant={activeFilters.sortBy === 'newest' ? 'default' : 'outline'}
-              onClick={() => handleSortChange('newest')}
-              className="w-full justify-start"
-            >
+            <Button variant={activeFilters.sortBy === 'newest' ? 'default' : 'outline'} onClick={() => handleSortChange('newest')} className="w-full justify-start">
               Newest First
             </Button>
-            <Button
-              variant={activeFilters.sortBy === 'oldest' ? 'default' : 'outline'}
-              onClick={() => handleSortChange('oldest')}
-              className="w-full justify-start"
-            >
+            <Button variant={activeFilters.sortBy === 'oldest' ? 'default' : 'outline'} onClick={() => handleSortChange('oldest')} className="w-full justify-start">
               Oldest First
             </Button>
-            <Button
-              variant={activeFilters.sortBy === 'a-z' ? 'default' : 'outline'}
-              onClick={() => handleSortChange('a-z')}
-              className="w-full justify-start"
-            >
+            <Button variant={activeFilters.sortBy === 'a-z' ? 'default' : 'outline'} onClick={() => handleSortChange('a-z')} className="w-full justify-start">
               A to Z
             </Button>
-            <Button
-              variant={activeFilters.sortBy === 'z-a' ? 'default' : 'outline'}
-              onClick={() => handleSortChange('z-a')}
-              className="w-full justify-start"
-            >
+            <Button variant={activeFilters.sortBy === 'z-a' ? 'default' : 'outline'} onClick={() => handleSortChange('z-a')} className="w-full justify-start">
               Z to A
             </Button>
           </div>
@@ -215,8 +161,6 @@ const AssetFilters: React.FC<FilterProps> = ({
           Clear All Filters
         </Button>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default AssetFilters;
