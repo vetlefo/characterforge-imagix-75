@@ -1,14 +1,23 @@
 
 import React, { useState } from 'react';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup } from '@/components/ui/sidebar';
-import { Home, PenLine, Layers, Play, Orbit, PanelLeft, PanelRight, BookImage, Palette, Settings, User } from 'lucide-react';
+import { Home, PenLine, Layers, Play, Orbit, PanelLeft, PanelRight, BookImage, Palette, Settings, User, CreditCard, Zap } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from './ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { Badge } from './ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
+
+// Temporary user data - in a real app, this would come from authentication state
+const userData = {
+  tier: 'free', // 'free' or 'premium'
+  credits: 120,
+  maxCredits: 250
+};
 
 const Layout: React.FC<LayoutProps> = ({
   children
@@ -145,6 +154,39 @@ const Layout: React.FC<LayoutProps> = ({
         <div className="flex flex-col flex-1 overflow-hidden bg-[#0F0F23]">
           {/* Top navigation bar for user and settings */}
           <header className="h-12 bg-[#0f0f23] border-b border-[#333370]/30 px-4 flex items-center justify-end">
+            {/* User credits info */}
+            <div className="flex items-center mr-4">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-[#333370]/20">
+                      <Badge variant="outline" className={`px-2 py-0.5 text-xs font-medium ${userData.tier === 'premium' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'}`}>
+                        {userData.tier === 'premium' ? 'PREMIUM' : 'FREE'}
+                      </Badge>
+                      <div className="flex items-center gap-1 text-white text-xs">
+                        <Zap size={14} className="text-blue-400" />
+                        <span>{userData.credits}/{userData.maxCredits}</span>
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Available credits: {userData.credits} of {userData.maxCredits}</p>
+                    <p className="text-xs mt-1">Click to refill</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 mr-2 px-2 text-white text-xs bg-[#333370]/20 hover:bg-[#333370]/40"
+              onClick={() => console.log('Refill credits')}
+            >
+              <CreditCard size={14} className="mr-1" />
+              Refill
+            </Button>
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 bg-[#333370]/20 text-white hover:bg-[#333370]/40">
