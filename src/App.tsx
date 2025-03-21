@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   createBrowserRouter,
@@ -22,6 +23,7 @@ import Profile from "./pages/Profile";
 import Integrations from "./pages/Integrations";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import DependencyVisualizerPage from "./pages/DependencyVisualizerPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -59,6 +61,10 @@ const routes = [
   {
     path: "/media",
     element: <Media />,
+  },
+  {
+    path: "/dependency-visualizer",
+    element: <DependencyVisualizerPage />,
   },
   {
     path: "/website-preview-demo",

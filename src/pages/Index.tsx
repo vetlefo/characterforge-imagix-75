@@ -1,80 +1,152 @@
-
-import React from "react";
+// Importing necessary components
 import { Link } from "react-router-dom";
-import { LightbulbIcon, Play } from "lucide-react";
+import { ArrowRightIcon } from "lucide-react";
+import Layout from "../components/Layout";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import CreativePossibilities from "@/components/creative/CreativePossibilities";
-import InspirationalEchoes from "@/components/creative/InspirationalEchoes";
-import Layout from "@/components/Layout";
-import SimpleCollaborationVisualizer from "@/components/creative/SimpleCollaborationVisualizer";
+import QuickStartItem from "@/components/QuickStartItem";
+import FeaturedAppCard from "@/components/FeaturedAppCard";
+import ModelCard from "@/components/ModelCard";
+import CreationCard from "@/components/CreationCard";
 
-const Index = () => {
+// Main component for the landing page
+export default function Index() {
+  // Render the main component
   return (
     <Layout>
-      <div className="min-h-screen bg-[#0F0F23] text-white p-8">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold mb-16 text-center">What would you like to create today?</h1>
-
-          {/* Creative Partner Section */}
-          <div className="mb-12 bg-[#0D0D1F] rounded-xl p-6 border border-[#1A1F2C]/30 float-right w-[350px]">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="bg-blue-500/20 p-1 rounded">
-                <LightbulbIcon size={16} className="text-blue-400" />
-              </div>
-              <h2 className="text-lg font-medium">Creative Partner</h2>
-              <div className="ml-auto text-lg">—</div>
-            </div>
-            <p className="text-gray-400 text-sm mb-4">Share your creative intention...</p>
+      <div className="p-6 md:p-8 h-screen overflow-y-auto bg-[#0F0F23]">
+        {/* Hero section */}
+        <section className="my-12 text-center max-w-5xl mx-auto">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+            Creative Platform <span className="text-[#818cf8]">for Professionals</span>
+          </h1>
+          <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+            All-in-one platform to manage creative assets, workflows, and collaborative projects
+          </p>
+          <div className="flex flex-wrap gap-4 justify-center">
+            <Button size="lg" asChild>
+              <Link to="/drawing">Get Started</Link>
+            </Button>
+            <Button size="lg" variant="outline">
+              <Link to="/dashboard">View Dashboard</Link>
+            </Button>
           </div>
+        </section>
 
-          {/* Hero Section */}
-          <div className="flex flex-col items-center justify-center text-center mb-24 py-16 max-w-lg mx-auto">
-            <div className="w-20 h-20 bg-[#1A1F2C] rounded-full flex items-center justify-center mb-6">
-              <LightbulbIcon size={32} className="text-blue-400" />
-            </div>
-            <h2 className="text-2xl font-semibold mb-2">Begin your creative journey</h2>
-            <p className="text-gray-400 mb-8">The canvas awaits your intention</p>
-            
-            <div className="flex gap-4">
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <LightbulbIcon size={16} className="mr-2" />
-                Start Creating
-              </Button>
-              <Button variant="outline" className="border-gray-700">
-                <Play size={16} className="mr-2" />
-                Import Inspiration
-              </Button>
-            </div>
+        {/* Quick start section */}
+        <section className="my-12 max-w-7xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">Quick Start</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <QuickStartItem
+              title="Drawing Tools"
+              description="Create and edit drawings with our robust drawing tools"
+              icon="Paintbrush"
+              link="/drawing"
+            />
+            <QuickStartItem
+              title="Asset Library"
+              description="Manage all your creative assets in one place"
+              icon="Images"
+              link="/asset-library"
+            />
+            <QuickStartItem
+              title="Dependency Visualizer"
+              description="Visualize file relationships and dependencies"
+              icon="Network"
+              link="/dependency-visualizer"
+              isNew={true}
+            />
+            <QuickStartItem
+              title="Style System"
+              description="Define and manage styles for your designs"
+              icon="Palette"
+              link="/style-system"
+            />
           </div>
+        </section>
 
-          {/* Input Field */}
-          <div className="mb-24 max-w-lg mx-auto">
-            <div className="relative">
-              <input type="text" placeholder="What are you imagining?" className="w-full bg-[#0D0D1F] border border-[#1A1F2C] rounded-full py-3 px-6 text-white" />
-              <button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white p-2 rounded-full">
-                <LightbulbIcon size={16} />
-              </button>
-            </div>
+        {/* Featured apps */}
+        <section className="my-12 max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl md:text-3xl font-bold text-white">Featured Tools</h2>
+            <Button variant="ghost" asChild className="text-blue-400 hover:text-blue-300">
+              <Link to="/integrations" className="flex items-center">
+                View All <ArrowRightIcon className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
           </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <FeaturedAppCard
+              title="Website Preview"
+              description="Preview websites with instant updates"
+              icon="Globe"
+              link="/website-preview-demo"
+            />
+            <FeaturedAppCard
+              title="Media Transform"
+              description="Convert media between different formats"
+              icon="ImagePlus"
+              link="/media"
+            />
+            <FeaturedAppCard
+              title="Animation Studio"
+              description="Create and edit animations"
+              icon="Film"
+              link="/animation"
+            />
+          </div>
+        </section>
 
-          {/* Creative Possibilities Section */}
-          <div className="mb-16">
-            <h2 className="text-2xl font-semibold mb-6">Creative Possibilities</h2>
-            <CreativePossibilities />
+        {/* Recent Creations Section */}
+        <section className="my-12 max-w-7xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">Recent Creations</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <CreationCard
+              title="Abstract Art"
+              description="Generated using AI"
+              imageSrc="https://source.unsplash.com/random/400x300?art"
+            />
+            <CreationCard
+              title="Modern Logo"
+              description="Designed for a tech startup"
+              imageSrc="https://source.unsplash.com/random/400x300?logo"
+            />
+            <CreationCard
+              title="UI Mockup"
+              description="Created for a mobile app"
+              imageSrc="https://source.unsplash.com/random/400x300?ui"
+            />
+            <CreationCard
+              title="3D Render"
+              description="Rendered using Blender"
+              imageSrc="https://source.unsplash.com/random/400x300?3d"
+            />
           </div>
+        </section>
 
-          {/* Inspirational Echoes Section */}
-          <div className="mb-16">
-            <h2 className="text-2xl font-semibold mb-6">Inspirational Echoes</h2>
-            <InspirationalEchoes />
+        {/* Available Models Section */}
+        <section className="my-12 max-w-7xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">Available Models</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <ModelCard
+              title="Stable Diffusion"
+              description="Generate high-quality images from text prompts"
+              link="#"
+            />
+            <ModelCard
+              title="GPT-3"
+              description="Powerful language model for text generation"
+              link="#"
+            />
+            <ModelCard
+              title="DALL-E 2"
+              description="Create realistic images and art from a description in natural language"
+              link="#"
+            />
           </div>
-        </div>
+        </section>
       </div>
-      
-      {/* Add the simple collaboration visualizer */}
-      <SimpleCollaborationVisualizer />
     </Layout>
   );
-};
-
-export default Index;
+}
