@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
 interface CodeGeneratorProps {
-  imageUrl: string;
+  imageUrl?: string;
 }
 
 const CodeGenerator: React.FC<CodeGeneratorProps> = ({ imageUrl }) => {

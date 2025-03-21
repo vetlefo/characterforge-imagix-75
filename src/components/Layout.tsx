@@ -1,8 +1,9 @@
 
 import React from 'react';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup } from '@/components/ui/sidebar';
-import { Home, PenLine, Layers, Play, LightbulbIcon, Orbit } from 'lucide-react';
+import { Home, PenLine, Layers, Play, LightbulbIcon, Orbit, PanelLeft, PanelRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Button } from './ui/button';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,12 +12,18 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({
   children
 }) => {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
+  const toggleSidebar = () => {
+    setIsExpanded(prev => !prev);
+  };
+
   return (
-    <SidebarProvider defaultOpen={false}>
+    <SidebarProvider defaultOpen={isExpanded}>
       <div className="flex h-screen w-full bg-background">
         <Sidebar 
           variant="sidebar" 
-          collapsible="icon" 
+          collapsible={isExpanded ? "none" : "icon"} 
           className="bg-[#333370] z-50"
           style={{ 
             "--sidebar-width": "200px", 
@@ -26,6 +33,18 @@ const Layout: React.FC<LayoutProps> = ({
           <SidebarHeader>
             <div className="flex h-14 items-center justify-center px-4 bg-[#0f0f23]">
               <strong className="text-lg font-semibold text-center">LC</strong>
+              
+              {/* Toggle button that appears only when sidebar is expanded */}
+              {isExpanded && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={toggleSidebar} 
+                  className="ml-auto text-white hover:bg-[#1a1a40]"
+                >
+                  <PanelLeft size={18} />
+                </Button>
+              )}
             </div>
           </SidebarHeader>
           
@@ -91,6 +110,17 @@ const Layout: React.FC<LayoutProps> = ({
           
           <SidebarFooter>
             <div className="p-4">
+              {/* Toggle button in footer when collapsed */}
+              {!isExpanded && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={toggleSidebar} 
+                  className="w-full flex justify-center text-white hover:bg-[#1a1a40]"
+                >
+                  <PanelRight size={18} />
+                </Button>
+              )}
               <div className="text-xs text-center text-sidebar-foreground/60">
                 v1.0
               </div>
@@ -98,7 +128,7 @@ const Layout: React.FC<LayoutProps> = ({
           </SidebarFooter>
         </Sidebar>
         
-        <main className="flex-1 overflow-auto pl-[50px] w-[calc(100vw-50px)]">
+        <main className="flex-1 overflow-auto pl-[50px] bg-background">
           {children}
         </main>
       </div>

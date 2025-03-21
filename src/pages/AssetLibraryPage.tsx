@@ -9,7 +9,7 @@ import Layout from "../components/Layout";
 const AssetLibraryPage = () => {
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto w-full px-6 py-8">
         {/* Header with navigation */}
         <div className="mb-8 flex items-center">
           <Link to="/">

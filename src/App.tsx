@@ -8,7 +8,6 @@ import NotFound from "./pages/NotFound";
 import GraphIntegrationDemo from "./pages/GraphIntegrationDemo";
 import SvelteIntegrationDemo from "./pages/SvelteIntegrationDemo";
 import IntentTranslatorDemo from "./pages/IntentTranslatorDemo";
-import Layout from "./components/Layout";
 import Index from "./pages/Index";
 import Drawing from "./pages/Drawing";
 import Styling from "./pages/Styling";
@@ -16,50 +15,60 @@ import Animation from "./pages/Animation";
 import Website from "./pages/Website";
 import Media from "./pages/Media";
 import WebsitePreviewDemo from "./pages/WebsitePreviewDemo";
+import AssetLibraryPage from "./pages/AssetLibraryPage";
+import StyleSystemPage from "./pages/StyleSystemPage";
 
-// Routes configuration with Layout wrapper
+// Routes configuration
 const routes = [
   {
     path: "/",
-    element: <Layout><Index /></Layout>,
+    element: <Index />,
     errorElement: <NotFound />,
   },
   {
     path: "/drawing",
-    element: <Layout><Drawing /></Layout>,
+    element: <Drawing />,
   },
   {
     path: "/styling",
-    element: <Layout><Styling /></Layout>,
+    element: <Styling />,
   },
   {
     path: "/animation",
-    element: <Layout><Animation /></Layout>,
+    element: <Animation />,
   },
   {
     path: "/website",
-    element: <Layout><Website /></Layout>,
+    element: <Website />,
   },
   {
     path: "/media",
-    element: <Layout><Media /></Layout>,
+    element: <Media />,
   },
   {
     path: "/website-preview-demo",
-    element: <Layout><WebsitePreviewDemo /></Layout>,
+    element: <WebsitePreviewDemo />,
   },
   {
     path: "/graph-integration-demo",
-    element: <Layout><GraphIntegrationDemo /></Layout>,
+    element: <GraphIntegrationDemo />,
   },
   {
     path: "/svelte-integration-demo",
-    element: <Layout><SvelteIntegrationDemo /></Layout>,
+    element: <SvelteIntegrationDemo />,
   },
-  { 
-    path: "/intent-translator-demo", 
-    element: <Layout><IntentTranslatorDemo /></Layout>,
+  {
+    path: "/intent-translator-demo",
+    element: <IntentTranslatorDemo />,
   },
+  {
+    path: "/asset-library",
+    element: <AssetLibraryPage />,
+  },
+  {
+    path: "/style-system",
+    element: <StyleSystemPage />,
+  }
 ];
 
 function App() {
