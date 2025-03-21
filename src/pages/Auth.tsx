@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import { HeartHandshake } from 'lucide-react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -60,11 +61,22 @@ const Auth = () => {
     <div className="flex min-h-screen items-center justify-center bg-[#0F0F23] p-4">
       <Card className="w-full max-w-md bg-[#1a1a40] border border-[#333370]/50 text-white">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Welcome</CardTitle>
+          <div className="flex items-center space-x-2">
+            <HeartHandshake className="h-6 w-6 text-blue-400" />
+            <CardTitle className="text-2xl font-bold">AI Access Initiative</CardTitle>
+          </div>
           <CardDescription className="text-gray-400">
-            Sign in to your account or create a new one
+            Join our mission to provide AI tools to underdeveloped regions
           </CardDescription>
         </CardHeader>
+        
+        <div className="px-6 pb-4">
+          <p className="text-sm text-gray-300 mb-4">
+            This project aims to democratize access to powerful AI tools for communities with limited resources. 
+            By joining, you're supporting our work to create high-quality prompts, workflows, and base projects 
+            that can help bridge the digital divide.
+          </p>
+        </div>
         
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-[#0f0f23]">
@@ -140,6 +152,10 @@ const Auth = () => {
                     className="bg-[#0f0f23] border-[#333370]"
                   />
                 </div>
+                <p className="text-xs text-gray-400 italic">
+                  By signing up, you're supporting our mission to provide AI access to underserved communities. 
+                  We're fundraising API credits to donate and create resources for those who need it most.
+                </p>
               </CardContent>
               
               <CardFooter>
@@ -148,7 +164,7 @@ const Auth = () => {
                   className="w-full bg-[#333370] hover:bg-[#4a4a8c]"
                   disabled={loading}
                 >
-                  {loading ? "Signing up..." : "Sign Up"}
+                  {loading ? "Signing up..." : "Join the Initiative"}
                 </Button>
               </CardFooter>
             </form>
