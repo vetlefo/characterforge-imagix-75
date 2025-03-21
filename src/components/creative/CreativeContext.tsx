@@ -1,6 +1,9 @@
+
 import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
-import { Asset, Relationship, CreativeContextState, AssetUpdateData, ConversationMessage, Action } from "./types";
+import { Asset, Relationship, CreativeContextState, AssetUpdateData, ConversationMessage } from "./types";
 import { v4 as uuidv4 } from "uuid";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface CreativeContextType extends CreativeContextState {
   // Existing methods
@@ -10,7 +13,7 @@ interface CreativeContextType extends CreativeContextState {
   setLastPrompt: (prompt: string) => void;
   triggerSuggestion: () => void;
   
-  // New asset management methods
+  // Asset management methods
   addAsset: (type: Asset["type"], content: string, tags?: string[], metadata?: Record<string, any>) => Asset;
   updateAsset: (id: string, data: AssetUpdateData) => void;
   deleteAsset: (id: string) => void;
@@ -50,40 +53,130 @@ export const CreativeProvider = ({ children }: { children: ReactNode }) => {
     conversationHistory: []
   });
 
-  // Load assets from localStorage on mount
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch assets from Supabase on mount
   useEffect(() => {
-    try {
-      const savedAssets = localStorage.getItem("creative-assets");
-      if (savedAssets) {
-        const parsedAssets = JSON.parse(savedAssets);
-        // Convert string dates back to Date objects
-        const processedAssets = parsedAssets.map((asset: any) => ({
-          ...asset,
-          createdAt: new Date(asset.createdAt),
-          updatedAt: new Date(asset.updatedAt),
-          relationships: asset.relationships.map((rel: any) => ({
-            ...rel,
-            createdAt: new Date(rel.createdAt)
-          }))
-        }));
-        setState(prev => ({
-          ...prev,
-          assets: processedAssets
-        }));
+    const fetchAssets = async () => {
+      setIsLoading(true);
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        
+        if (session.session) {
+          // Fetch assets from Supabase
+          const { data: assetsData, error: assetsError } = await supabase
+            .from('creative_assets')
+            .select('*');
+          
+          if (assetsError) {
+            console.error("Error fetching assets:", assetsError);
+            toast.error("Failed to load assets");
+            
+            // Fall back to localStorage if there's an error
+            try {
+              const savedAssets = localStorage.getItem("creative-assets");
+              if (savedAssets) {
+                const parsedAssets = JSON.parse(savedAssets);
+                setState(prev => ({
+                  ...prev,
+                  assets: parsedAssets.map((asset: any) => ({
+                    ...asset,
+                    createdAt: new Date(asset.createdAt),
+                    updatedAt: new Date(asset.updatedAt),
+                    relationships: asset.relationships.map((rel: any) => ({
+                      ...rel,
+                      createdAt: new Date(rel.createdAt)
+                    }))
+                  }))
+                }));
+              }
+            } catch (localError) {
+              console.error("Error loading assets from localStorage:", localError);
+            }
+          } else {
+            // Transform Supabase assets to the format expected by the app
+            const transformedAssets = assetsData.map(asset => {
+              // Fetch relationships for this asset
+              return {
+                id: asset.id,
+                type: asset.type as Asset["type"],
+                content: asset.content,
+                createdAt: new Date(asset.created_at),
+                updatedAt: new Date(asset.updated_at),
+                tags: asset.tags || [],
+                relationships: [], // Will be populated in the next step
+                metadata: asset.metadata || { title: asset.title }
+              };
+            });
+            
+            // Fetch asset relationships
+            const { data: relationshipsData, error: relationshipsError } = await supabase
+              .from('asset_relationships')
+              .select('*');
+            
+            if (relationshipsError) {
+              console.error("Error fetching relationships:", relationshipsError);
+            } else {
+              // Add relationships to the assets
+              for (const relationship of relationshipsData || []) {
+                const asset = transformedAssets.find(a => a.id === relationship.source_id);
+                if (asset) {
+                  asset.relationships.push({
+                    id: relationship.id,
+                    sourceId: relationship.source_id,
+                    targetId: relationship.target_id,
+                    type: relationship.type as Relationship["type"],
+                    strength: relationship.strength,
+                    createdAt: new Date(relationship.created_at),
+                    metadata: relationship.metadata || {}
+                  });
+                }
+              }
+            }
+            
+            setState(prev => ({ ...prev, assets: transformedAssets }));
+          }
+        } else {
+          // Not logged in, try to load from localStorage
+          try {
+            const savedAssets = localStorage.getItem("creative-assets");
+            if (savedAssets) {
+              const parsedAssets = JSON.parse(savedAssets);
+              setState(prev => ({
+                ...prev,
+                assets: parsedAssets.map((asset: any) => ({
+                  ...asset,
+                  createdAt: new Date(asset.createdAt),
+                  updatedAt: new Date(asset.updatedAt),
+                  relationships: asset.relationships.map((rel: any) => ({
+                    ...rel,
+                    createdAt: new Date(rel.createdAt)
+                  }))
+                }))
+              }));
+            }
+          } catch (error) {
+            console.error("Error loading assets from localStorage:", error);
+          }
+        }
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Error loading assets from localStorage:", error);
-    }
+    };
+    
+    fetchAssets();
   }, []);
 
-  // Save assets to localStorage when they change
+  // Save to localStorage as a fallback
   useEffect(() => {
-    try {
-      localStorage.setItem("creative-assets", JSON.stringify(state.assets));
-    } catch (error) {
-      console.error("Error saving assets to localStorage:", error);
+    if (state.assets.length > 0 && !isLoading) {
+      try {
+        localStorage.setItem("creative-assets", JSON.stringify(state.assets));
+      } catch (error) {
+        console.error("Error saving assets to localStorage:", error);
+      }
     }
-  }, [state.assets]);
+  }, [state.assets, isLoading]);
 
   // Simple state setters
   const setActiveDrawing = useCallback((active: boolean) => {
@@ -111,14 +204,17 @@ export const CreativeProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   // Asset management methods
-  const addAsset = useCallback((
+  const addAsset = useCallback(async (
     type: Asset["type"], 
     content: string, 
     tags: string[] = [], 
     metadata: Record<string, any> = {}
-  ): Asset => {
+  ): Promise<Asset> => {
+    const localId = uuidv4();
+    const title = metadata.title || `New ${type}`;
+    
     const newAsset: Asset = {
-      id: uuidv4(),
+      id: localId,
       type,
       content,
       createdAt: new Date(),
@@ -128,15 +224,58 @@ export const CreativeProvider = ({ children }: { children: ReactNode }) => {
       metadata
     };
 
+    // First, add to the local state for immediate UI update
     setState(prev => ({
       ...prev,
       assets: [...prev.assets, newAsset]
     }));
 
+    try {
+      // Try to save to Supabase if user is logged in
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (session.session) {
+        const { data, error } = await supabase
+          .from('creative_assets')
+          .insert({
+            type,
+            content,
+            title,
+            tags,
+            metadata
+          })
+          .select();
+        
+        if (error) {
+          console.error("Error saving asset to Supabase:", error);
+          toast.error("Failed to save asset to cloud. Changes saved locally only.");
+          return newAsset;
+        }
+        
+        if (data && data[0]) {
+          // Update the state with the Supabase ID
+          const serverAsset = {
+            ...newAsset,
+            id: data[0].id
+          };
+          
+          setState(prev => ({
+            ...prev,
+            assets: prev.assets.map(a => a.id === localId ? serverAsset : a)
+          }));
+          
+          return serverAsset;
+        }
+      }
+    } catch (error) {
+      console.error("Error in addAsset:", error);
+    }
+
     return newAsset;
   }, []);
 
-  const updateAsset = useCallback((id: string, data: AssetUpdateData) => {
+  const updateAsset = useCallback(async (id: string, data: AssetUpdateData) => {
+    // Update locally first
     setState(prev => ({
       ...prev,
       assets: prev.assets.map(asset => 
@@ -149,14 +288,63 @@ export const CreativeProvider = ({ children }: { children: ReactNode }) => {
           : asset
       )
     }));
+    
+    try {
+      // Then update in Supabase
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (session.session) {
+        const updateData: any = {
+          ...data,
+          updated_at: new Date().toISOString()
+        };
+        
+        // Handle special fields
+        if (data.metadata && data.metadata.title) {
+          updateData.title = data.metadata.title;
+        }
+        
+        const { error } = await supabase
+          .from('creative_assets')
+          .update(updateData)
+          .eq('id', id);
+        
+        if (error) {
+          console.error("Error updating asset in Supabase:", error);
+          toast.error("Failed to update asset in cloud. Changes saved locally only.");
+        }
+      }
+    } catch (error) {
+      console.error("Error in updateAsset:", error);
+    }
   }, []);
 
-  const deleteAsset = useCallback((id: string) => {
+  const deleteAsset = useCallback(async (id: string) => {
+    // Delete locally first
     setState(prev => ({
       ...prev,
       assets: prev.assets.filter(asset => asset.id !== id),
       selectedAssetId: prev.selectedAssetId === id ? null : prev.selectedAssetId
     }));
+    
+    try {
+      // Then delete from Supabase
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (session.session) {
+        const { error } = await supabase
+          .from('creative_assets')
+          .delete()
+          .eq('id', id);
+        
+        if (error) {
+          console.error("Error deleting asset from Supabase:", error);
+          toast.error("Failed to delete asset from cloud. Removed locally only.");
+        }
+      }
+    } catch (error) {
+      console.error("Error in deleteAsset:", error);
+    }
   }, []);
 
   const getAssetById = useCallback((id: string) => {
@@ -172,13 +360,13 @@ export const CreativeProvider = ({ children }: { children: ReactNode }) => {
   }, [state.assets]);
 
   // Relationship management methods
-  const createRelationship = useCallback((
+  const createRelationship = useCallback(async (
     sourceId: string, 
     targetId: string, 
     type: Relationship["type"], 
     strength: number = 5,
     metadata: Record<string, any> = {}
-  ): Relationship => {
+  ): Promise<Relationship> => {
     const newRelationship: Relationship = {
       id: uuidv4(),
       sourceId,
@@ -189,6 +377,7 @@ export const CreativeProvider = ({ children }: { children: ReactNode }) => {
       metadata
     };
 
+    // Update locally first
     setState(prev => ({
       ...prev,
       assets: prev.assets.map(asset => 
@@ -201,11 +390,59 @@ export const CreativeProvider = ({ children }: { children: ReactNode }) => {
           : asset
       )
     }));
+    
+    try {
+      // Then create in Supabase
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (session.session) {
+        const { data, error } = await supabase
+          .from('asset_relationships')
+          .insert({
+            source_id: sourceId,
+            target_id: targetId,
+            type,
+            strength,
+            metadata
+          })
+          .select();
+        
+        if (error) {
+          console.error("Error creating relationship in Supabase:", error);
+          toast.error("Failed to save relationship to cloud. Changes saved locally only.");
+        } else if (data && data[0]) {
+          // Update the state with the Supabase ID
+          const serverRelationship = {
+            ...newRelationship,
+            id: data[0].id
+          };
+          
+          setState(prev => ({
+            ...prev,
+            assets: prev.assets.map(asset => 
+              asset.id === sourceId 
+                ? { 
+                    ...asset, 
+                    relationships: asset.relationships.map(rel => 
+                      rel.id === newRelationship.id ? serverRelationship : rel
+                    ) 
+                  } 
+                : asset
+            )
+          }));
+          
+          return serverRelationship;
+        }
+      }
+    } catch (error) {
+      console.error("Error in createRelationship:", error);
+    }
 
     return newRelationship;
   }, []);
 
-  const updateRelationship = useCallback((id: string, data: Partial<Omit<Relationship, "id" | "createdAt">>) => {
+  const updateRelationship = useCallback(async (id: string, data: Partial<Omit<Relationship, "id" | "createdAt">>) => {
+    // Update locally first
     setState(prev => ({
       ...prev,
       assets: prev.assets.map(asset => ({
@@ -218,9 +455,29 @@ export const CreativeProvider = ({ children }: { children: ReactNode }) => {
         )
       }))
     }));
+    
+    try {
+      // Then update in Supabase
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (session.session) {
+        const { error } = await supabase
+          .from('asset_relationships')
+          .update(data)
+          .eq('id', id);
+        
+        if (error) {
+          console.error("Error updating relationship in Supabase:", error);
+          toast.error("Failed to update relationship in cloud. Changes saved locally only.");
+        }
+      }
+    } catch (error) {
+      console.error("Error in updateRelationship:", error);
+    }
   }, []);
 
-  const deleteRelationship = useCallback((id: string) => {
+  const deleteRelationship = useCallback(async (id: string) => {
+    // Delete locally first
     setState(prev => ({
       ...prev,
       assets: prev.assets.map(asset => ({
@@ -229,6 +486,25 @@ export const CreativeProvider = ({ children }: { children: ReactNode }) => {
         relationships: asset.relationships.filter(rel => rel.id !== id)
       }))
     }));
+    
+    try {
+      // Then delete from Supabase
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (session.session) {
+        const { error } = await supabase
+          .from('asset_relationships')
+          .delete()
+          .eq('id', id);
+        
+        if (error) {
+          console.error("Error deleting relationship from Supabase:", error);
+          toast.error("Failed to delete relationship from cloud. Removed locally only.");
+        }
+      }
+    } catch (error) {
+      console.error("Error in deleteRelationship:", error);
+    }
   }, []);
 
   const getRelatedAssets = useCallback((
@@ -262,7 +538,7 @@ export const CreativeProvider = ({ children }: { children: ReactNode }) => {
     return Array.from(tagSet);
   }, [state.assets]);
 
-  // New conversation methods
+  // Conversation methods
   const addConversationMessage = useCallback((message: ConversationMessage) => {
     const messageWithId = {
       ...message,

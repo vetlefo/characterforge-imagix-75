@@ -1,8 +1,10 @@
+
 import { useState } from "react";
 import DrawingCanvas from "./DrawingCanvas";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Sparkles } from "lucide-react";
+
 interface DrawingModuleProps {
   onDrawingComplete: (dataUrl: string) => void;
   triggerLabel?: string;
@@ -13,6 +15,7 @@ interface DrawingModuleProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
+
 const DrawingModule = ({
   onDrawingComplete,
   triggerLabel = "Open Drawing Canvas",
@@ -34,13 +37,18 @@ const DrawingModule = ({
       setInternalOpen(value);
     }
   };
+
   const handleSave = (dataUrl: string) => {
     onDrawingComplete(dataUrl);
     setOpen(false);
   };
-  return <Dialog open={isOpen} onOpenChange={setOpen}>
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        
+        <Button variant="default" size="sm">
+          {triggerLabel}
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl bg-[#0A0A1B]/90 backdrop-blur-lg border-blue-900/30">
         <DialogHeader>
@@ -48,6 +56,8 @@ const DrawingModule = ({
         </DialogHeader>
         <DrawingCanvas width={width} height={height} onSave={handleSave} initialImage={initialImage} />
       </DialogContent>
-    </Dialog>;
+    </Dialog>
+  );
 };
+
 export default DrawingModule;

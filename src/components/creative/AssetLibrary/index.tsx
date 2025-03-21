@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from "react";
 import { Asset } from "../types";
 import { useCreative } from "../CreativeContext";
@@ -14,9 +15,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+
 interface AssetLibraryProps {
   className?: string;
 }
+
 const AssetLibrary = ({
   className
 }: AssetLibraryProps) => {
@@ -46,11 +50,23 @@ const AssetLibrary = ({
     sortBy: "newest"
   });
   const [view, setView] = useState<"grid" | "list">("grid");
+  const [isLoading, setIsLoading] = useState(true);
 
   // Use the tags from the context
   const availableTags = useMemo(() => {
     return tags;
   }, [tags]);
+
+  // Check if user is logged in
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        toast.error("Please log in to access your asset library");
+      }
+    };
+    checkSession();
+  }, []);
 
   // Filter and sort assets
   const filteredAssets = useMemo(() => {
@@ -98,11 +114,13 @@ const AssetLibrary = ({
     });
     return result;
   }, [assets, filters, searchTerm]);
+
   const handleAssetSelect = (asset: Asset) => {
     setSelectedAssetId(asset.id);
     toast.info(`Selected: ${asset.metadata.title || asset.type}`);
   };
-  const handleCreateAsset = () => {
+
+  const handleCreateAsset = async () => {
     if (newAssetType === "image" && !newAssetContent) {
       toast.error("Please create or upload an image");
       return;
@@ -117,35 +135,51 @@ const AssetLibrary = ({
     }
 
     // Parse tags
-    const tags = newAssetTags.split(",").map(tag => tag.trim()).filter(tag => tag.length > 0);
+    const tagArray = newAssetTags.split(",").map(tag => tag.trim()).filter(tag => tag.length > 0);
 
-    // Create the asset
-    addAsset(newAssetType, newAssetContent, tags, {
-      title: newAssetTitle || `New ${newAssetType}`
-    });
+    try {
+      // Create the asset in the context (which will handle Supabase interaction)
+      addAsset(newAssetType, newAssetContent, tagArray, {
+        title: newAssetTitle || `New ${newAssetType}`
+      });
 
-    // Reset form
-    setNewAssetType("image");
-    setNewAssetTitle("");
-    setNewAssetContent("");
-    setNewAssetTags("");
+      // Reset form
+      setNewAssetType("image");
+      setNewAssetTitle("");
+      setNewAssetContent("");
+      setNewAssetTags("");
 
-    // Close dialog
-    setCreationDialogOpen(false);
-    toast.success("Asset created successfully");
+      // Close dialog
+      setCreationDialogOpen(false);
+      toast.success("Asset created successfully");
+    } catch (error) {
+      console.error("Error creating asset:", error);
+      toast.error("Failed to create asset");
+    }
   };
+
   const handleDrawingComplete = (dataUrl: string) => {
     setNewAssetContent(dataUrl);
     setDrawingDialogOpen(false);
   };
-  return <div className={`space-y-6 ${className}`}>
+
+  return (
+    <div className={`space-y-6 ${className}`}>
       <div className="flex flex-col gap-4">
         <div className="flex justify-between items-start">
           <h2 className="text-2xl font-medium text-white">Your personal media assets</h2>
           
           <Dialog open={creationDialogOpen} onOpenChange={setCreationDialogOpen}>
             <DialogTrigger asChild>
-              
+              <Button 
+                id="create-asset-btn"
+                variant="outline" 
+                size="sm" 
+                className="gap-2 bg-blue-500/20 border-blue-500/30 hover:bg-blue-500/30"
+              >
+                <PlusCircle size={16} />
+                Create Asset
+              </Button>
             </DialogTrigger>
             <DialogContent className="bg-[#0A0A1B] border-[#2A2A4A]/30 text-white">
               <DialogHeader>
@@ -169,17 +203,21 @@ const AssetLibrary = ({
                       
                       <div className="space-y-2">
                         <Label>Image</Label>
-                        {newAssetContent ? <div className="relative aspect-square max-h-60 bg-black/20 rounded-md overflow-hidden">
+                        {newAssetContent ? (
+                          <div className="relative aspect-square max-h-60 bg-black/20 rounded-md overflow-hidden">
                             <img src={newAssetContent} alt="New asset preview" className="w-full h-full object-contain" />
                             <Button variant="outline" size="sm" className="absolute bottom-2 right-2 h-7 bg-black/50 backdrop-blur-sm" onClick={() => setDrawingDialogOpen(true)}>
                               Change
                             </Button>
-                          </div> : <div className="aspect-square max-h-60 bg-black/20 rounded-md flex flex-col items-center justify-center p-4">
+                          </div>
+                        ) : (
+                          <div className="aspect-square max-h-60 bg-black/20 rounded-md flex flex-col items-center justify-center p-4">
                             <Image size={48} className="text-white/20 mb-4" />
                             <Button onClick={() => setDrawingDialogOpen(true)} className="bg-[#1A1A2E] border border-[#2A2A4A]/50">
                               Create Drawing
                             </Button>
-                          </div>}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </TabsContent>
@@ -208,10 +246,12 @@ const AssetLibrary = ({
                       <div className="space-y-2">
                         <Label htmlFor="website-url">URL</Label>
                         <Input id="website-url" placeholder="https://example.com" value={newAssetContent} onChange={e => setNewAssetContent(e.target.value)} className="bg-[#1A1A2E]/50 border-[#2A2A4A]/30" />
-                        {newAssetContent && !newAssetContent.startsWith('http') && <p className="text-yellow-400 text-xs flex items-center gap-1 mt-1">
+                        {newAssetContent && !newAssetContent.startsWith('http') && (
+                          <p className="text-yellow-400 text-xs flex items-center gap-1 mt-1">
                             <AlertCircle size={12} />
                             URL should start with http:// or https://
-                          </p>}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </TabsContent>
@@ -235,7 +275,15 @@ const AssetLibrary = ({
           </Dialog>
           
           {/* Drawing Dialog */}
-          <DrawingModule onDrawingComplete={handleDrawingComplete} triggerLabel="Open Drawing Canvas" modalTitle="Create Your Drawing" width={512} height={512} open={drawingDialogOpen} onOpenChange={setDrawingDialogOpen} />
+          <DrawingModule 
+            onDrawingComplete={handleDrawingComplete} 
+            triggerLabel="Open Drawing Canvas" 
+            modalTitle="Create Your Drawing" 
+            width={512} 
+            height={512} 
+            open={drawingDialogOpen} 
+            onOpenChange={setDrawingDialogOpen} 
+          />
         </div>
         
         <div className="space-y-4">
@@ -245,9 +293,23 @@ const AssetLibrary = ({
         </div>
       </div>
       
-      {filteredAssets.length === 0 ? <EmptyState onCreateNew={() => setCreationDialogOpen(true)} filtered={searchTerm !== "" || filters.types.length > 0 || filters.tags.length > 0} /> : <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filteredAssets.map(asset => <AssetCard key={asset.id} asset={asset} onSelect={handleAssetSelect} />)}
-        </div>}
-    </div>;
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-[#1A1A2E]/20 rounded-lg p-4 h-64 animate-pulse" />
+          ))}
+        </div>
+      ) : filteredAssets.length === 0 ? (
+        <EmptyState onCreateNew={() => setCreationDialogOpen(true)} filtered={searchTerm !== "" || filters.types.length > 0 || filters.tags.length > 0} />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {filteredAssets.map(asset => (
+            <AssetCard key={asset.id} asset={asset} onSelect={handleAssetSelect} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 };
+
 export default AssetLibrary;

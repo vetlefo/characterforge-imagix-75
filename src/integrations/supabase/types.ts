@@ -9,6 +9,87 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      asset_relationships: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          source_id: string
+          strength: number
+          target_id: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          source_id: string
+          strength: number
+          target_id: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          source_id?: string
+          strength?: number
+          target_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_relationships_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "creative_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_relationships_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "creative_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creative_assets: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          tags: string[] | null
+          title: string | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          tags?: string[] | null
+          title?: string | null
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          tags?: string[] | null
+          title?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       credits: {
         Row: {
           amount: number
