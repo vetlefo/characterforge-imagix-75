@@ -1,3 +1,4 @@
+
 // Importing necessary components
 import { Link } from "react-router-dom";
 import { ArrowRightIcon } from "lucide-react";
@@ -5,9 +6,9 @@ import Layout from "../components/Layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import QuickStartItem from "@/components/QuickStartItem";
-import FeaturedAppCard from "@/components/FeaturedAppCard";
-import ModelCard from "@/components/ModelCard";
-import CreationCard from "@/components/CreationCard";
+import { FeaturedAppCard } from "@/components/FeaturedAppCard";
+import { ModelCard } from "@/components/ModelCard";
+import { CreationCard } from "@/components/CreationCard";
 
 // Main component for the landing page
 export default function Index() {
