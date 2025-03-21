@@ -1,23 +1,35 @@
+
 import React from 'react';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup } from '@/components/ui/sidebar';
 import { Home, PenLine, Layers, Play, LightbulbIcon, Orbit } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
 interface LayoutProps {
   children: React.ReactNode;
 }
+
 const Layout: React.FC<LayoutProps> = ({
   children
 }) => {
-  return <SidebarProvider>
+  return (
+    <SidebarProvider defaultOpen={false}>
       <div className="flex h-screen w-full bg-background">
-        <Sidebar variant="sidebar" collapsible="icon" className="bg-[#333370]">
+        <Sidebar 
+          variant="sidebar" 
+          collapsible="icon" 
+          className="bg-[#333370] z-50"
+          style={{ 
+            "--sidebar-width": "200px", 
+            "--sidebar-width-icon": "50px" 
+          } as React.CSSProperties}
+        >
           <SidebarHeader>
-            <div className="flex h-14 items-center px-4 bg-[#0f0f23]">
-              <strong className="text-lg font-semibold">Lovable Creative</strong>
+            <div className="flex h-14 items-center justify-center px-4 bg-[#0f0f23]">
+              <strong className="text-lg font-semibold text-center">LC</strong>
             </div>
           </SidebarHeader>
           
-          <SidebarContent className="#0F0F23 bg-[#0f0f23]">
+          <SidebarContent className="bg-[#0f0f23]">
             <SidebarGroup>
               <SidebarMenu>
                 <SidebarMenuItem className="bg-[#0f0f23]">
@@ -79,17 +91,19 @@ const Layout: React.FC<LayoutProps> = ({
           
           <SidebarFooter>
             <div className="p-4">
-              <div className="text-xs text-sidebar-foreground/60">
-                Lovable Creative v1.0
+              <div className="text-xs text-center text-sidebar-foreground/60">
+                v1.0
               </div>
             </div>
           </SidebarFooter>
         </Sidebar>
         
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto pl-[50px] w-[calc(100vw-50px)]">
           {children}
         </main>
       </div>
-    </SidebarProvider>;
+    </SidebarProvider>
+  );
 };
+
 export default Layout;
