@@ -19,7 +19,7 @@ const Layout: React.FC<LayoutProps> = ({
         "--sidebar-width": "200px",
         "--sidebar-width-icon": "50px"
       } as React.CSSProperties}>
-          <SidebarHeader>
+          <SidebarHeader className="bg-[#0f0f23]">
             <div className="flex h-14 items-center justify-center px-4 bg-[#0f0f23]">
               <strong className="text-lg font-semibold text-center">OI</strong>
               
