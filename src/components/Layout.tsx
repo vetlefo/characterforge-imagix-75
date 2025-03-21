@@ -10,7 +10,7 @@ const Layout: React.FC<LayoutProps> = ({
 }) => {
   return <SidebarProvider>
       <div className="flex h-screen w-full bg-background">
-        <Sidebar variant="sidebar" collapsible="icon" className="bg-yellow-500">
+        <Sidebar variant="sidebar" collapsible="icon" className="bg-[#333370]">
           <SidebarHeader>
             <div className="flex h-14 items-center px-4 bg-[#0f0f23]">
               <strong className="text-lg font-semibold">Lovable Creative</strong>
