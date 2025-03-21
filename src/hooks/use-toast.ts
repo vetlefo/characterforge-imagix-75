@@ -25,8 +25,8 @@ function genId() {
 
 type ActionType = typeof actionTypes
 
-// Define the ToasterToast type that was missing
-interface ToasterToast extends ToastProps {
+// Define the ToasterToast type
+export interface ToasterToast extends Omit<ToastProps, "title" | "description"> {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
@@ -34,6 +34,11 @@ interface ToasterToast extends ToastProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
+
+// Define the simpler Toast type for external API
+export type Toast = Partial<
+  Omit<ToasterToast, "id" | "open" | "onOpenChange">
+>
 
 type Action =
   | {
@@ -141,9 +146,7 @@ function dispatch(action: Action) {
   })
 }
 
-type Toast = Omit<ToasterToast, "id">
-
-function toast({ ...props }: Toast) {
+function toast(props: Toast) {
   const id = genId()
 
   const update = (props: ToasterToast) =>
@@ -162,7 +165,7 @@ function toast({ ...props }: Toast) {
       onOpenChange: (open) => {
         if (!open) dismiss()
       },
-    },
+    } as ToasterToast,
   })
 
   return {
