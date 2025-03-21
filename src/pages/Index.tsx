@@ -101,23 +101,23 @@ export default function Index() {
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">Recent Creations</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <CreationCard
+              type="image"
               name="Abstract Art"
-              type="Generated using AI"
               image="https://source.unsplash.com/random/400x300?art"
             />
             <CreationCard
+              type="image"
               name="Modern Logo"
-              type="Designed for a tech startup"
               image="https://source.unsplash.com/random/400x300?logo"
             />
             <CreationCard
+              type="image"
               name="UI Mockup"
-              type="Created for a mobile app"
               image="https://source.unsplash.com/random/400x300?ui"
             />
             <CreationCard
+              type="image"
               name="3D Render"
-              type="Rendered using Blender"
               image="https://source.unsplash.com/random/400x300?3d"
             />
           </div>
@@ -128,19 +128,22 @@ export default function Index() {
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">Available Models</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <ModelCard
-              name="Stable Diffusion"
-              description="Generate high-quality images from text prompts"
-              type="Image Generation"
+              title="Stable Diffusion"
+              subtitle="Generate high-quality images from text prompts"
+              imageSrc="https://source.unsplash.com/random/400x300?ai"
+              tags={[{ label: "Image Generation", variant: "blue" }]}
             />
             <ModelCard
-              name="GPT-3"
-              description="Powerful language model for text generation"
-              type="Text Generation"
+              title="GPT-3"
+              subtitle="Powerful language model for text generation"
+              imageSrc="https://source.unsplash.com/random/400x300?language"
+              tags={[{ label: "Text Generation", variant: "green" }]}
             />
             <ModelCard
-              name="DALL-E 2"
-              description="Create realistic images and art from a description in natural language"
-              type="Image Generation"
+              title="DALL-E 2"
+              subtitle="Create realistic images and art from a description in natural language"
+              imageSrc="https://source.unsplash.com/random/400x300?robot"
+              tags={[{ label: "Image Generation", variant: "blue" }]}
             />
           </div>
         </section>
