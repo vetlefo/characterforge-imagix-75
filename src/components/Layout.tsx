@@ -108,33 +108,35 @@ const Layout: React.FC<LayoutProps> = ({
           </SidebarContent>
           
           <SidebarFooter className="bg-[#0f0f23]">
-            <div className="flex flex-col items-center justify-center w-full p-2">
-              <SidebarMenu className="w-full">
-                <SidebarMenuItem className="flex justify-center">
-                  <SidebarMenuButton asChild tooltip="Settings" isActive={location.pathname === '/settings'}>
-                    <Link to="/settings" className="flex items-center justify-center" style={{ marginLeft: "15px" }}>
-                      <Settings size={20} />
-                      <span>Settings</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-              
-              {/* Toggle button in footer when collapsed */}
-              {!isExpanded && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={toggleSidebar} 
-                  className="flex justify-center text-white hover:bg-[#1a1a40] mt-3 mb-2 w-8 h-8 p-0"
-                  style={{ marginLeft: "15px" }}
-                >
-                  <PanelRight size={16} />
-                </Button>
-              )}
-              
-              <div className="text-xs text-center text-sidebar-foreground/60 mt-1" style={{ marginLeft: "15px" }}>
-                v1.0
+            <div className="flex flex-col items-center w-full p-2">
+              {/* Center everything within a precisely 50px width container */}
+              <div className="flex flex-col items-center w-[50px]">
+                <SidebarMenu className="w-full">
+                  <SidebarMenuItem className="flex justify-center">
+                    <SidebarMenuButton asChild tooltip="Settings" isActive={location.pathname === '/settings'}>
+                      <Link to="/settings" className="flex items-center justify-center">
+                        <Settings size={20} />
+                        <span>Settings</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+                
+                {/* Toggle button in footer when collapsed */}
+                {!isExpanded && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={toggleSidebar} 
+                    className="flex justify-center text-white hover:bg-[#1a1a40] mt-3 mb-2 w-8 h-8 p-0"
+                  >
+                    <PanelRight size={16} />
+                  </Button>
+                )}
+                
+                <div className="text-xs text-center text-sidebar-foreground/60 mt-1">
+                  v1.0
+                </div>
               </div>
             </div>
           </SidebarFooter>
