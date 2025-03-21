@@ -21,6 +21,9 @@ import Home from "./pages/Home";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Integrations from "./pages/Integrations";
+import Auth from "./pages/Auth";
+import { AuthProvider } from "./contexts/AuthContext";
+import { Toaster } from "@/components/ui/sonner";
 
 // Routes configuration
 const routes = [
@@ -88,11 +91,20 @@ const routes = [
   {
     path: "/integrations",
     element: <Integrations />,
+  },
+  {
+    path: "/auth",
+    element: <Auth />,
   }
 ];
 
 function App() {
-  return <RouterProvider router={createBrowserRouter(routes)} />;
+  return (
+    <AuthProvider>
+      <RouterProvider router={createBrowserRouter(routes)} />
+      <Toaster position="top-right" />
+    </AuthProvider>
+  );
 }
 
 export default App;
