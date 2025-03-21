@@ -2,9 +2,10 @@
 import { useState } from "react";
 import DrawingModule from "../draw/DrawingModule";
 import { Button } from "../ui/button";
-import { Layers, Wand2 } from "lucide-react";
+import { Layers, Wand2, PenTool, Sparkles } from "lucide-react";
 import { useCreative } from "./CreativeContext";
 import MediaTransform from "./MediaTransform/MediaTransform";
+import MakeRealDrawing from "./MakeReal/MakeRealDrawing";
 
 interface CreativeSpaceProps {
   children?: React.ReactNode;
@@ -23,6 +24,7 @@ const CreativeSpace = ({ children, lastImage, onDrawingComplete }: CreativeSpace
   } = useCreative();
   
   const [showMediaTransform, setShowMediaTransform] = useState(false);
+  const [showMakeReal, setShowMakeReal] = useState(false);
 
   // Handle drawing completion with context awareness
   const handleDrawingComplete = (dataUrl: string) => {
@@ -54,6 +56,14 @@ const CreativeSpace = ({ children, lastImage, onDrawingComplete }: CreativeSpace
     setActiveDrawing(true);
   };
 
+  const handleMakeRealToggle = () => {
+    setShowMakeReal(!showMakeReal);
+    // Hide MediaTransform when showing MakeReal
+    if (!showMakeReal) {
+      setShowMediaTransform(false);
+    }
+  };
+
   if (children) {
     return <div className="creative-space-container">{children}</div>;
   }
@@ -77,6 +87,14 @@ const CreativeSpace = ({ children, lastImage, onDrawingComplete }: CreativeSpace
               >
                 <Wand2 size={16} />
                 Transform Media
+              </Button>
+              <Button 
+                variant="outline" 
+                className="border-white/20 text-white bg-black/30 backdrop-blur-sm gap-2"
+                onClick={handleMakeRealToggle}
+              >
+                <Sparkles size={16} />
+                Make Real
               </Button>
               <Button variant="outline" className="border-white/20 text-white bg-black/30 backdrop-blur-sm">
                 Export
@@ -117,6 +135,14 @@ const CreativeSpace = ({ children, lastImage, onDrawingComplete }: CreativeSpace
                 onDrawingComplete={handleDrawingComplete} 
                 triggerLabel="Start Creating"
               />
+              <Button 
+                variant="outline" 
+                className="gap-2 bg-[#1A1A2E]/40 border-[#2A2A4A]/50 backdrop-blur-sm"
+                onClick={handleMakeRealToggle}
+              >
+                <Sparkles size={16} className="text-blue-400" />
+                Make Real Drawing
+              </Button>
               <Button variant="outline" className="gap-2 bg-[#1A1A2E]/40 border-[#2A2A4A]/50 backdrop-blur-sm">
                 <Layers size={16} className="text-blue-400" />
                 Import Inspiration
@@ -130,6 +156,20 @@ const CreativeSpace = ({ children, lastImage, onDrawingComplete }: CreativeSpace
       {showMediaTransform && lastImage && (
         <div className="mt-4">
           <MediaTransform imageUrl={lastImage} />
+        </div>
+      )}
+
+      {/* Make Real drawing panel */}
+      {showMakeReal && (
+        <div className="mt-4">
+          <MakeRealDrawing 
+            initialImage={lastImage} 
+            onComplete={(generatedComponent) => {
+              console.log("Generated component:", generatedComponent);
+              // Here we would add logic to integrate the generated component
+              // into our application
+            }} 
+          />
         </div>
       )}
     </div>
