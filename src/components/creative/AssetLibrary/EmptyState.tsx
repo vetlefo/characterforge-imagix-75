@@ -22,7 +22,7 @@ const EmptyState = ({
       </p>
       
       {!filtered && <div className="flex gap-3">
-          <Button onClick={onCreateNew} className="gap-2 from-blue-600/80 to-purple-600/80 hover:from-blue-600 hover:to-purple-600 bg-[151a38] text-[151a38] rounded-sm">
+          <Button onClick={onCreateNew} className="gap-2 from-blue-600/80 to-purple-600/80 hover:from-blue-600 hover:to-slate-600 bg-[151a38] text-[151a38] rounded-sm font-medium bg-slate-950 hover:bg-slate-800">
             <Sparkles size={16} />
             Create New Asset
           </Button>
