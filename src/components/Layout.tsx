@@ -108,8 +108,8 @@ const Layout: React.FC<LayoutProps> = ({
           </SidebarContent>
           
           <SidebarFooter className="bg-[#0f0f23]">
-            <div className="p-4">
-              {/* Settings button moved to footer */}
+            <div className="p-4 flex flex-col items-center">
+              {/* Settings button moved to footer with proper alignment */}
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild tooltip="Settings" isActive={location.pathname === '/settings'}>
@@ -122,9 +122,17 @@ const Layout: React.FC<LayoutProps> = ({
               </SidebarMenu>
               
               {/* Toggle button in footer when collapsed */}
-              {!isExpanded && <Button variant="ghost" size="icon" onClick={toggleSidebar} className="w-full flex justify-center text-white hover:bg-[#1a1a40] mt-4">
+              {!isExpanded && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={toggleSidebar} 
+                  className="w-full flex justify-center text-white hover:bg-[#1a1a40] mt-4"
+                >
                   <PanelRight size={18} />
-                </Button>}
+                </Button>
+              )}
+              
               <div className="text-xs text-center text-sidebar-foreground/60 mt-2">
                 v1.0
               </div>
