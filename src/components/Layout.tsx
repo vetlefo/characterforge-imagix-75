@@ -24,7 +24,7 @@ const Layout: React.FC<LayoutProps> = ({
         <Sidebar 
           variant="sidebar" 
           collapsible={isExpanded ? "none" : "icon"} 
-          className="bg-[#333370] z-50"
+          className="bg-[#333370] z-50 border-none"
           style={{ 
             "--sidebar-width": "200px", 
             "--sidebar-width-icon": "50px" 
@@ -128,7 +128,7 @@ const Layout: React.FC<LayoutProps> = ({
           </SidebarFooter>
         </Sidebar>
         
-        <main className="flex-1 overflow-auto pl-[50px] bg-background">
+        <main className="flex-1 overflow-auto bg-background">
           {children}
         </main>
       </div>
