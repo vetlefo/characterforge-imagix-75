@@ -80,21 +80,18 @@ export default function Index() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <FeaturedAppCard
               title="Website Preview"
-              description="Preview websites with instant updates"
-              icon="Globe"
-              link="/website-preview-demo"
+              subtitle="Preview websites with instant updates"
+              imageSrc="https://source.unsplash.com/random/400x300?website"
             />
             <FeaturedAppCard
               title="Media Transform"
-              description="Convert media between different formats"
-              icon="ImagePlus"
-              link="/media"
+              subtitle="Convert media between different formats"
+              imageSrc="https://source.unsplash.com/random/400x300?media"
             />
             <FeaturedAppCard
               title="Animation Studio"
-              description="Create and edit animations"
-              icon="Film"
-              link="/animation"
+              subtitle="Create and edit animations"
+              imageSrc="https://source.unsplash.com/random/400x300?animation"
             />
           </div>
         </section>
@@ -104,24 +101,24 @@ export default function Index() {
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">Recent Creations</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <CreationCard
-              title="Abstract Art"
-              description="Generated using AI"
-              imageSrc="https://source.unsplash.com/random/400x300?art"
+              name="Abstract Art"
+              type="Generated using AI"
+              image="https://source.unsplash.com/random/400x300?art"
             />
             <CreationCard
-              title="Modern Logo"
-              description="Designed for a tech startup"
-              imageSrc="https://source.unsplash.com/random/400x300?logo"
+              name="Modern Logo"
+              type="Designed for a tech startup"
+              image="https://source.unsplash.com/random/400x300?logo"
             />
             <CreationCard
-              title="UI Mockup"
-              description="Created for a mobile app"
-              imageSrc="https://source.unsplash.com/random/400x300?ui"
+              name="UI Mockup"
+              type="Created for a mobile app"
+              image="https://source.unsplash.com/random/400x300?ui"
             />
             <CreationCard
-              title="3D Render"
-              description="Rendered using Blender"
-              imageSrc="https://source.unsplash.com/random/400x300?3d"
+              name="3D Render"
+              type="Rendered using Blender"
+              image="https://source.unsplash.com/random/400x300?3d"
             />
           </div>
         </section>
@@ -131,19 +128,19 @@ export default function Index() {
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">Available Models</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <ModelCard
-              title="Stable Diffusion"
+              name="Stable Diffusion"
               description="Generate high-quality images from text prompts"
-              link="#"
+              type="Image Generation"
             />
             <ModelCard
-              title="GPT-3"
+              name="GPT-3"
               description="Powerful language model for text generation"
-              link="#"
+              type="Text Generation"
             />
             <ModelCard
-              title="DALL-E 2"
+              name="DALL-E 2"
               description="Create realistic images and art from a description in natural language"
-              link="#"
+              type="Image Generation"
             />
           </div>
         </section>
