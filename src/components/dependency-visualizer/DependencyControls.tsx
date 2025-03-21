@@ -2,7 +2,7 @@
 import React from 'react';
 import { useDependency } from './DependencyContext';
 import { Button } from '@/components/ui/button';
-import { RefreshCcw, Filter, Eye, Search, Info, FileTree } from 'lucide-react';
+import { RefreshCcw, Filter, Eye, Search, Info, FolderTree } from 'lucide-react';
 
 interface DependencyControlsProps {
   className?: string;
@@ -57,7 +57,7 @@ const DependencyControls: React.FC<DependencyControlsProps> = ({ className = '' 
         className={`gap-2 ${highlightMode === 'both' ? 'bg-pink-600/50' : 'bg-pink-600/10'}`}
         onClick={() => setHighlightMode(highlightMode === 'both' ? 'none' : 'both')}
       >
-        <FileTree size={16} />
+        <FolderTree size={16} />
         <span className="hidden md:inline">Show All</span>
         <span className="md:hidden">All</span>
       </Button>
