@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import CreativePossibilities from "@/components/creative/CreativePossibilities";
 import InspirationalEchoes from "@/components/creative/InspirationalEchoes";
 import Layout from "@/components/Layout";
+import SimpleCollaborationVisualizer from "@/components/creative/SimpleCollaborationVisualizer";
 
 const Index = () => {
   return (
@@ -69,6 +70,9 @@ const Index = () => {
           </div>
         </div>
       </div>
+      
+      {/* Add the simple collaboration visualizer */}
+      <SimpleCollaborationVisualizer />
     </Layout>
   );
 };

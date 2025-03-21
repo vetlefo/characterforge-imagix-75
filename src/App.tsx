@@ -17,6 +17,7 @@ import Media from "./pages/Media";
 import WebsitePreviewDemo from "./pages/WebsitePreviewDemo";
 import AssetLibraryPage from "./pages/AssetLibraryPage";
 import StyleSystemPage from "./pages/StyleSystemPage";
+import Home from "./pages/Home";
 
 // Routes configuration
 const routes = [
@@ -24,6 +25,10 @@ const routes = [
     path: "/",
     element: <Index />,
     errorElement: <NotFound />,
+  },
+  {
+    path: "/home",
+    element: <Home />,
   },
   {
     path: "/drawing",

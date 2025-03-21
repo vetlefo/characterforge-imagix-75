@@ -4,7 +4,7 @@ import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarFooter,
 import { Home, PenLine, Layers, Play, LightbulbIcon, Orbit, PanelLeft, PanelRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
-import CollaborationVisualizer from './creative/CollaborationVisualizer';
+import { useCreative } from './creative/CreativeContext';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -113,8 +113,7 @@ const Layout: React.FC<LayoutProps> = ({
           {children}
         </main>
         
-        {/* Add the Collaboration Visualizer */}
-        <CollaborationVisualizer />
+        {/* Remove the CollaborationVisualizer for now */}
       </div>
     </SidebarProvider>;
 };
