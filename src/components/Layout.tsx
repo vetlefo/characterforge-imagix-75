@@ -1,35 +1,23 @@
-
 import React from 'react';
-import { 
-  SidebarProvider, 
-  Sidebar, 
-  SidebarContent,
-  SidebarHeader,
-  SidebarFooter,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarGroup
-} from '@/components/ui/sidebar';
+import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup } from '@/components/ui/sidebar';
 import { Home, PenLine, Layers, Play, LightbulbIcon, Orbit } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
 interface LayoutProps {
   children: React.ReactNode;
 }
-
-const Layout: React.FC<LayoutProps> = ({ children }) => {
-  return (
-    <SidebarProvider>
+const Layout: React.FC<LayoutProps> = ({
+  children
+}) => {
+  return <SidebarProvider>
       <div className="flex h-screen w-full bg-background">
-        <Sidebar variant="sidebar" collapsible="icon">
+        <Sidebar variant="sidebar" collapsible="icon" className="bg-yellow-500">
           <SidebarHeader>
             <div className="flex h-14 items-center px-4">
               <strong className="text-lg font-semibold">Lovable Creative</strong>
             </div>
           </SidebarHeader>
           
-          <SidebarContent>
+          <SidebarContent className="#0F0F23 bg-[#0f0f23]">
             <SidebarGroup>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -102,8 +90,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           {children}
         </main>
       </div>
-    </SidebarProvider>
-  );
+    </SidebarProvider>;
 };
-
 export default Layout;

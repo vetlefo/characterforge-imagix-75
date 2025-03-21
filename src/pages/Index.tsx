@@ -1,14 +1,11 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { LightbulbIcon, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CreativePossibilities from "@/components/creative/CreativePossibilities";
 import InspirationalEchoes from "@/components/creative/InspirationalEchoes";
-
 const Index = () => {
-  return (
-    <div className="min-h-screen bg-[#0F0F23] text-white p-8">
+  return <div className="min-h-screen bg-[#0F0F23] text-white p-8">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-16 text-center">What would you like to create today?</h1>
 
@@ -47,11 +44,7 @@ const Index = () => {
         {/* Input Field */}
         <div className="mb-24 max-w-lg mx-auto">
           <div className="relative">
-            <input
-              type="text"
-              placeholder="What are you imagining?"
-              className="w-full bg-[#0D0D1F] border border-[#1A1F2C] rounded-full py-3 px-6 text-white"
-            />
+            <input type="text" placeholder="What are you imagining?" className="w-full bg-[#0D0D1F] border border-[#1A1F2C] rounded-full py-3 px-6 text-white" />
             <button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white p-2 rounded-full">
               <LightbulbIcon size={16} />
             </button>
@@ -70,8 +63,6 @@ const Index = () => {
           <InspirationalEchoes />
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
