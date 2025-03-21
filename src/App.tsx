@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   createBrowserRouter,
@@ -24,7 +23,7 @@ import Integrations from "./pages/Integrations";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import { AuthProvider } from "./contexts/AuthContext";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
 
 // Routes configuration
 const routes = [
@@ -107,7 +106,7 @@ function App() {
   return (
     <AuthProvider>
       <RouterProvider router={createBrowserRouter(routes)} />
-      <Toaster position="top-right" />
+      <Toaster />
     </AuthProvider>
   );
 }

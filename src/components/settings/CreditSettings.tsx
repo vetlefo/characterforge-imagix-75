@@ -5,11 +5,12 @@ import { Separator } from '@/components/ui/separator';
 import CreditsSummary from '@/components/dashboard/CreditsSummary';
 import RefillCreditsModal from '@/components/credits/RefillCreditsModal';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
 
 const CreditSettings = () => {
   const [refillModalOpen, setRefillModalOpen] = useState(false);
   const { credits, profile } = useAuth();
+  const { toast } = useToast();
   
   return (
     <div className="space-y-6">
@@ -41,7 +42,10 @@ const CreditSettings = () => {
                 <Button 
                   variant="outline"
                   className="w-full md:w-auto"
-                  onClick={() => toast.info('Donation program coming soon!')}
+                  onClick={() => toast({
+                    title: "Coming Soon",
+                    description: "Donation program coming soon!",
+                  })}
                 >
                   Apply for Credit Donation Program
                 </Button>

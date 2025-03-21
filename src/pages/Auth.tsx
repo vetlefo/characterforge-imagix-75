@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from 'sonner';
 import { HeartHandshake } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -15,6 +15,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,15 +24,26 @@ const Auth = () => {
     try {
       const { error } = await signIn(email, password);
       if (error) {
-        toast.error(error.message);
+        toast({
+          variant: "destructive",
+          title: "Error signing in",
+          description: error.message,
+        });
         return;
       }
       
-      toast.success('Signed in successfully!');
+      toast({
+        title: "Success",
+        description: "Signed in successfully!",
+      });
       navigate('/');
     } catch (error) {
       console.error('Sign in error:', error);
-      toast.error('An error occurred during sign in');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An error occurred during sign in",
+      });
     } finally {
       setLoading(false);
     }
@@ -44,14 +56,25 @@ const Auth = () => {
     try {
       const { error } = await signUp(email, password);
       if (error) {
-        toast.error(error.message);
+        toast({
+          variant: "destructive",
+          title: "Error signing up",
+          description: error.message,
+        });
         return;
       }
       
-      toast.success('Signed up successfully! Please check your email for verification.');
+      toast({
+        title: "Success",
+        description: "Signed up successfully! Please check your email for verification.",
+      });
     } catch (error) {
       console.error('Sign up error:', error);
-      toast.error('An error occurred during sign up');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An error occurred during sign up",
+      });
     } finally {
       setLoading(false);
     }
