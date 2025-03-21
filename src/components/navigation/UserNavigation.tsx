@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import { User, CreditCard, LogOut, Zap } from 'lucide-react';
+import { User, CreditCard, LogOut, Zap, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -74,6 +74,16 @@ const UserNavigation: React.FC = () => {
         Refill
       </Button>
       
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className="h-8 mr-2 px-2 text-white text-xs bg-[#333370]/20 hover:bg-[#333370]/40"
+        onClick={() => navigate('/dashboard')}
+      >
+        <LayoutDashboard size={14} className="mr-1" />
+        Dashboard
+      </Button>
+      
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 bg-[#333370]/20 text-white hover:bg-[#333370]/40">
@@ -83,6 +93,9 @@ const UserNavigation: React.FC = () => {
         <DropdownMenuContent align="end" className="w-56 bg-[#1a1a40] border-[#333370] text-white">
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link to="/dashboard" className="cursor-pointer">Dashboard</Link>
+          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link to="/profile" className="cursor-pointer">Profile</Link>
           </DropdownMenuItem>

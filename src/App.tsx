@@ -22,6 +22,7 @@ import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Integrations from "./pages/Integrations";
 import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -35,6 +36,10 @@ const routes = [
   {
     path: "/home",
     element: <Home />,
+  },
+  {
+    path: "/dashboard",
+    element: <Dashboard />,
   },
   {
     path: "/drawing",

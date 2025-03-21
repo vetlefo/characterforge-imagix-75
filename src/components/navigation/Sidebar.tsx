@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   SidebarProvider, Sidebar as UISidebar, SidebarContent, 
@@ -7,7 +6,7 @@ import {
 } from '@/components/ui/sidebar';
 import { 
   Home, PenLine, Layers, Play, Orbit, 
-  PanelLeft, PanelRight, BookImage, Palette, Settings 
+  PanelLeft, PanelRight, BookImage, Palette, Settings, LayoutDashboard
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -56,6 +55,15 @@ const SidebarComponent: React.FC<SidebarProps> = ({ isExpanded, toggleSidebar })
                 <Link to="/">
                   <Home size={20} />
                   <span>Home</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Dashboard" isActive={location.pathname === '/dashboard'}>
+                <Link to="/dashboard">
+                  <LayoutDashboard size={20} />
+                  <span>Dashboard</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
