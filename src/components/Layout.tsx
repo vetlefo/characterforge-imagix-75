@@ -1,10 +1,9 @@
 
 import React from 'react';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup } from '@/components/ui/sidebar';
-import { Home, PenLine, Layers, Play, LightbulbIcon, Orbit, PanelLeft, PanelRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Home, PenLine, Layers, Play, LightbulbIcon, Orbit, PanelLeft, PanelRight, BookImage, Palette } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from './ui/button';
-import { useCreative } from './creative/CreativeContext';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,12 +13,14 @@ const Layout: React.FC<LayoutProps> = ({
   children
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
+  const location = useLocation();
   
   const toggleSidebar = () => {
     setIsExpanded(prev => !prev);
   };
   
-  return <SidebarProvider defaultOpen={isExpanded}>
+  return (
+    <SidebarProvider defaultOpen={isExpanded}>
       <div className="flex h-screen w-full bg-background">
         <Sidebar variant="sidebar" collapsible={isExpanded ? "none" : "icon"} className="bg-[#333370] z-50 border-none" style={{
         "--sidebar-width": "200px",
@@ -40,7 +41,7 @@ const Layout: React.FC<LayoutProps> = ({
             <SidebarGroup>
               <SidebarMenu>
                 <SidebarMenuItem className="bg-[#0f0f23]">
-                  <SidebarMenuButton asChild tooltip="Home" isActive={window.location.pathname === '/'}>
+                  <SidebarMenuButton asChild tooltip="Home" isActive={location.pathname === '/' || location.pathname === '/home'}>
                     <Link to="/">
                       <Home size={20} />
                       <span>Home</span>
@@ -49,7 +50,7 @@ const Layout: React.FC<LayoutProps> = ({
                 </SidebarMenuItem>
                 
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Create" isActive={window.location.pathname === '/drawing'}>
+                  <SidebarMenuButton asChild tooltip="Create" isActive={location.pathname === '/drawing'}>
                     <Link to="/drawing">
                       <PenLine size={20} />
                       <span>Create</span>
@@ -58,7 +59,7 @@ const Layout: React.FC<LayoutProps> = ({
                 </SidebarMenuItem>
                 
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Style" isActive={window.location.pathname === '/styling'}>
+                  <SidebarMenuButton asChild tooltip="Style" isActive={location.pathname === '/styling' || location.pathname === '/style-system'}>
                     <Link to="/styling">
                       <Layers size={20} />
                       <span>Style</span>
@@ -67,16 +68,7 @@ const Layout: React.FC<LayoutProps> = ({
                 </SidebarMenuItem>
                 
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Insights" isActive={false}>
-                    <Link to="#">
-                      <LightbulbIcon size={20} />
-                      <span>Insights</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Animation" isActive={window.location.pathname === '/animation'}>
+                  <SidebarMenuButton asChild tooltip="Animation" isActive={location.pathname === '/animation'}>
                     <Link to="/animation">
                       <Play size={20} />
                       <span>Animation</span>
@@ -85,10 +77,28 @@ const Layout: React.FC<LayoutProps> = ({
                 </SidebarMenuItem>
                 
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Media" isActive={window.location.pathname === '/media'}>
+                  <SidebarMenuButton asChild tooltip="Media" isActive={location.pathname === '/media'}>
                     <Link to="/media">
                       <Orbit size={20} />
                       <span>Media</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Website" isActive={location.pathname === '/website' || location.pathname === '/website-preview-demo'}>
+                    <Link to="/website">
+                      <Palette size={20} />
+                      <span>Website</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Assets" isActive={location.pathname === '/asset-library'}>
+                    <Link to="/asset-library">
+                      <BookImage size={20} />
+                      <span>Assets</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -109,13 +119,12 @@ const Layout: React.FC<LayoutProps> = ({
           </SidebarFooter>
         </Sidebar>
         
-        <main className="flex-1 overflow-auto bg-background">
+        <main className="flex-1 overflow-auto bg-[#0F0F23]">
           {children}
         </main>
-        
-        {/* Remove the CollaborationVisualizer for now */}
       </div>
-    </SidebarProvider>;
+    </SidebarProvider>
+  );
 };
 
 export default Layout;
